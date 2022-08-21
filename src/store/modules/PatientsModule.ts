@@ -14,12 +14,20 @@ export interface PatientsInfo {
   patientDocumentList: IPatient;
 }
 
+export interface PatientAppointmentsData {
+  pastAppointments: Array<IApt>;
+  futureAppointments: Array<IApt>;
+}
+
 @Module
 export default class PatientsModule extends VuexModule implements PatientsInfo {
   patientsData = [] as Array<IPatient>;
   patientsSelectData = {} as IPatient;
   patientDocumentList = {} as IPatient;
-  patientAppointmentsData = [] as Array<IApt>;
+  patientAppointmentsData = {
+    pastAppointments: [],
+    futureAppointments: [],
+  } as PatientAppointmentsData;
   /**
    * Get current Patients List
    * @returns Patients
@@ -44,7 +52,7 @@ export default class PatientsModule extends VuexModule implements PatientsInfo {
     return this.patientsSelectData;
   }
 
-  get getPatientAppointments(): Array<IApt> {
+  get getPatientAppointments(): PatientAppointmentsData {
     return this.patientAppointmentsData;
   }
 
@@ -162,11 +170,35 @@ export default class PatientsModule extends VuexModule implements PatientsInfo {
     if (JwtService.getToken()) {
       ApiService.setHeader();
       ApiService.post(
-        data.patient_id + "/patient-documents/upload",
-        data.formData
+        data.get("patient_id") + "/" + data.get("document_type") + "/upload",
+        data
       )
         .then(({ data }) => {
-          this.context.dispatch(Actions.PATIENTS.DOCUMENT.LIST);
+          this.context.dispatch(
+            Actions.PATIENTS.DOCUMENT.LIST,
+            data.get("patient_id")
+          );
+          return data.data;
+        })
+        .catch(({ response }) => {
+          console.log(response.data.error);
+          // this.context.commit(Mutations.SET_ERROR, response.data.errors);
+        });
+    } else {
+      this.context.commit(Mutations.PURGE_AUTH);
+    }
+  }
+
+  @Action
+  [Actions.PATIENTS.DOCUMENT.SEND_VIA_EMAIL](data) {
+    if (JwtService.getToken()) {
+      ApiService.setHeader();
+      ApiService.post("patient-documents/send-via-email", data)
+        .then(({ data }) => {
+          this.context.dispatch(
+            Actions.PATIENTS.DOCUMENT.LIST,
+            data.get("patient_id")
+          );
           return data.data;
         })
         .catch(({ response }) => {

@@ -51,10 +51,13 @@
             <div v-if="item.confirmation_status === 'CANCELED'">
               Reason: {{ item.cancel_reason }}
             </div>
-            <span>{{ item.date }} {{ item.start_time }}</span>
-            <span>@ {{ item.clinic_name }}</span>
+            <span
+              >{{ item.aus_formatted_date }}
+              {{ item.formatted_appointment_time }}</span
+            >
+            <span>@ {{ item.clinic_details.name }}</span>
 
-            <span>{{ item.appointment_type_name }}</span>
+            <span>{{ item.appointment_type.name }}</span>
             <span> {{ item.specialist_name }}</span>
           </div>
         </template>
@@ -130,6 +133,8 @@
   </div>
   <CollectingPersonModal :selectedApt="selectedApt"></CollectingPersonModal>
   <!--end::details View-->
+
+  <PreAdmissionFormModal isEditable="false" />
 </template>
 
 <script lang="ts">
@@ -146,15 +151,17 @@ import { useStore } from "vuex";
 import { useRouter } from "vue-router";
 import Datatable from "@/components/kt-datatable/KTDatatable.vue";
 import moment from "moment";
-import md5 from "js-md5";
 import CollectingPersonModal from "./CollectingPerson.vue";
 import { Modal } from "bootstrap";
+import PreAdmissionFormModal from "@/components/anesthetist/PreAdmissionForm.vue";
+import { Mutations } from "@/store/enums/StoreEnums";
 
 export default defineComponent({
   name: "patient-appointments",
   components: {
     Datatable,
     CollectingPersonModal,
+    PreAdmissionFormModal,
   },
   setup() {
     const store = useStore();
@@ -194,12 +201,11 @@ export default defineComponent({
     };
 
     const handlePreAdmission = (item) => {
-      router.push({
-        path:
-          "/appointment_pre_admissions/show/" +
-          md5(item.id.toString()) +
-          "/form_1",
-      });
+      store.commit(Mutations.SET_PROCEDURE_APPROVAL.DATA, item);
+      const modal = new Modal(
+        document.getElementById("modal_view_pre_admission")
+      );
+      modal.show();
     };
 
     const handleView = () => {
@@ -231,7 +237,6 @@ export default defineComponent({
     };
 
     watch(showFutureApt, () => {
-      console.log(showFutureApt.value);
       const today = moment(new Date());
       if (showFutureApt.value) {
         tableData.value = formData.value;
@@ -253,7 +258,7 @@ export default defineComponent({
       } else {
         tableData.value = formData.value;
       }
-      console.log(formData.value);
+      renderTable();
     });
 
     onMounted(() => {

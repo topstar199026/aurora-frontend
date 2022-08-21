@@ -109,6 +109,10 @@ const Actions = {
     DOCUMENT: {
       LIST: "listPatientsDocuments",
       CREATE: "createPatientsDocument",
+      SEND_VIA_EMAIL: "sendPatientsDocumentViaEmail",
+      AUDIO: {
+        CREATE: "createPatientsDocumentAudio",
+      },
     },
   },
 
@@ -214,6 +218,9 @@ const Actions = {
       ORG: "listAptPreAdmissionOrg",
       VALIDATE: "validateAptPreAdmission",
       STORE: "createAptPreAdmission",
+    },
+    USER_APT: {
+      LIST: "userAptList",
     },
   },
 
@@ -388,6 +395,10 @@ const Mutations = {
         DATA: "setValidateAptPreAdmission",
         MSG: "setValidateAptPreAdmissionMsg",
       },
+    },
+    USER_APT: {
+      LIST: "setUserAptList",
+      SELECT: "setSelectUserApt",
     },
   },
 

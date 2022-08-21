@@ -131,12 +131,6 @@
           </span>
         </template>
 
-        <template v-slot:cell-specialist_name="{ row: item }">
-          <span class="text-dark fw-bolder text-hover-primary mb-1 fs-6">
-            {{ item.specialist_name }}
-          </span>
-        </template>
-
         <template v-slot:cell-appointment_type="{ row: item }">
           <span class="text-dark fw-bolder text-hover-primary mb-1 fs-6">
             {{ item.appointment_type.name }}
@@ -150,7 +144,10 @@
         </template>
 
         <template v-slot:cell-actions="{ row: item }">
-          <span class="text-dark fw-bolder text-hover-primary mb-1 fs-6">
+          <span
+            v-if="item.pre_admission_form_url !== null"
+            class="text-dark fw-bolder text-hover-primary mb-1 fs-6"
+          >
             <button
               @click="handleFormModal(item)"
               class="btn btn-active-color-primary btn-primary"
@@ -158,12 +155,13 @@
               View Pre Admission Form
             </button>
           </span>
+          <span v-else> No Pre Admission Form </span>
         </template>
       </Datatable>
     </div>
   </div>
 
-  <PreAdmissionFormModal></PreAdmissionFormModal>
+  <PreAdmissionFormModal isEditable="true" />
 </template>
 
 <script>
@@ -195,12 +193,6 @@ export default defineComponent({
       {
         name: "Date/Time",
         key: "date_time",
-        sortable: true,
-        searchable: true,
-      },
-      {
-        name: "Specialist Name",
-        key: "specialist_name",
         sortable: true,
         searchable: true,
       },
@@ -285,7 +277,9 @@ export default defineComponent({
     onMounted(() => {
       loading.value = true;
       setCurrentPageBreadcrumbs("Dashboard", ["Anesthetist"]);
-      store.dispatch(Actions.PROCEDURE_APPROVAL.LIST);
+      store.dispatch(Actions.PROCEDURE_APPROVAL.LIST).then(() => {
+        loading.value = false;
+      });
     });
 
     return {
@@ -298,6 +292,7 @@ export default defineComponent({
       searchPatient,
       clearFilters,
       showAll,
+      loading,
     };
   },
 });

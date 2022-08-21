@@ -22,9 +22,16 @@
         data-kt-menu-placement="bottom-end"
         data-kt-menu-flip="bottom"
       >
-        <img src="media/avatars/300-1.jpg" alt="metronic" />
+        <img
+          :src="
+            profileData.photo == undefined
+              ? 'media/avatars/blank.png'
+              : profileData.photo
+          "
+          :alt="profileData.first_name + ' ' + profileData.last_name"
+        />
       </div>
-      <KTUserMenu></KTUserMenu>
+      <KTUserMenu :profile-data="profileData"></KTUserMenu>
     </div>
 
     <div
@@ -43,18 +50,28 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from "vue";
-// import KTNotificationsMenu from "@/layout/header/partials/NotificationsMenu.vue";
-// import KTQuickLinksMenu from "@/layout/header/partials/QuickLinksMenu.vue";
+<script>
+import { defineComponent, computed, onMounted } from "vue";
+import { useStore } from "vuex";
 import KTUserMenu from "@/layout/header/partials/UserMenu.vue";
+import { Actions } from "@/store/enums/StoreEnums";
 
 export default defineComponent({
-  name: "layout-topbar",
+  name: "layout-top-bar",
   components: {
-    // KTNotificationsMenu,
-    // KTQuickLinksMenu,
     KTUserMenu,
+  },
+  setup() {
+    const store = useStore();
+    const profileData = computed(() => store.getters.getProfileSelected);
+
+    onMounted(() => {
+      store.dispatch(Actions.PROFILE.VIEW);
+    });
+
+    return {
+      profileData,
+    };
   },
 });
 </script>

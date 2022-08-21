@@ -19,6 +19,8 @@ export interface AptInfo {
   aptPreAdmissionValidateMsg: string;
   selectedSpecialistData;
   aptDataById: Array<IApt>;
+  userAptList: Array<IApt>;
+  aptUserSelectedData: IApt;
 }
 
 @Module
@@ -34,6 +36,8 @@ export default class AppointmentModule extends VuexModule implements AptInfo {
   aptPreAdmissionValidateMsg = "" as string;
   selectedSpecialistData = null;
   aptDataById = [] as Array<IApt>;
+  userAptList = [] as Array<IApt>;
+  aptUserSelectedData = {} as IApt;
   /**
    * Get current user object
    * @returns AdminList
@@ -120,6 +124,22 @@ export default class AppointmentModule extends VuexModule implements AptInfo {
     return this.aptPreAdmissionValidateMsg;
   }
 
+  /**
+   * Get current user apt list
+   * @returns SelectedaptData
+   */
+  get getUserAptList(): Array<IApt> {
+    return this.userAptList;
+  }
+
+  /**
+   * Get current selected appointment
+   * @returns SelectedaptData
+   */
+  get getAptUserSelected(): IApt {
+    return this.aptUserSelectedData;
+  }
+
   @Mutation
   [Mutations.SET_APT.LIST](aptData) {
     this.aptData = aptData;
@@ -173,6 +193,16 @@ export default class AppointmentModule extends VuexModule implements AptInfo {
   @Mutation
   [Mutations.SET_APT.PRE_ADMISSION.VALIDATE.MSG](data) {
     this.aptPreAdmissionValidateMsg = data;
+  }
+
+  @Mutation
+  [Mutations.SET_APT.USER_APT.LIST](data) {
+    this.userAptList = data;
+  }
+
+  @Mutation
+  [Mutations.SET_APT.USER_APT.SELECT](data) {
+    this.aptUserSelectedData = data;
   }
 
   @Action
@@ -396,62 +426,63 @@ export default class AppointmentModule extends VuexModule implements AptInfo {
 
   @Action
   [Actions.APT.PRE_ADMISSION.ORG](id) {
-    if (JwtService.getToken()) {
-      ApiService.setHeader();
-      ApiService.get("appointment_pre_admissions/show/" + id)
-        .then(({ data }) => {
-          this.context.commit(Mutations.SET_APT.PRE_ADMISSION.ORG, data.data);
-          return data.data;
-        })
-        .catch(({ response }) => {
-          console.log(response.data.error);
-          // this.context.commit(Mutations.SET_ERROR, response.data.errors);
-        });
-    } else {
-      this.context.commit(Mutations.PURGE_AUTH);
-    }
+    ApiService.get("appointment_pre_admissions/show/" + id)
+      .then(({ data }) => {
+        this.context.commit(Mutations.SET_APT.PRE_ADMISSION.ORG, data.data);
+        return data.data;
+      })
+      .catch(({ response }) => {
+        console.log(response.data.error);
+        // this.context.commit(Mutations.SET_ERROR, response.data.errors);
+      });
   }
 
   @Action
   [Actions.APT.PRE_ADMISSION.STORE](data) {
-    if (JwtService.getToken()) {
-      ApiService.setHeader();
-      ApiService.post(
-        "appointment_pre_admissions/store/" + data.get("apt_id").toString(),
-        data
-      )
-        .then(({ data }) => {
-          return data.message;
-        })
-        .catch(({ response }) => {
-          console.log(response.data.error);
-          // this.context.commit(Mutations.SET_ERROR, response.data.errors);
-        });
-    } else {
-      this.context.commit(Mutations.PURGE_AUTH);
-    }
+    ApiService.post(
+      "appointment_pre_admissions/store/" + data.get("apt_id").toString(),
+      data
+    )
+      .then(({ data }) => {
+        return data.message;
+      })
+      .catch(({ response }) => {
+        console.log(response.data.error);
+        // this.context.commit(Mutations.SET_ERROR, response.data.errors);
+      });
   }
 
   @Action
   [Actions.APT.PRE_ADMISSION.VALIDATE](data) {
+    ApiService.post("appointment_pre_admissions/validate/" + data.apt_id, {
+      last_name: data.last_name,
+      date_of_birth: moment(data.date_of_birth).format("YYYY-MM-DD").toString(),
+    })
+      .then(({ data }) => {
+        this.context.commit(
+          Mutations.SET_APT.PRE_ADMISSION.VALIDATE.MSG,
+          data.message
+        );
+        this.context.commit(
+          Mutations.SET_APT.PRE_ADMISSION.VALIDATE.DATA,
+          data.data
+        );
+        return data.message;
+      })
+      .catch(({ response }) => {
+        console.log(response.data.error);
+        // this.context.commit(Mutations.SET_ERROR, response.data.errors);
+      });
+  }
+
+  @Action
+  [Actions.APT.USER_APT.LIST]() {
     if (JwtService.getToken()) {
       ApiService.setHeader();
-      ApiService.post("appointment_pre_admissions/validate/" + data.apt_id, {
-        last_name: data.last_name,
-        date_of_birth: moment(data.date_of_birth)
-          .format("YYYY-MM-DD")
-          .toString(),
-      })
+      ApiService.get("user-appointments")
         .then(({ data }) => {
-          this.context.commit(
-            Mutations.SET_APT.PRE_ADMISSION.VALIDATE.MSG,
-            data.message
-          );
-          this.context.commit(
-            Mutations.SET_APT.PRE_ADMISSION.VALIDATE.DATA,
-            data.data
-          );
-          return data.message;
+          this.context.commit(Mutations.SET_APT.USER_APT.LIST, data.data);
+          return data.data;
         })
         .catch(({ response }) => {
           console.log(response.data.error);

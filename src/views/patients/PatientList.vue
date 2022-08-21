@@ -107,13 +107,15 @@
         </template>
         <template v-slot:cell-upcoming="{ row: item }">
           <span
-            v-for="upcoming_appointment in item.upcoming_appointments"
+            v-for="upcoming_appointment in item.all_upcoming_appointments"
             :key="upcoming_appointment.id"
             :class="`badge ${
               upcoming_appointment.id ? '' : 'badge-light-success'
             }`"
             :style="`width: fit-content; background-color: ${
-              upcoming_appointment.id ? upcoming_appointment.color : ''
+              upcoming_appointment.id
+                ? upcoming_appointment.appointment_type.color
+                : ''
             }; cursor: ${upcoming_appointment.id ? 'pointer' : 'not-allowed'}`"
             @click="
               upcoming_appointment.id ? handleBadge(upcoming_appointment) : ''
@@ -125,7 +127,7 @@
                   " " +
                   upcoming_appointment.start_time +
                   "(" +
-                  upcoming_appointment.appointment_type_name +
+                  upcoming_appointment.appointment_type.name +
                   ")"
                 : "none"
             }}</span
@@ -256,7 +258,9 @@ export default defineComponent({
     onMounted(() => {
       loading.value = true;
       setCurrentPageBreadcrumbs("Patients", []);
-      store.dispatch(Actions.PATIENTS.LIST);
+      store.dispatch(Actions.PATIENTS.LIST).then(() => {
+        loading.value = false;
+      });
     });
 
     return {
@@ -271,6 +275,7 @@ export default defineComponent({
       handleBadge,
       searchPatient,
       clearFilters,
+      loading,
     };
   },
 });
