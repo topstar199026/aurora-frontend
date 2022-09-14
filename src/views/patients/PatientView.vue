@@ -22,6 +22,7 @@
                 <IconButton
                   v-if="userRole != 'specialist'"
                   label="Print Label"
+                  @click="handlePrintLabel"
                 />
                 <IconButton
                   v-if="userRole != 'specialist'"
@@ -94,7 +95,7 @@
           <!--begin::Nav item-->
           <li class="nav-item">
             <router-link
-              to="/patients/view/documents"
+              :to="'/patients/' + patientData.id + '/documents'"
               class="nav-link text-active-primary me-6"
               active-class="active"
             >
@@ -106,7 +107,7 @@
           <li class="nav-item">
             <router-link
               class="nav-link text-active-primary me-6"
-              to="/patients/view/appointments"
+              :to="'/patients/' + patientData.id + '/appointments'"
               active-class="active"
             >
               Appointments
@@ -117,7 +118,7 @@
           <li class="nav-item">
             <router-link
               class="nav-link text-active-primary me-6"
-              to="/patients/view/billing"
+              :to="'/patients/' + patientData.id + '/billing'"
               active-class="active"
             >
               Billing
@@ -128,7 +129,7 @@
           <li class="nav-item">
             <router-link
               class="nav-link text-active-primary me-6"
-              to="/patients/view/clinical"
+              :to="'/patients/' + patientData.id + '/clinical'"
               active-class="active"
             >
               Clinical Information
@@ -139,7 +140,7 @@
           <li class="nav-item">
             <router-link
               class="nav-link text-active-primary me-6"
-              to="/patients/view/administration"
+              :to="'/patients/' + patientData.id + '/administration'"
               active-class="active"
             >
               Demographic
@@ -156,7 +157,8 @@
   <ReportModal></ReportModal>
   <LetterModal :patientId="patientData.id"></LetterModal>
   <CreateAudioModal :patientId="patientData.id"></CreateAudioModal>
-  <UploadDocument :patientId="patientData.id"></UploadDocument>
+  <UploadDocumentModal :patientId="patientData.id"></UploadDocumentModal>
+  <PrintLabelModal :patient="patientData"></PrintLabelModal>
   <router-view></router-view>
 </template>
 
@@ -165,11 +167,12 @@ import { defineComponent, ref, watchEffect, computed } from "vue";
 import { useStore } from "vuex";
 import { Modal } from "bootstrap";
 import { Actions } from "@/store/enums/StoreEnums";
-import RecallReminderModal from "@/components/patients/modals/RecallReminderModal.vue";
-import ReportModal from "@/components/patients/ReportTemplateModal.vue";
-import LetterModal from "@/components/patients/LetterModal.vue";
-import CreateAudioModal from "@/components/patients/CreateAudioModal.vue";
-import UploadDocument from "@/components/patients/UploadDocument.vue";
+import RecallReminderModal from "@/views/patients/modals/RecallReminderModal.vue";
+import ReportModal from "@/views/patients/modals/ReportTemplateSelectModal.vue";
+import LetterModal from "@/views/patients/modals/LetterModal.vue";
+import CreateAudioModal from "@/views/patients/modals/CreateAudioModal.vue";
+import UploadDocumentModal from "@/views/patients/modals/UploadDocumentModal.vue";
+import PrintLabelModal from "@/views/patients/modals/PrintLabelsModal.vue";
 import IconText from "@/components/presets/GeneralElements/IconText.vue";
 import IconButton from "@/components/presets/GeneralElements/IconButton.vue";
 import store from "@/store";
@@ -181,7 +184,8 @@ export default defineComponent({
     ReportModal,
     LetterModal,
     CreateAudioModal,
-    UploadDocument,
+    UploadDocumentModal,
+    PrintLabelModal,
     IconText,
     IconButton,
   },
@@ -202,10 +206,16 @@ export default defineComponent({
       date_of_birth: "",
       contact_number: "",
     });
+
     const handleRecallReminder = () => {
       const modal = new Modal(
         document.getElementById("modal_patient_recall_reminder")
       );
+      modal.show();
+    };
+
+    const handlePrintLabel = () => {
+      const modal = new Modal(document.getElementById("modal_print_label"));
       modal.show();
     };
 
@@ -241,6 +251,7 @@ export default defineComponent({
       handleLetter,
       handleAudio,
       handleUploadDocument,
+      handlePrintLabel,
     };
   },
 });

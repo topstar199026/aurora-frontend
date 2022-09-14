@@ -54,7 +54,7 @@
                     <button
                       type="submit"
                       class="btn btn-primary me-5 w-50"
-                      @click="searchPatient"
+                      @click.prevent="searchPatient"
                     >
                       SEARCH
                     </button>
@@ -110,7 +110,7 @@
           v-slot:cell-upcoming="{ row: item }"
         >
           <span
-            v-for="upcoming_appointment in item.all_upcoming_appointments"
+            v-for="upcoming_appointment in item.upcoming_appointments"
             :key="upcoming_appointment.id"
             :class="`badge ${
               upcoming_appointment.id ? '' : 'badge-light-success'
@@ -148,7 +148,8 @@ import { useStore } from "vuex";
 import { useRouter } from "vue-router";
 import { setCurrentPageBreadcrumbs } from "@/core/helpers/breadcrumb";
 import Datatable from "@/components/kt-datatable/KTDatatable.vue";
-import { Actions, Mutations } from "@/store/enums/StoreEnums";
+import { Mutations } from "@/store/enums/StoreEnums";
+import { PatientActions } from "@/store/enums/StorePatientEnums";
 import moment from "moment";
 import { DrawerComponent } from "@/assets/ts/components/_DrawerComponent";
 import store from "@/store";
@@ -248,13 +249,16 @@ export default defineComponent({
     };
 
     const handleView = (item) => {
-      store.dispatch(Actions.PATIENTS.VIEW, item.id);
-      router.push({ name: "patients-view-appointments" });
+      store.dispatch(PatientActions.PATIENTS.VIEW, item.id);
+      router.push({
+        name: "patients-view-appointments",
+        params: { id: item.id },
+      });
     };
 
     const handleBadge = (upcoming_appointment) => {
       store.commit(Mutations.SET_APT.SELECT, upcoming_appointment);
-      DrawerComponent?.getInstance("booking-drawer")?.setBookingDrawerShown(
+      DrawerComponent?.getInstance("appointment-drawer")?.setBookingDrawerShown(
         true
       );
       router.push({ name: "booking-dashboard" });
@@ -263,13 +267,14 @@ export default defineComponent({
     watch(list, () => {
       patientData.value = list.value;
       tableData.value = patientData.value;
+      console.log(tableData.value[0]);
       renderTable();
     });
 
     onMounted(() => {
       loading.value = true;
       setCurrentPageBreadcrumbs("Patients", []);
-      store.dispatch(Actions.PATIENTS.LIST).then(() => {
+      store.dispatch(PatientActions.PATIENTS.LIST).then(() => {
         loading.value = false;
       });
     });

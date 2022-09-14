@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 const Actions = {
   // action types
   ADD_BODY_CLASSNAME: "addBodyClassName",
@@ -32,6 +33,7 @@ const Actions = {
     CREATE: "createOrg",
     DELETE: "deleteOrg",
     UPDATE: "updateOrg",
+    SELECT: "selectOrg",
   },
 
   ORG_MANAGER: {
@@ -46,6 +48,12 @@ const Actions = {
     CREATE: "createOrgAdmin",
     DELETE: "deleteOrgAdmin",
     UPDATE: "updateOrgAdmin",
+    UPLOAD_IMAGE: "uploadImage",
+    ORGANIZATION: {
+      SETTINGS: {
+        UPDATE: "updateOrganizationSettings"
+      } 
+    }
   },
 
   CLINICS: {
@@ -55,17 +63,7 @@ const Actions = {
     UPDATE: "updateClinics",
   },
 
-  BOOKING: {
-    LIST: "listBooking",
-    CREATE: "createBooking",
-    DELETE: "deleteBooking",
-    UPDATE: "updateBooking",
-    SEARCH: {
-      DATE: "searchBookingByDate",
-      SPECIALISTS: "searchBookingBySPT",
-      NEXT_APT: "searchNextApt",
-    },
-  },
+
 
   BIRTH_CODE: {
     LIST: "listBirthCode",
@@ -83,44 +81,8 @@ const Actions = {
     CREATE: "createSpecialists",
     DELETE: "deleteSpecialists",
     UPDATE: "updateSpecialists",
-
-    TYPE: {
-      LIST: "listSpecialistType",
-      CREATE: "createSpecialistType",
-      DELETE: "deleteSpecialistType",
-      UPDATE: "updateSpecialistType",
-    },
-
-    TITLE: {
-      LIST: "listSpecialistTitle",
-      CREATE: "createSpecialistTitle",
-      DELETE: "deleteSpecialistTitle",
-      UPDATE: "updateSpecialistTitle",
-    },
   },
 
-  PATIENTS: {
-    LIST: "listPatients",
-    CREATE: "createPatients",
-    DELETE: "deletePatients",
-    UPDATE: "updatePatients",
-    VIEW: "viewPatient",
-    APPOINTMENTS: "patientsAppointments",
-    DOCUMENT: {
-      LIST: "listPatientsDocuments",
-      CREATE: "createPatientsDocument",
-      SEND_VIA_EMAIL: "sendPatientsDocumentViaEmail",
-      AUDIO: {
-        CREATE: "createPatientsDocumentAudio",
-      },
-    },
-    RECALL: {
-      LIST: "listPatientsRecall",
-      CREATE: "createPatientsRecall",
-      UPDATE: "updatePatientsRecall",
-      VIEW: "viewPatientsRecall",
-    },
-  },
 
   EMPLOYEE: {
     LIST: "listEmployee",
@@ -170,60 +132,9 @@ const Actions = {
     UPDATE: "updateAptTimeRequirement",
   },
 
-  APPOINTMENT: {
-    REFERRAL: {
-      UPDATE: "updateAppointmentReferral", // 'appointments/referral/{appointment}'
-      VIEW: "viewAppointmentReferral", // 'appointments/referral/file'
-    },
-  },
-
-  APT: {
-    LIST: "listApt",
-    LISTBYID: "listAptById",
-    CREATE: "createApt",
-    DELETE: "deleteApt",
-    UPDATE: "updateApt",
-    TYPES: {
-      LIST: "listAptTypes",
-      CREATE: "createAptTypes",
-      UPDATE: "updateAptTypes",
-      DELETE: "deleteAptTypes",
-    },
-    UNCONFIRMED: {
-      LIST: "listUnconfirmedApt",
-      DELETE: "deleteUnconfirmedApt",
-      UPDATE: "updateUnconfirmedApt",
-    },
-    WAITLISTED: {
-      LIST: "listWaitlistedApt",
-      DELETE: "deleteWaitlistedApt",
-      UPDATE: "updateWaitlistedApt",
-    },
-    UNAPPROVED: {
-      LIST: "listUnapprovedApt",
-      DELETE: "deleteUnapprovedApt",
-      UPDATE: "updateUnapprovedApt",
-    },
-    CANCELLATION: {
-      CREATE: "createCancellationApt",
-      LIST: "listCancellationApt",
-      DELETE: "deleteCancellationApt",
-      UPDATE: "updateCancellationApt",
-    },
-    CHECK_IN: "checkInApt",
-    CHECK_OUT: "checkOutApt",
-    PRE_ADMISSION: {
-      ORG: "listAptPreAdmissionOrg",
-      VALIDATE: "validateAptPreAdmission",
-      STORE: "createAptPreAdmission",
-    },
-    USER_APT: {
-      LIST: "userAptList",
-    },
-  },
 
   REFERRAL_DOCTOR: {
-    LIST: "searchReferralDoctor",
+    LIST: "searchReferralDoctor", // (get) 'referring-doctors'
   },
 
   LETTER_TEMPLATE: {
@@ -234,12 +145,6 @@ const Actions = {
     CREATE: "createLetter",
   },
 
-  // EMPLOYEE_ROLE: {
-  //   LIST: "listEmployeeRoles",
-  //   CREATE: "createEmployeeRoles",
-  //   DELETE: "deleteEmployeeRoles",
-  //   UPDATE: "updateEmployeeRoles",
-  // },
 
   MAKE_PAYMENT: {
     LIST: "listMakePayment",
@@ -247,12 +152,6 @@ const Actions = {
     CREATE: "createMakePayment",
   },
 
-  PROCEDURE_APPROVAL: {
-    LIST: "listProcedureApproval",
-    GET: "getProcedureApproval",
-    UPDATE: "updateProcedureApproval",
-    UPLOAD: "uploadProcedureApproval",
-  },
 };
 
 const Mutations = {
@@ -274,16 +173,6 @@ const Mutations = {
   SET_SPECIALIST: {
     LIST: "setSpecialists",
     SELECT: "setSelectSpecialists",
-
-    TYPE: {
-      LIST: "setSpecialistTypeList",
-      SELECT: "setSelectSpecialistType",
-    },
-
-    TITLE: {
-      LIST: "setSpecialistTitleList",
-      SELECT: "setSelectSpecialistTitle",
-    },
   },
 
   SET_ADMIN: {
@@ -299,6 +188,7 @@ const Mutations = {
   SET_ORG_MANAGER: {
     LIST: "setOrgManagerList",
     SELECT: "setSelectOrgManager",
+    ORGNIZATION: "settingOrganization"
   },
 
   SET_ORG_ADMIN: {
@@ -320,35 +210,13 @@ const Mutations = {
     LIST: "setHealthFundsList",
   },
 
-  SET_PATIENT: {
-    LIST: "setPatientsList",
-    SELECT: "setSelectPatient",
-    APPOINTMENTS: "setPatientAppointments",
-    DOCUMENT: {
-      LIST: "setPatientDocumentList",
-    },
-  },
-
-  SET_PATIENT_RECALL: {
-    LIST: "setPatientsRecallList",
-    SELECT: "setSelectPatientRecall",
-  },
+  
 
   SET_EMPLOYEE: {
     LIST: "setEmployeeList",
     SELECT: "setSelectEmployee",
   },
 
-  SET_BOOKING: {
-    LIST: "setBookingList",
-    SELECT: "setSelectBooking",
-    SEARCH: {
-      VARIABLE: "setSearchVariable",
-      DATE: "setFilteredBookingByDate",
-      SPECIALISTS: "setFilteredBookingBySPT",
-      NEXT_APTS: "setNextAptList",
-    },
-  },
 
   SET_ANESTHETIST_QUES: {
     LIST: "setAnesQuesList",
@@ -356,43 +224,7 @@ const Mutations = {
     ACTIVE_LIST: "setAnesQuesActiveList",
   },
 
-  SET_APT: {
-    LIST: "setApt",
-    LISTBYID: "setAptById",
-    SELECT: "setSelectApt",
-    SELECT_SPECIALIST: "setSelectedSpecialist",
-    TYPES: {
-      LIST: "setAptType",
-      SELECT: "setSelectAptType",
-    },
-    UNCONFIRMED: {
-      LIST: "setUnConfirmedApt",
-      SELECT: "setSelectUnconfirmedApt",
-    },
-    WAITLISTED: {
-      LIST: "setWaitlistedApt",
-      SELECT: "setSelectWaitlistedApt",
-    },
-    UNAPPROVED: {
-      LIST: "setUnapprovedApt",
-      SELECT: "setSelectUnapprovedApt",
-    },
-    CANCELLATION: {
-      LIST: "setCancellationApt",
-      SELECT: "setSelectCancellationApt",
-    },
-    PRE_ADMISSION: {
-      ORG: "setAptPreAdmissionOrg",
-      VALIDATE: {
-        DATA: "setValidateAptPreAdmission",
-        MSG: "setValidateAptPreAdmissionMsg",
-      },
-    },
-    USER_APT: {
-      LIST: "setUserAptList",
-      SELECT: "setSelectUserApt",
-    },
-  },
+
 
   SET_REFERRAL_DOCTOR: {
     LIST: "setReferralDoctor",
@@ -402,10 +234,6 @@ const Mutations = {
     LIST: "setLetterTemplate",
   },
 
-  SET_MAKE_PAYMENT: {
-    LIST: "setMakePayment",
-    SELECT: "setSelectMakePayment",
-  },
 
   SET_REPORT_TEMPLATES: {
     LIST: "setReportTemplates",
@@ -427,15 +255,11 @@ const Mutations = {
     SELECT: "setSelectNtfTemplates",
   },
 
-  SET_PROCEDURE_APPROVAL: {
-    LIST: "setProcedureApprovalsList",
-    DATA: "setProcedureApproval",
+  
+  SET_MAKE_PAYMENT: {
+    LIST: "setMakePayment",
+    SELECT: "setSelectMakePayment",
   },
-
-  // SET_EMPLOYEE_ROLES: {
-  //   LIST: "setEmployeeRolesList",
-  //   SELECT: "setSelectBooking",
-  // },
 };
 
 export { Actions, Mutations };

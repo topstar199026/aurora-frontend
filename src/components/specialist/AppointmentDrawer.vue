@@ -122,7 +122,7 @@
         <!--begin::Appointment Actions-->
         <div class="d-flex flex-column gap-3 mt-5">
           <!--View Patient-->
-          <BookingDrawerButton
+          <LargeIconButton
             @click="handleView"
             :heading="'View'"
             :subheading="'Patient'"
@@ -138,17 +138,17 @@
 
 <script lang="ts">
 import { defineComponent, reactive, computed, watchEffect } from "vue";
-import { Actions } from "@/store/enums/StoreEnums";
+import { PatientActions } from "@/store/enums/StorePatientEnums";
 import { useStore } from "vuex";
 import { useRouter } from "vue-router";
-import BookingDrawerButton from "@/components/presets/BookingDrawer/BookingDrawerButton.vue";
+import LargeIconButton from "@/components/presets/GeneralElements/LargeIconButton.vue";
 import AlertBadge from "@/components/presets/GeneralElements/AlertBadge.vue";
 import InfoSection from "@/components/presets/GeneralElements/InfoSection.vue";
 
 export default defineComponent({
   name: "appointment-drawer",
   components: {
-    BookingDrawerButton,
+    LargeIconButton,
     AlertBadge,
     InfoSection,
   },
@@ -172,11 +172,11 @@ export default defineComponent({
     });
 
     const handleView = () => {
-      store.dispatch(Actions.PATIENTS.VIEW, aptData.value.patient_id);
-      router.push({ name: "patients-view-appointments" });
-      // store.dispatch(Actions.PATIENTS.VIEW, aptData.value.patient_id);
-      // DrawerComponent?.getInstance("appointment-drawer")?.hide();
-      // router.push({ name: "patients-view-administration" });
+      store.dispatch(PatientActions.PATIENTS.VIEW, aptData.value.patient_id);
+      router.push({
+        name: "patients-view-appointments",
+        params: { id: aptData.value.patient_id },
+      });
     };
 
     watchEffect(() => {

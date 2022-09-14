@@ -1,8 +1,14 @@
 import ApiService from "@/core/services/ApiService";
 import JwtService from "@/core/services/JwtService";
-import { Actions, Mutations } from "@/store/enums/StoreEnums";
+import { Mutations } from "@/store/enums/StoreEnums";
+import {
+  AppointmentActions,
+  AppointmentMutations,
+} from "@/store/enums/StoreAppointmentEnums";
 import { Module, Action, Mutation, VuexModule } from "vuex-module-decorators";
 import moment from "moment";
+import Swal from "sweetalert2/dist/sweetalert2.js";
+import router from "@/router";
 export interface IApt {
   id: number;
 }
@@ -141,77 +147,77 @@ export default class AppointmentModule extends VuexModule implements AptInfo {
   }
 
   @Mutation
-  [Mutations.SET_APT.LIST](aptData) {
+  [AppointmentMutations.SET_APT.LIST](aptData) {
     this.aptData = aptData;
   }
 
   @Mutation
-  [Mutations.SET_APT.LISTBYID](aptDataById) {
+  [AppointmentMutations.SET_APT.LISTBYID](aptDataById) {
     this.aptDataById = aptDataById;
   }
 
   @Mutation
-  [Mutations.SET_APT.UNCONFIRMED.LIST](aptData) {
+  [AppointmentMutations.SET_APT.UNCONFIRMED.LIST](aptData) {
     this.unconfirmedAptData = aptData;
   }
 
   @Mutation
-  [Mutations.SET_APT.WAITLISTED.LIST](aptData) {
+  [AppointmentMutations.SET_APT.WAITLISTED.LIST](aptData) {
     this.waitlistedAptData = aptData;
   }
 
   @Mutation
-  [Mutations.SET_APT.UNAPPROVED.LIST](aptData) {
+  [AppointmentMutations.SET_APT.UNAPPROVED.LIST](aptData) {
     this.unapprovedAptData = aptData;
   }
 
   @Mutation
-  [Mutations.SET_APT.CANCELLATION.LIST](aptData) {
+  [AppointmentMutations.SET_APT.CONFIRMATION_STATUS.LIST](aptData) {
     this.cancellationAptData = aptData;
   }
 
   @Mutation
-  [Mutations.SET_APT.SELECT](data) {
+  [AppointmentMutations.SET_APT.SELECT](data) {
     this.aptSelectData = data;
   }
 
   @Mutation
-  [Mutations.SET_APT.SELECT_SPECIALIST](data) {
+  [AppointmentMutations.SET_APT.SELECT_SPECIALIST](data) {
     this.selectedSpecialistData = data;
   }
 
   @Mutation
-  [Mutations.SET_APT.PRE_ADMISSION.ORG](data) {
+  [AppointmentMutations.SET_APT.PRE_ADMISSION.ORG](data) {
     this.aptPreAdmissionOrgData = data;
   }
 
   @Mutation
-  [Mutations.SET_APT.PRE_ADMISSION.VALIDATE.DATA](data) {
+  [AppointmentMutations.SET_APT.PRE_ADMISSION.VALIDATE.DATA](data) {
     this.aptPreAdmissionValidateData = data;
   }
 
   @Mutation
-  [Mutations.SET_APT.PRE_ADMISSION.VALIDATE.MSG](data) {
+  [AppointmentMutations.SET_APT.PRE_ADMISSION.VALIDATE.MSG](data) {
     this.aptPreAdmissionValidateMsg = data;
   }
 
   @Mutation
-  [Mutations.SET_APT.USER_APT.LIST](data) {
+  [AppointmentMutations.SET_APT.USER_APT.LIST](data) {
     this.userAptList = data;
   }
 
   @Mutation
-  [Mutations.SET_APT.USER_APT.SELECT](data) {
+  [AppointmentMutations.SET_APT.USER_APT.SELECT](data) {
     this.aptUserSelectedData = data;
   }
 
   @Action
-  [Actions.APT.LISTBYID](id) {
+  [AppointmentActions.APT.LISTBYID](id) {
     if (JwtService.getToken()) {
       ApiService.setHeader();
       ApiService.get("patients/appointments/" + id)
         .then(({ data }) => {
-          this.context.commit(Mutations.SET_APT.LISTBYID, data.data);
+          this.context.commit(AppointmentMutations.SET_APT.LISTBYID, data.data);
           return data.data;
         })
         .catch(({ response }) => {
@@ -224,12 +230,12 @@ export default class AppointmentModule extends VuexModule implements AptInfo {
   }
 
   @Action
-  [Actions.APT.LIST]() {
+  [AppointmentActions.APT.LIST]() {
     if (JwtService.getToken()) {
       ApiService.setHeader();
       ApiService.get("appointments")
         .then(({ data }) => {
-          this.context.commit(Mutations.SET_APT.LIST, data.data);
+          this.context.commit(AppointmentMutations.SET_APT.LIST, data.data);
           return data.data;
         })
         .catch(({ response }) => {
@@ -242,14 +248,17 @@ export default class AppointmentModule extends VuexModule implements AptInfo {
   }
 
   @Action
-  [Actions.APT.UNCONFIRMED.LIST]() {
+  [AppointmentActions.APT.UNCONFIRMED.LIST]() {
     if (JwtService.getToken()) {
       ApiService.setHeader();
       ApiService.query("appointments/confirmation-status", {
         params: { confirmation_status: "PENDING", appointment_range: "FUTURE" },
       })
         .then(({ data }) => {
-          this.context.commit(Mutations.SET_APT.UNCONFIRMED.LIST, data.data);
+          this.context.commit(
+            AppointmentMutations.SET_APT.UNCONFIRMED.LIST,
+            data.data
+          );
           return data.data;
         })
         .catch(({ response }) => {
@@ -262,7 +271,7 @@ export default class AppointmentModule extends VuexModule implements AptInfo {
   }
 
   @Action
-  [Actions.APT.CANCELLATION.CREATE](data) {
+  [AppointmentActions.APPOINTMENT.CONFIRMATION_STATUS.UPDATE](data) {
     if (JwtService.getToken()) {
       ApiService.setHeader();
       ApiService.update("appointments/confirmation-status", data.id, {
@@ -282,14 +291,17 @@ export default class AppointmentModule extends VuexModule implements AptInfo {
   }
 
   @Action
-  [Actions.APT.CANCELLATION.LIST]() {
+  [AppointmentActions.APPOINTMENT.CONFIRMATION_STATUS.LIST]() {
     if (JwtService.getToken()) {
       ApiService.setHeader();
       ApiService.query("appointments/confirmation-status", {
         params: { confirmation_status: "CANCELED", appointment_range: "ALL" },
       })
         .then(({ data }) => {
-          this.context.commit(Mutations.SET_APT.CANCELLATION.LIST, data.data);
+          this.context.commit(
+            AppointmentMutations.SET_APT.CONFIRMATION_STATUS.LIST,
+            data.data
+          );
           return data.data;
         })
         .catch(({ response }) => {
@@ -302,12 +314,15 @@ export default class AppointmentModule extends VuexModule implements AptInfo {
   }
 
   @Action
-  [Actions.APT.WAITLISTED.LIST]() {
+  [AppointmentActions.APT.WAITLISTED.LIST]() {
     if (JwtService.getToken()) {
       ApiService.setHeader();
       ApiService.query("appointments", { params: { status: "wait-listed" } })
         .then(({ data }) => {
-          this.context.commit(Mutations.SET_APT.WAITLISTED.LIST, data.data);
+          this.context.commit(
+            AppointmentMutations.SET_APT.WAITLISTED.LIST,
+            data.data
+          );
           return data.data;
         })
         .catch(({ response }) => {
@@ -320,12 +335,15 @@ export default class AppointmentModule extends VuexModule implements AptInfo {
   }
 
   @Action
-  [Actions.APT.UNAPPROVED.LIST]() {
+  [AppointmentActions.APT.UNAPPROVED.LIST]() {
     if (JwtService.getToken()) {
       ApiService.setHeader();
       ApiService.query("appointments", { params: { status: "unapproved" } })
         .then(({ data }) => {
-          this.context.commit(Mutations.SET_APT.UNAPPROVED.LIST, data.data);
+          this.context.commit(
+            AppointmentMutations.SET_APT.UNAPPROVED.LIST,
+            data.data
+          );
           return data.data;
         })
         .catch(({ response }) => {
@@ -338,7 +356,7 @@ export default class AppointmentModule extends VuexModule implements AptInfo {
   }
 
   @Action
-  [Actions.APT.CREATE](payload) {
+  [AppointmentActions.APT.CREATE](payload) {
     if (JwtService.getToken()) {
       ApiService.setHeader();
       ApiService.post("appointments", payload)
@@ -362,7 +380,7 @@ export default class AppointmentModule extends VuexModule implements AptInfo {
   }
 
   @Action
-  [Actions.APT.UPDATE](item) {
+  [AppointmentActions.APT.UPDATE](item) {
     if (JwtService.getToken()) {
       ApiService.setHeader();
       ApiService.update("appointments", item.id, item)
@@ -379,7 +397,24 @@ export default class AppointmentModule extends VuexModule implements AptInfo {
   }
 
   @Action
-  [Actions.APT.DELETE](id) {
+  [AppointmentActions.APPOINTMENT.COLLECTING_PERSON.UPDATE](item) {
+    if (JwtService.getToken()) {
+      ApiService.setHeader();
+      ApiService.update("appointments/collecting-person", item.id, item)
+        .then(({ data }) => {
+          return data.data;
+        })
+        .catch(({ response }) => {
+          console.log(response.data.error);
+          // this.context.commit(Mutations.SET_ERROR, response.data.errors);
+        });
+    } else {
+      this.context.commit(Mutations.PURGE_AUTH);
+    }
+  }
+
+  @Action
+  [AppointmentActions.APT.DELETE](id) {
     if (JwtService.getToken()) {
       ApiService.setHeader();
       ApiService.delete("appointments/" + id)
@@ -395,7 +430,7 @@ export default class AppointmentModule extends VuexModule implements AptInfo {
   }
 
   @Action
-  [Actions.APT.CHECK_IN](data) {
+  [AppointmentActions.APT.CHECK_IN](data) {
     if (JwtService.getToken()) {
       ApiService.setHeader();
       ApiService.update("appointments/check-in", data.id, data)
@@ -412,7 +447,7 @@ export default class AppointmentModule extends VuexModule implements AptInfo {
   }
 
   @Action
-  [Actions.APT.CHECK_OUT](data) {
+  [AppointmentActions.APT.CHECK_OUT](data) {
     if (JwtService.getToken()) {
       ApiService.setHeader();
       ApiService.update("appointments/check-out", data.id, {})
@@ -429,10 +464,13 @@ export default class AppointmentModule extends VuexModule implements AptInfo {
   }
 
   @Action
-  [Actions.APT.PRE_ADMISSION.ORG](id) {
-    ApiService.get("appointment_pre_admissions/show/" + id)
+  [AppointmentActions.APPOINTMENT.PRE_ADMISSION.ORGANIZATION](id) {
+    ApiService.get("appointments/pre-admissions/show/" + id)
       .then(({ data }) => {
-        this.context.commit(Mutations.SET_APT.PRE_ADMISSION.ORG, data.data);
+        this.context.commit(
+          AppointmentMutations.SET_APT.PRE_ADMISSION.ORG,
+          data.data
+        );
         return data.data;
       })
       .catch(({ response }) => {
@@ -442,9 +480,10 @@ export default class AppointmentModule extends VuexModule implements AptInfo {
   }
 
   @Action
-  [Actions.APT.PRE_ADMISSION.STORE](data) {
+  [AppointmentActions.APPOINTMENT.PRE_ADMISSION.STORE](data) {
+    console.log(data.get("pre_admission_answers"));
     ApiService.post(
-      "appointment_pre_admissions/store/" + data.get("apt_id").toString(),
+      "appointments/pre-admissions/store/" + data.get("apt_id").toString(),
       data
     )
       .then(({ data }) => {
@@ -457,7 +496,7 @@ export default class AppointmentModule extends VuexModule implements AptInfo {
   }
 
   @Action
-  [Actions.APPOINTMENT.REFERRAL.UPDATE](data) {
+  [AppointmentActions.APPOINTMENT.REFERRAL.UPDATE](data) {
     console.log(data);
     ApiService.post(
       "appointments/referral/" + data.appointment_id,
@@ -477,12 +516,12 @@ export default class AppointmentModule extends VuexModule implements AptInfo {
   }
 
   @Action
-  [Actions.APPOINTMENT.REFERRAL.VIEW](data) {
-    console.log(data);
+  [AppointmentActions.APPOINTMENT.REFERRAL.VIEW](data) {
     return ApiService.post(
-      "appointments/referral/file",
+      "file",
       {
         path: data.path,
+        type: "REFERRAL",
       },
       {
         responseType: "blob",
@@ -497,35 +536,82 @@ export default class AppointmentModule extends VuexModule implements AptInfo {
   }
 
   @Action
-  [Actions.APT.PRE_ADMISSION.VALIDATE](data) {
-    ApiService.post("appointment_pre_admissions/validate/" + data.apt_id, {
-      last_name: data.last_name,
-      date_of_birth: moment(data.date_of_birth).format("YYYY-MM-DD").toString(),
-    })
+  [AppointmentActions.APPOINTMENT.PRE_ADMISSION.VIEW](data) {
+    console.log(data);
+    return ApiService.post(
+      "file",
+      {
+        path: data.path,
+        type: "PRE_ADMISSION",
+      },
+      {
+        responseType: "blob",
+      }
+    )
       .then(({ data }) => {
-        this.context.commit(
-          Mutations.SET_APT.PRE_ADMISSION.VALIDATE.MSG,
-          data.message
-        );
-        this.context.commit(
-          Mutations.SET_APT.PRE_ADMISSION.VALIDATE.DATA,
-          data.data
-        );
-        return data.message;
+        return data;
       })
       .catch(({ response }) => {
         console.log(response.data.error);
-        // this.context.commit(Mutations.SET_ERROR, response.data.errors);
       });
   }
 
   @Action
-  [Actions.APT.USER_APT.LIST]() {
+  [AppointmentActions.APPOINTMENT.PRE_ADMISSION.VALIDATE](params) {
+    ApiService.setHeader();
+    ApiService.post("appointments/pre-admissions/validate/" + params.id, {
+      last_name: params.last_name,
+      date_of_birth: moment(params.date_of_birth)
+        .format("YYYY-MM-DD")
+        .toString(),
+    })
+      .then(({ data }) => {
+        this.context.commit(
+          AppointmentMutations.SET_APT.PRE_ADMISSION.VALIDATE.MSG,
+          data.message
+        );
+        this.context.commit(
+          AppointmentMutations.SET_APT.PRE_ADMISSION.VALIDATE.DATA,
+          data.data
+        );
+        router.push({
+          path: "/appointment_pre_admissions/show/" + params.id + "/form_2",
+        });
+        return data.message;
+      })
+      .catch(({ response }) => {
+        if (response.status === 403) {
+          Swal.fire({
+            text: response.data.message,
+            icon: "error",
+            buttonsStyling: false,
+            confirmButtonText: "Ok",
+            customClass: {
+              confirmButton: "btn btn-primary",
+            },
+          }).then(() => {
+            this.context.commit(
+              AppointmentMutations.SET_APT.PRE_ADMISSION.VALIDATE.MSG,
+              response.data.message
+            );
+          });
+          //this.context.commit(Mutations.SET_ERROR, response.data.errors);
+        } else {
+          console.error(response);
+        }
+      });
+  }
+
+  @Action
+  [AppointmentActions.APT.USER_APT.LIST]() {
     if (JwtService.getToken()) {
       ApiService.setHeader();
       ApiService.get("user-appointments")
         .then(({ data }) => {
-          this.context.commit(Mutations.SET_APT.USER_APT.LIST, data.data);
+          this.context.commit(
+            AppointmentMutations.SET_APT.USER_APT.LIST,
+            data.data
+          );
           return data.data;
         })
         .catch(({ response }) => {

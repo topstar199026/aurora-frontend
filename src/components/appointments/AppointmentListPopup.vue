@@ -1,0 +1,213 @@
+<template>
+  <ModalWrapper
+    title="Available Appointments"
+    modalId="available_time_slot_popup"
+    modalRef="AppointmentListPopupModalRef"
+  >
+    <div class="search-params d-flex flex-wrap gap-4">
+      <h4 class="text-nowrap" style="color: var(--el-color-info)">
+        Clinic:
+        <span class="text-primary">{{ clinic_name }}</span>
+      </h4>
+      <h4 class="text-nowrap" style="color: var(--el-color-info)">
+        Specialist:
+        <span class="text-primary">{{ specialist_name }}</span>
+      </h4>
+      <h4 class="text-nowrap" style="color: var(--el-color-info)">
+        Time Requirement:
+        <span class="text-primary">{{ time_requirement }}</span>
+      </h4>
+      <h4 class="text-nowrap" style="color: var(--el-color-info)">
+        Time Frame: <span class="text-primary">{{ time_frame }}</span>
+      </h4>
+      <h4 class="text-nowrap" style="color: var(--el-color-info)">
+        Appointment Type:
+        <span class="text-primary">{{ appointment_type }}</span>
+      </h4>
+    </div>
+    <div class="scroll h-500px">
+      <template v-if="availableSlotsByDate">
+        <div class="row justify-content-center">
+          <div class="col" v-for="date in availableSlotsByDate" :key="date">
+            <h3
+              class="py-3 position-fixed border-bottom border-bottom-dashed border-bottom-primary"
+              style="
+                background: white;
+                border-bottom: solid black 2px;
+                padding-right: 50px;
+                text-align: center;
+              "
+            >
+              {{ date.day }} <br />{{ moment(date.date).format("DD/MM") }}
+            </h3>
+            <div class="mt-20">
+              <template
+                v-for="time_slot in date.available_timeslots"
+                :key="time_slot"
+              >
+                <div
+                  class="mt-3 justify-content-center align-items-center mw-250 text-wrap"
+                >
+                  <span
+                    class="w-100 h-100 fw-bold d-block cursor-pointer fs-3 mb-1"
+                    style="color: var(--el-color-primary)"
+                    data-kt-drawer-toggle="true"
+                    data-kt-drawer-target="#kt_drawer_chat"
+                    @click="
+                      handleAddApt(
+                        time_slot.specialist_ids,
+                        date.date,
+                        time_slot.start_time
+                      )
+                    "
+                  >
+                    {{ time_slot.time }}
+                  </span>
+                  <p
+                    class="mb-1 small"
+                    style="color: var(--el-text-color-secondary)"
+                    v-if="clinic_name == 'Any'"
+                  >
+                    {{ time_slot.clinic_name }}
+                  </p>
+                  <p
+                    class="small"
+                    style="color: var(--el-color-warning)"
+                    v-if="specialist_name == 'Any'"
+                  >
+                    {{ time_slot.specialist_name }}
+                  </p>
+                </div>
+              </template>
+            </div>
+          </div>
+        </div>
+      </template>
+      <p v-else>No Next available Appointments.</p>
+    </div>
+  </ModalWrapper>
+</template>
+
+<script>
+import { defineComponent, computed } from "vue";
+import { useStore } from "vuex";
+import moment from "moment";
+import { Mutations } from "@/store/enums/StoreEnums";
+import { Modal } from "bootstrap";
+
+export default defineComponent({
+  name: "appointment-list-popup",
+  props: {
+    availableSlotsByDate: { type: Object, required: true },
+    allSpecialists: { type: Array, required: true },
+    searchNextApts: { type: Object, required: true },
+    aptTypeList: { type: Array, required: true },
+    clinicList: { type: Array, required: true },
+    aptTimeRequireList: { type: Array, required: true },
+    xWeeks: { type: Object, required: true },
+  },
+  setup(props) {
+    const store = useStore();
+    const clinic_name = computed(() => {
+      const clinic = props.clinicList.find(
+        ({ id }) => id === props.searchNextApts.clinic_id
+      );
+
+      return clinic == undefined ? "Any" : clinic.name;
+    });
+
+    const specialist_name = computed(() => {
+      if (props.allSpecialists.length > 0) {
+        const specialist = props.allSpecialists.find(
+          ({ id }) => id === props.searchNextApts.specialist_id
+        );
+
+        return specialist == undefined ? "Any" : specialist.name;
+      }
+      return null;
+    });
+
+    const time_requirement = computed(() => {
+      const time_requirement = props.aptTimeRequireList.find(
+        ({ id }) => id === props.searchNextApts.time_requirement
+      );
+
+      return time_requirement == undefined ? "Any" : time_requirement.title;
+    });
+
+    const time_frame = computed(() =>
+      props.xWeeks[props.searchNextApts.x_weeks] == undefined
+        ? "Any"
+        : props.xWeeks[props.searchNextApts.x_weeks]
+    );
+
+    const appointment_type = computed(() => {
+      const appointment_type = props.aptTypeList.find(
+        ({ id }) => id === props.searchNextApts.appointment_type_id
+      );
+
+      return appointment_type == undefined ? "Any" : appointment_type.name;
+    });
+
+    const handleAddApt = (specialist_ids, date, startTime, endTime) => {
+      const _date = moment(date).format("YYYY-MM-DD").toString();
+
+      let available_specialists = [];
+
+      for (let specialist of props.allSpecialists) {
+        if (Object.values(specialist_ids).includes(specialist.id)) {
+          let temp_specialist = Object.assign({}, specialist);
+
+          temp_specialist.anesthetist = {
+            id: temp_specialist.anesthetist_id,
+            name: temp_specialist.anesthetist_name,
+          };
+
+          let dayOfWeek = moment(date).format("dddd").toString();
+
+          dayOfWeek = dayOfWeek.toLowerCase();
+
+          const work_hours = JSON.parse(temp_specialist.work_hours);
+
+          temp_specialist.work_hours = work_hours[dayOfWeek];
+
+          available_specialists.push(temp_specialist);
+        }
+      }
+
+      const specialist_id = Object.values(specialist_ids)[0];
+
+      const selected_specialist = available_specialists.find(
+        ({ id }) => id == specialist_id
+      );
+
+      const item = {
+        time_slots: [_date + "T" + startTime, _date + "T" + endTime],
+        date: _date,
+        ava_specialist: available_specialists,
+        selected_specialist: selected_specialist,
+      };
+
+      store.commit(Mutations.SET_BOOKING.SELECT, item);
+
+      const modal = new Modal(document.getElementById("modal_create_apt"));
+      modal.show();
+
+      const current_modal = Modal.getInstance(
+        document.getElementById("modal_available_time_slot_popup")
+      );
+      current_modal.hide();
+    };
+
+    return {
+      handleAddApt,
+      clinic_name,
+      specialist_name,
+      time_requirement,
+      time_frame,
+      appointment_type,
+      moment,
+    };
+  },
+});
+</script>

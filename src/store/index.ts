@@ -11,8 +11,6 @@ import OrganisationModule from "@/store/modules/OrganisationModule";
 import OrgManagerModule from "@/store/modules/OrgManagerModule";
 import OrgAdminModule from "@/store/modules/OrgAdminModule";
 import ClinicsModule from "@/store/modules/ClinicsModule";
-import SpecialistTypeModule from "@/store/modules/SpecialistTypeModule";
-import SpecialistTitleModule from "@/store/modules/SpecialistTitleModule";
 import HealthFundModule from "@/store/modules/HealthFundModule";
 import BirthCodeModule from "@/store/modules/BirthCodeModule";
 import PatientsModule from "@/store/modules/PatientsModule";
@@ -27,7 +25,7 @@ import ReportTemplatesModule from "@/store/modules/ReportTemplatesModule";
 import MailsModule from "@/store/modules/MailsModule";
 import SpecialistsModule from "@/store/modules/SpecialistsModule";
 import NtfTemplatesModule from "@/store/modules/NtfTemplatesModule";
-import MPaymentModule from "@/store/modules/MPaymentModule";
+import MakePaymentModule from "@/store/modules/MakePaymentModule";
 import ProfileModule from "@/store/modules/ProfileModule";
 import ReferralDoctorModule from "@/store/modules/ReferralDoctorModule";
 import ProcedureApprovalsModule from "@/store/modules/ProcedureApprovalsModule";
@@ -43,8 +41,6 @@ const store = createStore({
     ConfigModule,
     AdminModule,
     UserModule,
-    SpecialistTypeModule,
-    SpecialistTitleModule,
     OrganisationModule,
     OrgManagerModule,
     OrgAdminModule,
@@ -63,7 +59,7 @@ const store = createStore({
     ReportTemplatesModule,
     MailsModule,
     SpecialistsModule,
-    MPaymentModule,
+    MakePaymentModule,
     ProfileModule,
     ReferralDoctorModule,
     ProcedureApprovalsModule,

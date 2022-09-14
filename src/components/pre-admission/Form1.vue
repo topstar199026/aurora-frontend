@@ -1,85 +1,68 @@
 <template>
-  <div class="card w-100 h-100 p-10">
-    <div class="card-header border-0 p-5">
-      <div
-        class="m-auto border border-success border-3 d-flex align-items-center justify-content-center w-250px h-250px"
-        style="border-radius: 50%"
-      >
-        <img
-          :src="orgData.organization_logo"
-          alt="Logo"
-          class="w-100 h-100"
-          style="border-radius: 50%"
+  <div class="card justify-content-center h-100">
+    <el-form
+      class="m-auto col-sx-12 col-md-6 col-xl-4"
+      @submit.prevent="submit()"
+      :model="formData"
+      :rules="rules"
+      ref="formRef"
+    >
+      <img
+        :src="orgData.organization_logo"
+        alt="Organization Logo"
+        class="mb-6 w-100 px-6 text-center"
+      />
+
+      <InputWrapper label="Date of Birth" prop="date_of_birth" required>
+        <el-date-picker
+          type="date"
+          class="w-100"
+          v-model="formData.date_of_birth"
+          format="DD/MM/YYYY"
+          placeholder="01/01/1990"
         />
-        <!-- <h1 v-else>Organisation</h1> -->
+      </InputWrapper>
+
+      <InputWrapper label="Last Name" prop="last_name" required>
+        <el-input
+          type="text"
+          v-model="formData.last_name"
+          placeholder="Last Name"
+        />
+      </InputWrapper>
+
+      <div class="d-flex justify-content-end gap-3">
+        <button type="submit" class="btn btn-primary w-100 m-6">
+          Continue
+        </button>
       </div>
-    </div>
-    <div class="card-body pt-0">
-      <el-form
-        class="w-50 m-auto"
-        @submit.prevent="submit()"
-        :model="formData"
-        :rules="rules"
-        ref="formRef"
-      >
-        <el-form-item prop="date_of_birth">
-          <label>Date of Birth</label>
-          <el-date-picker
-            class="w-100"
-            v-model="formData.date_of_birth"
-            format="YYYY-MM-DD"
-            placeholder="1990-01-01"
-          />
-        </el-form-item>
-        <el-form-item prop="last_name">
-          <label>Last Name</label>
-          <el-input
-            type="text"
-            v-model="formData.last_name"
-            placeholder="Last Name"
-          />
-        </el-form-item>
-        <div class="d-flex justify-content-end gap-3">
-          <button type="submit" class="btn btn-primary w-min-250px">
-            Confirm
-          </button>
-          <button type="reset" class="btn btn-light-primary w-min-250px ms-2">
-            Cancel
-          </button>
-        </div>
-      </el-form>
-    </div>
+    </el-form>
   </div>
 </template>
 
 <script>
-import { defineComponent, onMounted, ref, computed, watch } from "vue";
+import { defineComponent, onMounted, ref, computed } from "vue";
 import { useStore } from "vuex";
 import { useRouter } from "vue-router";
-import { Actions, Mutations } from "@/store/enums/StoreEnums";
-import moment from "moment";
-import ApiService from "@/core/services/ApiService";
-import JwtService from "@/core/services/JwtService";
-import Swal from "sweetalert2/dist/sweetalert2.js";
+import { Actions } from "@/store/enums/StoreEnums";
+import { AppointmentActions } from "@/store/enums/StoreAppointmentEnums";
+import InputWrapper from "@/components/presets/FormElements/InputWrapper.vue";
 
 export default defineComponent({
   name: "pre-admission-form1",
-
-  components: {},
-
+  components: { InputWrapper },
   setup() {
     const store = useStore();
     const router = useRouter();
     const loading = ref(true);
     const formRef = ref(null);
     const orgData = computed(() => store.getters.getAptPreAdmissionOrg);
-    const validateMsg = computed(
-      () => store.getters.getAptPreAdmissionValidateMsg
-    );
+
     const formData = ref({
       date_of_birth: "",
       last_name: "",
     });
+
     const rules = ref({
       date_of_birth: [
         {
@@ -91,7 +74,7 @@ export default defineComponent({
       last_name: [
         {
           required: true,
-          message: "Last Name cannnot be blank",
+          message: "Last Name cannot be blank",
           trigger: "change",
         },
       ],
@@ -102,55 +85,33 @@ export default defineComponent({
       if (!formRef.value) {
         return;
       }
-
-      if (JwtService.getToken()) {
-        ApiService.setHeader();
-        ApiService.post("appointment_pre_admissions/validate/" + apt_id.value, {
-          last_name: formData.value.last_name,
-          date_of_birth: moment(formData.value.date_of_birth)
-            .format("YYYY-MM-DD")
-            .toString(),
-        })
-          .then(({ data }) => {
-            if (data.message === "Appointment Pre Admission") {
-              store.commit(
-                Mutations.SET_APT.PRE_ADMISSION.VALIDATE.DATA,
-                data.data
-              );
-              router.push({
-                path:
-                  "/appointment_pre_admissions/show/" +
-                  apt_id.value +
-                  "/form_2",
-              });
-            } else {
-              Swal.fire({
-                text: data.message,
-                icon: "error",
-                buttonsStyling: false,
-                confirmButtonText: "Ok, got it!",
-                customClass: {
-                  confirmButton: "btn btn-primary",
-                },
-              });
-            }
-          })
-          .catch(({ response }) => {
-            console.log(response.data.error);
-          });
-      } else {
-        store.commit(Mutations.PURGE_AUTH);
-      }
+      formRef.value.validate((valid) => {
+        if (valid) {
+          store
+            .dispatch(AppointmentActions.APPOINTMENT.PRE_ADMISSION.VALIDATE, {
+              id: apt_id.value,
+              last_name: formData.value.last_name,
+              date_of_birth: formData.value.date_of_birth,
+            })
+            .then(() => {
+              console.log("success");
+            })
+            .catch(({ response }) => {
+              formData.value.last_name = "";
+              formData.value.date_of_birth = "";
+              console.log(response);
+            });
+        }
+      });
     };
-
-    watch(validateMsg, () => {
-      if (validateMsg.value === "") return;
-    });
 
     onMounted(() => {
       loading.value = true;
       apt_id.value = router.currentRoute.value.params.id.toString();
-      store.dispatch(Actions.APT.PRE_ADMISSION.ORG, apt_id.value);
+      store.dispatch(
+        AppointmentActions.APPOINTMENT.PRE_ADMISSION.ORGANIZATION,
+        apt_id.value
+      );
     });
 
     return {
