@@ -68,7 +68,7 @@ export default class OrganisationModule extends VuexModule implements OrgInfo {
           return data.data;
         })
         .catch(({ response }) => {
-          console.log(response.data.error);
+          // console.log(response.data.error);
           // this.context.commit(Mutations.SET_ERROR, response.data.errors);
         });
     } else {
@@ -132,7 +132,7 @@ export default class OrganisationModule extends VuexModule implements OrgInfo {
   [Actions.ORG.SELECT](id) {
     if (JwtService.getToken()) {
       ApiService.setHeader();
-      ApiService.get("organization/" + id)
+      return ApiService.get("organizations/" + id)
         .then(({ data }) => {
           this.context.commit(Mutations.SET_ORG.SELECT, data.data);
           return data.data;

@@ -10,7 +10,7 @@
           class="text-nowrap btn btn-light-primary ms-auto"
         >
           <span class="svg-icon svg-icon-2">
-            <inline-svg src="media/icons/duotune/arrows/arr075.svg" />
+            <InlineSVG icon="plus" />
           </span>
           Add
         </router-link>
@@ -31,7 +31,7 @@
               class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1"
             >
               <span class="svg-icon svg-icon-3">
-                <inline-svg src="media/icons/duotune/art/art005.svg" />
+                <InlineSVG icon="pencil" />
               </span>
             </button>
 
@@ -40,7 +40,7 @@
               class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-5"
             >
               <span class="svg-icon svg-icon-3">
-                <inline-svg src="media/icons/duotune/general/gen027.svg" />
+                <InlineSVG icon="bin" />
               </span>
             </button>
             <span
@@ -110,9 +110,9 @@ export default defineComponent({
 
     const handleDelete = (id) => {
       store
-        .dispatch(AppointmentActions.APPOINTMENT.APPOINTMENT_TYPES.DELETE, id)
+        .dispatch(AppointmentActions.APPOINTMENT_TYPES.DELETE, id)
         .then(() => {
-          store.dispatch(AppointmentActions.APPOINTMENT.APPOINTMENT_TYPES.LIST);
+          store.dispatch(AppointmentActions.APPOINTMENT_TYPES.LIST);
           Swal.fire({
             text: "Successfully Deleted!",
             icon: "success",
@@ -130,7 +130,7 @@ export default defineComponent({
 
     onMounted(() => {
       setCurrentPageBreadcrumbs("Appointment Types", ["Settings"]);
-      store.dispatch(AppointmentActions.APPOINTMENT.APPOINTMENT_TYPES.LIST);
+      store.dispatch(AppointmentActions.APPOINTMENT_TYPES.LIST);
     });
 
     watchEffect(() => {

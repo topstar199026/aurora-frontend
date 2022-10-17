@@ -84,12 +84,11 @@
             v-model="formData.gender"
             placeholder="Select Gender"
           >
-            <el-option value="male" label="Male" />
-            <el-option value="female" label="Female" />
-            <el-option value="other" label="Other" />
             <el-option
-              value="undisclosed"
-              label="Not Stated / Inadequately Described"
+              v-for="item in genders"
+              :key="item.value"
+              :value="item.value"
+              :label="item.label"
             />
           </el-select>
         </InputWrapper>
@@ -138,8 +137,19 @@
       </div>
 
       <el-divider />
-      <HeadingText text="Next Of Kin" />
+      <div
+        class="d-flex flex-row mb-5 align-items-center justify-content-between"
+      >
+        <HeadingText class="align-items-center" text="Next Of Kin" />
 
+        <el-checkbox
+          prop="kin_receive_correspondence"
+          type="checkbox"
+          class="pb-5"
+          v-model="formData.kin_receive_correspondence"
+          label="NOK to receive copies of correspondence"
+        />
+      </div>
       <div class="row justify-content-md-center">
         <InputWrapper :class="colString" label="Name" prop="kin_name">
           <el-input
@@ -171,6 +181,15 @@
             placeholder="Kin Relationship"
           />
         </InputWrapper>
+      </div>
+      <div class="row justify-content-md-left">
+        <InputWrapper :class="colString" label="Email" prop="kin_email">
+          <el-input
+            type="email"
+            v-model="formData.kin_email"
+            placeholder="Kin Email"
+          />
+        </InputWrapper>
         <span :class="colString"></span>
       </div>
 
@@ -189,6 +208,7 @@ import { PatientActions } from "@/store/enums/StorePatientEnums";
 import Swal from "sweetalert2/dist/sweetalert2.js";
 import maritalStatus from "@/core/data/marital-status";
 import titles from "@/core/data/titles";
+import genders from "@/core/data/genders";
 import InputWrapper from "@/components/presets/FormElements/InputWrapper.vue";
 
 import { mask } from "vue-the-mask";
@@ -223,6 +243,8 @@ export default defineComponent({
       kin_name: "",
       kin_phone_number: "",
       kin_relationship: "",
+      kin_email: "",
+      kin_receive_correspondence: false,
     });
 
     const rules = ref({
@@ -289,6 +311,18 @@ export default defineComponent({
           trigger: "change",
         },
       ],
+      kin_email: [
+        {
+          required: true,
+          message: "Kin Email cannot be blank",
+          trigger: "change",
+        },
+        {
+          type: "email",
+          message: "Please input correct email address",
+          trigger: ["blur", "change"],
+        },
+      ],
     });
     const loading = ref(false);
 
@@ -301,10 +335,10 @@ export default defineComponent({
         if (valid) {
           loading.value = true;
           store
-            .dispatch(PatientActions.PATIENTS.UPDATE, formData.value)
+            .dispatch(PatientActions.UPDATE, formData.value)
             .then(() => {
               loading.value = false;
-              store.dispatch(PatientActions.PATIENTS.LIST);
+              store.dispatch(PatientActions.LIST);
               Swal.fire({
                 text: "Successfully Updated!",
                 icon: "success",
@@ -336,6 +370,7 @@ export default defineComponent({
       formRef,
       rules,
       titles,
+      genders,
       maritalStatus,
       submit,
     };

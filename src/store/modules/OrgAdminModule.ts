@@ -112,7 +112,6 @@ export default class OrgAdminModule extends VuexModule implements OrgAdminInfo {
 
   @Action
   [Actions.ORG_ADMIN.ORGANIZATION.SETTINGS.UPDATE](data) {
-    console.log(data.submitData);
     if (JwtService.getToken()) {
       ApiService.setHeader();
       ApiService.post("organizations/settings", data.submitData, {
@@ -125,6 +124,42 @@ export default class OrgAdminModule extends VuexModule implements OrgAdminInfo {
         })
         .catch(({ response }) => {
           console.log(response.data.error);
+        });
+    } else {
+      this.context.commit(Mutations.PURGE_AUTH);
+    }
+  }
+
+  @Action
+  [Actions.ORG_ADMIN.ORGANIZATION.PRE_ADMISSION_SECTION.LIST]() {
+    if (JwtService.getToken()) {
+      ApiService.setHeader();
+      return ApiService.get("pre-admission-sections")
+        .then(({ data }) => {
+          return data.data;
+        })
+        .catch(({ response }) => {
+          console.log(response.data.error);
+          // this.context.commit(Mutations.SET_ERROR, response.data.errors);
+        });
+    } else {
+      this.context.commit(Mutations.PURGE_AUTH);
+    }
+  }
+
+  @Action
+  [Actions.ORG_ADMIN.ORGANIZATION.PRE_ADMISSION_SECTION.UPDATE](item) {
+    if (JwtService.getToken()) {
+      ApiService.setHeader();
+      return ApiService.post("pre-admission-sections", {
+        sections: item.sections,
+      })
+        .then(({ data }) => {
+          return data.data;
+        })
+        .catch(({ response }) => {
+          console.log(response.data.error);
+          // this.context.commit(Mutations.SET_ERROR, response.data.errors);
         });
     } else {
       this.context.commit(Mutations.PURGE_AUTH);

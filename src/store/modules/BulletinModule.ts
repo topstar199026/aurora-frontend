@@ -1,58 +1,57 @@
 import ApiService from "@/core/services/ApiService";
 import JwtService from "@/core/services/JwtService";
-import { Actions, Mutations } from "@/store/enums/StoreEnums";
+import { Mutations } from "@/store/enums/StoreEnums";
 import { Module, Action, Mutation, VuexModule } from "vuex-module-decorators";
+import { HRMActions, HRMMutations } from "../enums/StoreHRMEnums";
 
-export interface IOrgManager {
+export interface IBulletin {
   id: number;
+  title: string;
 }
 
-export interface OrgManagerInfo {
-  orgManagerData: Array<IOrgManager>;
-  orgManagerSelectData: IOrgManager;
+export interface BulletinInfo {
+  bulletinData: Array<IBulletin>;
+  bulletinSelectData: IBulletin;
 }
 
 @Module
-export default class OrgManagerModule
-  extends VuexModule
-  implements OrgManagerInfo
-{
-  orgManagerData = [] as Array<IOrgManager>;
-  orgManagerSelectData = {} as IOrgManager;
+export default class BulletinModule extends VuexModule implements BulletinInfo {
+  bulletinData = [] as Array<IBulletin>;
+  bulletinSelectData = {} as IBulletin;
 
   /**
    * Get current user object
    * @returns AdminList
    */
-  get orgManagerList(): Array<IOrgManager> {
-    return this.orgManagerData;
+  get getBulletinList(): Array<IBulletin> {
+    return this.bulletinData;
   }
 
   /**
    * Get current user object
-   * @returns SelectedorgManagerData
+   * @returns SelectedaptTypesData
    */
-  get orgManagerSelected(): IOrgManager {
-    return this.orgManagerSelectData;
+  get getBulletinSelected(): IBulletin {
+    return this.bulletinSelectData;
   }
 
   @Mutation
-  [Mutations.SET_ORG_MANAGER.LIST](orgManagerData) {
-    this.orgManagerData = orgManagerData;
+  [HRMMutations.BULLETIN.SET_LIST](bulletinData) {
+    this.bulletinData = bulletinData;
   }
 
   @Mutation
-  [Mutations.SET_ORG_MANAGER.SELECT](data) {
-    this.orgManagerSelectData = data;
+  [HRMMutations.BULLETIN.SET_SELECT](data) {
+    this.bulletinSelectData = data;
   }
 
   @Action
-  [Actions.ORG_MANAGER.LIST]() {
+  [HRMActions.BULLETIN.LIST]() {
     if (JwtService.getToken()) {
       ApiService.setHeader();
-      ApiService.get("organization-managers")
+      ApiService.get("bulletins")
         .then(({ data }) => {
-          this.context.commit(Mutations.SET_ORG_MANAGER.LIST, data.data);
+          this.context.commit(HRMMutations.BULLETIN.SET_LIST, data.data);
           return data.data;
         })
         .catch(({ response }) => {
@@ -65,10 +64,10 @@ export default class OrgManagerModule
   }
 
   @Action
-  [Actions.ORG_MANAGER.CREATE](payload) {
+  [HRMActions.BULLETIN.CREATE](item) {
     if (JwtService.getToken()) {
       ApiService.setHeader();
-      ApiService.post("organization-managers", payload)
+      ApiService.post("bulletins", item)
         .then(({ data }) => {
           return data.data;
         })
@@ -79,12 +78,11 @@ export default class OrgManagerModule
       this.context.commit(Mutations.PURGE_AUTH);
     }
   }
-
   @Action
-  [Actions.ORG_MANAGER.UPDATE](item) {
+  [HRMActions.BULLETIN.UPDATE](item) {
     if (JwtService.getToken()) {
       ApiService.setHeader();
-      ApiService.update("organization-managers", item.id, item)
+      ApiService.update("bulletins", item.id, item)
         .then(({ data }) => {
           return data.data;
         })
@@ -98,10 +96,10 @@ export default class OrgManagerModule
   }
 
   @Action
-  [Actions.ORG_MANAGER.DELETE](id) {
+  [HRMActions.BULLETIN.DELETE](id) {
     if (JwtService.getToken()) {
       ApiService.setHeader();
-      ApiService.delete("organization-managers/" + id)
+      ApiService.delete("bulletins/" + id)
         .then(({ data }) => {
           return data.data;
         })

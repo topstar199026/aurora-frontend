@@ -6,7 +6,7 @@
         <!--begin::Search-->
         <div class="d-flex align-items-center position-relative my-1">
           <span class="svg-icon svg-icon-1 position-absolute ms-6">
-            <inline-svg src="media/icons/duotune/general/gen021.svg" />
+            <InlineSVG icon="search" />
           </span>
           <input
             type="text"
@@ -30,7 +30,7 @@
           <!--begin::Add subscription-->
           <router-link to="/organisations/create" class="btn btn-primary">
             <span class="svg-icon svg-icon-2">
-              <inline-svg src="media/icons/duotune/arrows/arr075.svg" />
+              <InlineSVG icon="plus" />
             </span>
             Add New Organisation
           </router-link>
@@ -99,7 +99,7 @@
             class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1"
           >
             <span class="svg-icon svg-icon-3">
-              <inline-svg src="media/icons/duotune/art/art005.svg" />
+              <InlineSVG icon="pencil" />
             </span>
           </button>
 
@@ -108,7 +108,7 @@
             class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm"
           >
             <span class="svg-icon svg-icon-3">
-              <inline-svg src="media/icons/duotune/general/gen027.svg" />
+              <InlineSVG icon="bin" />
             </span>
           </button>
         </template>

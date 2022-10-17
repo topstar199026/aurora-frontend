@@ -15,7 +15,7 @@
           <!--begin::Add subscription-->
           <router-link to="/clinics/create" class="btn btn-primary">
             <span class="svg-icon svg-icon-2">
-              <inline-svg src="media/icons/duotune/arrows/arr075.svg" />
+              <InlineSVG icon="plus" />
             </span>
             Add
           </router-link>
@@ -43,11 +43,20 @@
         </template>
         <template v-slot:cell-action="{ row: item }">
           <button
+            @click="handleRoomEdit(item)"
+            class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1"
+          >
+            <span class="svg-icon svg-icon-3">
+              <inline-svg src="media/icons/duotune/abstract/abs010.svg" />
+            </span>
+          </button>
+
+          <button
             @click="handleEdit(item)"
             class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1"
           >
             <span class="svg-icon svg-icon-3">
-              <inline-svg src="media/icons/duotune/art/art005.svg" />
+              <InlineSVG icon="pencil" />
             </span>
           </button>
 
@@ -56,7 +65,7 @@
             class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm"
           >
             <span class="svg-icon svg-icon-3">
-              <inline-svg src="media/icons/duotune/general/gen027.svg" />
+              <InlineSVG icon="bin" />
             </span>
           </button>
         </template>
@@ -169,6 +178,11 @@ export default defineComponent({
       deleteAfterConfirmation(item);
     };
 
+    const handleRoomEdit = (item) => {
+      store.commit(Mutations.SET_CLINICS.SELECT, item);
+      router.push({ name: "clinic-rooms", params: { id: item.id } });
+    };
+
     onMounted(() => {
       setCurrentPageBreadcrumbs("Clinics", []);
       store.dispatch(Actions.CLINICS.LIST);
@@ -178,7 +192,7 @@ export default defineComponent({
     watchEffect(() => {
       tableData.value = clinicsList;
     });
-    return { tableHeader, tableData, handleEdit, handleDelete };
+    return { tableHeader, tableData, handleEdit, handleDelete, handleRoomEdit };
   },
 });
 </script>

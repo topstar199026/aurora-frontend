@@ -49,6 +49,31 @@
       >
         Pre-admission Consent
       </router-link>
+      <router-link
+        to="/settings/letter-templates"
+        class="btn btn-light-primary m-2"
+      >
+        Letter Templates
+      </router-link>
+    </div>
+  </div>
+  <div class="d-flex flex-sm-row gap-3 mt-6">
+    <div class="card col-sm-6 shadow-sm">
+      <div class="card-header">
+        <h3 class="card-title">General Settings</h3>
+      </div>
+      <router-link
+        to="/settings/referring-doctors"
+        class="btn btn-light-primary m-2"
+      >
+        Referring Doctors
+      </router-link>
+      <router-link
+        to="/settings/header-footer-templates"
+        class="btn btn-light-primary m-2"
+      >
+        Header/Footer Template
+      </router-link>
     </div>
   </div>
 </template>

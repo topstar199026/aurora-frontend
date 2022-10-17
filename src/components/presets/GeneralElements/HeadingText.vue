@@ -1,7 +1,5 @@
 <template>
-  <div class="pb-5">
-    <h3 class="fw-bold d-flex align-items-center text-dark">{{ text }}</h3>
-  </div>
+  <h3 class="fw-bold d-flex align-items-center text-dark">{{ text }}</h3>
 </template>
 
 <script lang="ts">

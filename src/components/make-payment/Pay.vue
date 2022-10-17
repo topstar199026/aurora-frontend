@@ -90,7 +90,7 @@
             class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm ms-3"
           >
             <span class="svg-icon svg-icon-3">
-              <inline-svg src="media/icons/duotune/art/art005.svg" />
+              <InlineSVG icon="pencil" />
             </span>
           </a>
         </el-form>
@@ -98,6 +98,8 @@
         <label class="text-muted fs-6 fw-bold mt-2 d-block"
           >Total Payable Amount: $
           {{
+            billingData &&
+            billingData.appointment &&
             getProcedurePrice(
               billingData.payment,
               billingData.appointment.charge_type
@@ -105,7 +107,9 @@
           }}
 
           <br />
-          Amount Paid: ${{ billingData.payment.paid_amount }}
+          Amount Paid: ${{
+            billingData.payment && billingData.payment.paid_amount
+          }}
           <br />
           <ul>
             <li

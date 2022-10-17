@@ -129,21 +129,6 @@
           />
         </InputWrapper>
 
-        <InputWrapper :class="colString" label="Gender" prop="gender">
-          <el-select
-            class="w-100"
-            v-model="formData.gender"
-            placeholder="Select Gender"
-          >
-            <el-option value="male" label="Male" />
-            <el-option value="female" label="Female" />
-            <el-option value="other" label="Other" />
-            <el-option
-              value="undisclosed"
-              label="Not Stated / Inadequately Described"
-            />
-          </el-select>
-        </InputWrapper>
         <InputWrapper
           :class="colString"
           label="Marital Status"
@@ -347,7 +332,6 @@ export default defineComponent({
       contact_number: "",
       email: "",
       address: "",
-      gender: "",
       aborginality: "",
       occupation: "",
       marital_status: "",
@@ -479,10 +463,7 @@ export default defineComponent({
             "pre_admission_answers",
             JSON.stringify(formattedAnswer())
           );
-          await store.dispatch(
-            AppointmentActions.APPOINTMENT.PRE_ADMISSION.STORE,
-            Data
-          );
+          await store.dispatch(AppointmentActions.PRE_ADMISSION.STORE, Data);
           loading.value = false;
           router.push({
             path:
@@ -506,7 +487,7 @@ export default defineComponent({
       setCurrentPageBreadcrumbs("Administration", ["Patients"]);
       apt_id.value = router.currentRoute.value.params.id.toString();
       await store.dispatch(
-        AppointmentActions.APPOINTMENT.PRE_ADMISSION.ORGANIZATION,
+        AppointmentActions.PRE_ADMISSION.ORGANIZATION,
         apt_id.value
       );
     });

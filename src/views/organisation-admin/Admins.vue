@@ -20,7 +20,7 @@
             data-bs-target="#modal_add_org_admin"
           >
             <span class="svg-icon svg-icon-2">
-              <inline-svg src="media/icons/duotune/arrows/arr075.svg" />
+              <InlineSVG icon="plus" />
             </span>
             Add
           </button>
@@ -65,7 +65,7 @@
             class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1"
           >
             <span class="svg-icon svg-icon-3">
-              <inline-svg src="media/icons/duotune/art/art005.svg" />
+              <InlineSVG icon="pencil" />
             </span>
           </button>
 
@@ -74,7 +74,7 @@
             class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm"
           >
             <span class="svg-icon svg-icon-3">
-              <inline-svg src="media/icons/duotune/general/gen027.svg" />
+              <InlineSVG icon="bin" />
             </span>
           </button>
         </template>

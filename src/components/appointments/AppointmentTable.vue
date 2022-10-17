@@ -20,20 +20,27 @@
           v-for="specialist in filteredSpecialists"
           :key="specialist.id"
         >
-          <th style="height: 60px; width: 40px"></th>
-          <th class="text-center text-primary py-3">
-            {{
-              filteredSpecialists.length > 0
-                ? "Dr. " + specialist.full_name
-                : ""
-            }}
-            <br />
-            {{
-              specialist.hrm_user_base_schedules
-                ? specialist.hrm_user_base_schedules[0].clinic_name
-                : ""
-            }}
-          </th>
+          <template
+            v-if="
+              specialist.checked &&
+              filterClinics(specialist.schedule_timeslots[0].clinic_id)
+            "
+          >
+            <th style="height: 60px; width: 40px"></th>
+            <th class="text-center text-primary py-3">
+              {{
+                filteredSpecialists.length > 0
+                  ? "Dr. " + specialist.full_name
+                  : ""
+              }}
+              <br />
+              {{
+                specialist.schedule_timeslots
+                  ? specialist.schedule_timeslots[0].clinic_name
+                  : ""
+              }}
+            </th>
+          </template>
         </template>
       </tr>
     </thead>
@@ -49,27 +56,36 @@
           v-for="specialist in filteredSpecialists"
           :key="specialist.id"
         >
-          <CreateAppointmentTableData
-            v-if="specialist"
-            :specialist="specialist"
-            :date="_apt_date"
-            :startTime="appointmentTimeslot"
-          />
-          <AppointmentTableData
-            v-if="getAppointmentAtTime(specialist, appointmentTimeslot)"
-            :appointment="getAppointmentAtTime(specialist, appointmentTimeslot)"
-            @click="
-              handleShowAppointmentDrawer(
+          <template
+            v-if="
+              specialist.checked &&
+              filterClinics(specialist.schedule_timeslots[0].clinic_id)
+            "
+          >
+            <CreateAppointmentTableData
+              v-if="specialist"
+              :specialist="specialist"
+              :date="_apt_date"
+              :startTime="appointmentTimeslot"
+            />
+            <AppointmentTableData
+              v-if="getAppointmentAtTime(specialist, appointmentTimeslot)"
+              :appointment="
                 getAppointmentAtTime(specialist, appointmentTimeslot)
-              )
-            "
-          />
-          <td
-            v-else-if="
-              !specialistHasAppointmentInSlot(specialist, appointmentTimeslot)
-            "
-            style="background: #f1f1f1"
-          ></td>
+              "
+              @click="
+                handleShowAppointmentDrawer(
+                  getAppointmentAtTime(specialist, appointmentTimeslot)
+                )
+              "
+            />
+            <td
+              v-else-if="
+                !specialistHasAppointmentInSlot(specialist, appointmentTimeslot)
+              "
+              style="background: #f1f1f1"
+            ></td>
+          </template>
         </template>
       </tr>
     </tbody>
@@ -97,7 +113,7 @@ export default defineComponent({
   components: { CreateAppointmentTableData, AppointmentTableData },
   props: {
     date: { type: String, required: true },
-    selectedSpecialists: { type: Array, required: true },
+    filteredClinics: { type: Array, required: true },
   },
   setup(props) {
     const store = useStore();
@@ -121,7 +137,6 @@ export default defineComponent({
     };
 
     onMounted(() => {
-      store.dispatch(Actions.ORG.LIST);
       appointmentTimesList.value = generateAppointmentTimes();
     });
 
@@ -216,6 +231,10 @@ export default defineComponent({
       return false;
     };
 
+    //Check specialist clinic is selected one in filter or not
+    const filterClinics = (id) => {
+      return props.filteredClinics.includes(id, 0);
+    };
     return {
       format,
       tableData,
@@ -228,6 +247,7 @@ export default defineComponent({
       filteredSpecialists,
       clinic_list,
       _apt_date,
+      filterClinics,
     };
   },
 });

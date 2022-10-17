@@ -11,6 +11,11 @@ import Swal from "sweetalert2/dist/sweetalert2.js";
 
 export interface IPatient {
   id: string;
+  appointments: Array<IApt>;
+}
+
+export interface IMinorId {
+  minorId?: string | null;
 }
 
 export interface PatientsInfo {
@@ -57,6 +62,26 @@ export default class PatientsModule extends VuexModule implements PatientsInfo {
     return this.patientsSelectData;
   }
 
+  /**
+   * Get current selected Patient
+   * @returns SelectedpatientsData
+   */
+  get latestMinorId(): IMinorId {
+    if (
+      this.selectedPatient?.appointments &&
+      this.selectedPatient.appointments.length > 0
+    ) {
+      const latestApt = this.selectedPatient.appointments[0];
+      return {
+        minorId: latestApt?.clinic?.minor_id ?? null,
+      };
+    }
+
+    return {
+      minorId: null,
+    };
+  }
+
   get getPatientAppointments(): PatientAppointmentsData {
     return this.patientAppointmentsData;
   }
@@ -82,10 +107,10 @@ export default class PatientsModule extends VuexModule implements PatientsInfo {
   }
 
   @Action
-  [PatientActions.PATIENTS.LIST]() {
+  [PatientActions.LIST](data) {
     if (JwtService.getToken()) {
       ApiService.setHeader();
-      ApiService.get("patients")
+      ApiService.get("patients", "", data)
         .then(({ data }) => {
           this.context.commit(PatientMutations.SET_PATIENT.LIST, data.data);
           return data.data;
@@ -100,7 +125,7 @@ export default class PatientsModule extends VuexModule implements PatientsInfo {
   }
 
   @Action
-  [PatientActions.PATIENTS.UPDATE](data) {
+  [PatientActions.UPDATE](data) {
     if (JwtService.getToken()) {
       ApiService.setHeader();
       ApiService.update("patients", data.id, data)
@@ -117,7 +142,7 @@ export default class PatientsModule extends VuexModule implements PatientsInfo {
   }
 
   @Action
-  [PatientActions.PATIENTS.VIEW](id) {
+  [PatientActions.VIEW](id) {
     if (JwtService.getToken()) {
       ApiService.setHeader();
       ApiService.get("patients/" + id)
@@ -135,7 +160,7 @@ export default class PatientsModule extends VuexModule implements PatientsInfo {
   }
 
   @Action
-  [PatientActions.PATIENTS.APPOINTMENTS](id) {
+  [PatientActions.APPOINTMENTS](id) {
     if (JwtService.getToken()) {
       ApiService.setHeader();
       ApiService.get("patients/appointments/" + id)
@@ -156,7 +181,7 @@ export default class PatientsModule extends VuexModule implements PatientsInfo {
   }
 
   @Action
-  [PatientActions.PATIENTS.DOCUMENTS.LIST](id) {
+  [PatientActions.DOCUMENTS.LIST](id) {
     if (JwtService.getToken()) {
       ApiService.setHeader();
       ApiService.get("patients/documents/" + id)
@@ -177,14 +202,13 @@ export default class PatientsModule extends VuexModule implements PatientsInfo {
   }
 
   @Action
-  [PatientActions.PATIENTS.DOCUMENTS.CREATE](data) {
-    console.log(data.get("document_type"));
+  [PatientActions.DOCUMENTS.CREATE](data) {
     if (JwtService.getToken()) {
       ApiService.setHeader();
       ApiService.post("patients/documents/" + data.get("patient_id"), data)
         .then(({ data }) => {
           this.context.dispatch(
-            PatientActions.PATIENTS.DOCUMENTS.LIST,
+            PatientActions.DOCUMENTS.LIST,
             data.get("patient_id")
           );
           return data.data;
@@ -199,13 +223,13 @@ export default class PatientsModule extends VuexModule implements PatientsInfo {
   }
 
   @Action
-  [PatientActions.PATIENTS.DOCUMENTS.SEND_VIA_EMAIL](data) {
+  [PatientActions.DOCUMENTS.SEND_VIA_EMAIL](data) {
     if (JwtService.getToken()) {
       ApiService.setHeader();
       ApiService.post("patient-documents/send-via-email", data)
         .then(({ data }) => {
           this.context.dispatch(
-            PatientActions.PATIENTS.DOCUMENTS.LIST,
+            PatientActions.DOCUMENTS.LIST,
             data.get("patient_id")
           );
           return data.data;
@@ -220,57 +244,12 @@ export default class PatientsModule extends VuexModule implements PatientsInfo {
   }
 
   @Action
-  [PatientActions.PATIENTS.DOCUMENTS.VIEW](data) {
+  [PatientActions.CLAIM_SOURCE.ADD](data) {
     if (JwtService.getToken()) {
       ApiService.setHeader();
-      return ApiService.post(
-        "file",
-        {
-          path: data.path,
-          type: "PATIENT_DOCUMENT",
-        },
-        {
-          responseType: "blob",
-        }
-      )
+      ApiService.put("patients/billing", data)
         .then(({ data }) => {
           return data;
-        })
-        .catch(({ response }) => {
-          console.log(response.data.error);
-        });
-    } else {
-      this.context.commit(Mutations.PURGE_AUTH);
-    }
-  }
-
-  @Action
-  [PatientActions.PATIENTS.BILLING.UPDATE](data) {
-    if (JwtService.getToken()) {
-      ApiService.setHeader();
-      ApiService.update("patients/billing", data.id, data)
-        .then(({ data }) => {
-          if (data.status) {
-            Swal.fire({
-              text: "Successful Updated!",
-              icon: "success",
-              buttonsStyling: false,
-              confirmButtonText: "Ok, got it!",
-              customClass: {
-                confirmButton: "btn btn-primary",
-              },
-            });
-          } else {
-            Swal.fire({
-              text: data.message,
-              icon: "error",
-              buttonsStyling: false,
-              confirmButtonText: "Ok",
-              customClass: {
-                confirmButton: "btn btn-secondary",
-              },
-            });
-          }
         })
         .catch(({ response }) => {
           console.log(response.data.error);
@@ -282,35 +261,38 @@ export default class PatientsModule extends VuexModule implements PatientsInfo {
   }
 
   @Action
-  [PatientActions.PATIENTS.BILLING.VALIDATE_MEDICARE](data) {
+  [PatientActions.CLAIM_SOURCE.UPDATE](data) {
     if (JwtService.getToken()) {
       ApiService.setHeader();
-      ApiService.post(
-        "patients/billing/" + data.patient_id + "/validate-medicare",
-        data
-      )
+      ApiService.update("patients/billing", data.id, data)
         .then(({ data }) => {
-          if (data.status) {
-            Swal.fire({
-              text: "Medicare is Valid",
-              icon: "success",
-              buttonsStyling: false,
-              confirmButtonText: "Ok, got it!",
-              customClass: {
-                confirmButton: "btn btn-primary",
-              },
-            });
-          } else {
-            Swal.fire({
-              text: "Medicare is Invalid",
-              icon: "error",
-              buttonsStyling: false,
-              confirmButtonText: "Ok",
-              customClass: {
-                confirmButton: "btn btn-secondary",
-              },
-            });
-          }
+          return data;
+        })
+        .catch(({ response }) => {
+          console.log(response.data.error);
+          // this.context.commit(Mutations.SET_ERROR, response.data.errors);
+        });
+    } else {
+      this.context.commit(Mutations.PURGE_AUTH);
+    }
+  }
+
+  @Action
+  [PatientActions.CLAIM_SOURCE.DELETE](source) {
+    if (JwtService.getToken()) {
+      ApiService.setHeader();
+      return ApiService.delete(`patients/billing/${source.id}`)
+        .then(({ data }) => {
+          this.context.dispatch(PatientActions.VIEW, source.patient_id);
+          Swal.fire({
+            text: "Successfully Deleted!",
+            icon: "success",
+            buttonsStyling: false,
+            confirmButtonText: "Ok, got it!",
+            customClass: {
+              confirmButton: "btn btn-secondary",
+            },
+          });
         })
         .catch(({ response }) => {
           console.log(response.data.error);

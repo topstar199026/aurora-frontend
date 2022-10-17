@@ -1,80 +1,52 @@
 /* eslint-disable prettier/prettier */
 const AppointmentActions = {
+
+
+  LIST: "listAppointment",                 // (get)    'appointments'
+  REFERRAL: {
+    UPDATE:   "updateAppointmentReferral", // (put)    'appointments/referral/{appointment}'
+    VIEW:     "viewAppointmentReferral",   // (post)   'appointments/referral/file'
+  },
+  APPOINTMENT_TYPES:{
+    LIST:   "listAptTypes",               //  (get)    '/appointment-types'
+    CREATE: "createAptTypes",             //  (post)   '/appointment-types'
+    UPDATE: "updateAptTypes",             //  (put)    '/appointment-types/{appointmentType}'
+    DELETE: "deleteAptTypes",             //  (delete) '/appointment-types/{appointmentType}'
+  },
+  PROCEDURE_APPROVAL: {
+    UPDATE: "updateProcedureApproval",    //  (put)    '/appointment/procedure-approvals/{appointment}'
+    UPLOAD: "uploadProcedureApproval",    //  (put)    '/appointment/procedure-approvals/upload/{appointment}'
+  },
+  CONFIRMATION_STATUS: {
+    UPDATE: "updateCancellationApt",      //  (put) '/appointments/confirmation-status/{appointment}'
+  },
+  COLLECTING_PERSON:{
+    UPDATE: "updateCancellationApt",      //  (put) '/appointments/collecting-person/{appointment}'
+  },
+  PRE_ADMISSION: {
+    VIEW:     "viewPreAdmissionForm",      // (post)   'appointment/procedure-approvals/pdf/{appointment}'
+    ORGANIZATION: "listAptPreAdmissionOrg",
+    VALIDATE:     "validateAptPreAdmission",
+    STORE:        "createAptPreAdmission",
+  },
+
+
+
+  // These are slowly being moved to the above
+  APT: {
+    CREATE: "createApt",
+    DELETE: "deleteApt",
+    UPDATE: "updateApt",
+    CHECK_IN: "checkInApt",
+    CHECK_OUT: "checkOutApt",
+  },
   BOOKING: {
-    LIST: "listBooking",
-    CREATE: "createBooking",
-    DELETE: "deleteBooking",
-    UPDATE: "updateBooking",
     SEARCH: {
-      DATE: "searchBookingByDate",
       SPECIALISTS: "searchBookingBySPT",
       NEXT_APT: "searchNextApt",
     },
   },
 
-  APPOINTMENT: {
-    REFERRAL: {
-      UPDATE:   "updateAppointmentReferral", // (put)    'appointments/referral/{appointment}'
-      VIEW:     "viewAppointmentReferral",   // (post)   'appointments/referral/file'
-    },
-    APPOINTMENT_TYPES:{
-      LIST:   "listAptTypes",               //  (get)    '/appointment-types'
-      CREATE: "createAptTypes",             //  (post)   '/appointment-types'
-      UPDATE: "updateAptTypes",             //  (put)    '/appointment-types/{appointmentType}'
-      DELETE: "deleteAptTypes",             //  (delete) '/appointment-types/{appointmentType}'
-    },
-    PROCEDURE_APPROVAL: {
-      LIST: "listProcedureApproval",        //  (get)    '/procedure-approvals'
-      UPDATE: "updateProcedureApproval",    //  (put)    '/appointment/procedure-approvals/{appointment}'
-      UPLOAD: "uploadProcedureApproval",    //  (put)    '/appointment/procedure-approvals/upload/{appointment}'
-    },
-    CONFIRMATION_STATUS: {   
-      LIST: "listCancellationApt",          //  (get) '/appointments/confirmation-status'
-      UPDATE: "updateCancellationApt",      //  (put) '/appointments/confirmation-status/{appointment}'
-    },
-    COLLECTING_PERSON:{
-      UPDATE: "updateCancellationApt",      //  (put) '/appointments/collecting-person/{appointment}'
-    },
-    PRE_ADMISSION: {
-      VIEW:     "viewPreAdmissionForm",      // (post)   'appointment/procedure-approvals/pdf/{appointment}'
-      ORGANIZATION: "listAptPreAdmissionOrg",
-      VALIDATE:     "validateAptPreAdmission",
-      STORE:        "createAptPreAdmission",
-    },
-  },
-
-  APT: {
-    LIST: "listApt",
-    LISTBYID: "listAptById",
-    CREATE: "createApt",
-    DELETE: "deleteApt",
-    UPDATE: "updateApt",
- 
-    UNCONFIRMED: {
-      LIST: "listUnconfirmedApt",
-      DELETE: "deleteUnconfirmedApt",
-      UPDATE: "updateUnconfirmedApt",
-    },
-    WAITLISTED: {
-      LIST: "listWaitlistedApt",
-      DELETE: "deleteWaitlistedApt",
-      UPDATE: "updateWaitlistedApt",
-    },
-    UNAPPROVED: {
-      LIST: "listUnapprovedApt",
-      DELETE: "deleteUnapprovedApt",
-      UPDATE: "updateUnapprovedApt",
-    },
-    
-    CHECK_IN: "checkInApt",
-    CHECK_OUT: "checkOutApt",
-    
-    USER_APT: {
-      LIST: "userAptList",
-    },
-  },
-
- 
 };
 
 const AppointmentMutations = {
@@ -86,6 +58,7 @@ const AppointmentMutations = {
       VARIABLE: "setSearchVariable",
       DATE: "setFilteredBookingByDate",
       SPECIALISTS: "setFilteredBookingBySPT",
+      FILLTEREDSPECIALISTS: "setFilteredBookingBySPT1",
       NEXT_APTS: "setNextAptList",
     },
   },
@@ -99,22 +72,6 @@ const AppointmentMutations = {
       LIST: "setAptType",
       SELECT: "setSelectAptType",
     },
-    UNCONFIRMED: {
-      LIST: "setUnConfirmedApt",
-      SELECT: "setSelectUnconfirmedApt",
-    },
-    WAITLISTED: {
-      LIST: "setWaitlistedApt",
-      SELECT: "setSelectWaitlistedApt",
-    },
-    UNAPPROVED: {
-      LIST: "setUnapprovedApt",
-      SELECT: "setSelectUnapprovedApt",
-    },
-    CONFIRMATION_STATUS: {
-      LIST: "setCancellationApt",
-      SELECT: "setSelectCancellationApt",
-    },
     PRE_ADMISSION: {
       ORG: "setAptPreAdmissionOrg",
       VALIDATE: {
@@ -123,11 +80,10 @@ const AppointmentMutations = {
       },
     },
     USER_APT: {
-      LIST: "setUserAptList",
       SELECT: "setSelectUserApt",
     },
   },
-  
+
   SET_PROCEDURE_APPROVAL: {
     LIST: "setProcedureApprovalsList",
     DATA: "setProcedureApproval",

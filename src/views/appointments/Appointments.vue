@@ -1,50 +1,71 @@
 <template>
   <div class="card w-100 d-flex align-items-end mb-2 px-5">
-    <div
-      v-if="toggleKey"
-      style="background-color: #ffffff"
-      class="position-absolute zindex-sticky mt-10 d-flex flex-column m-2"
-    >
-      <span
-        v-for="item in aptTypelist"
-        :value="item.id"
-        :label="item.name"
-        :key="item.id"
-        style="z-index: 100"
-        class="badge mt-1"
-        :style="{ 'background-color': item.color }"
-        >{{ item.name }}</span
-      >
-    </div>
     <!--begin::Booking Toolbar-->
     <div class="d-flex flex-row align-items-center gap-2">
       <div class="d-inline-block mb-2 p-2">
         <div class="d-flex">
           <span
+            @mouseover="toggleRestrictionKey = true"
+            @mouseout="toggleRestrictionKey = false"
+            class="svg-icon-primary svg-icon svg-icon-2x btn m-0 p-0"
+          >
+            <inline-svg src="media/icons/duotune/arrows/arr009.svg" />
+          </span>
+        </div>
+        <div
+          v-if="toggleRestrictionKey"
+          style="background-color: #ffffff; z-index: 100"
+          class="position-absolute mt-2 d-flex flex-column m-2 p-2"
+        >
+          <div>
+            <i :class="'fa fa-plus text-primary'"></i> Consultations Only
+          </div>
+          <div><i :class="'fa fa-plus text-danger'"></i> Procedures Only</div>
+          <div><i :class="'fa fa-plus text-success'"></i> No Restrictions</div>
+        </div>
+      </div>
+      <span class="h-30px border-gray-200 border-start mx-2"></span>
+      <div class="d-inline-block mb-2 p-2">
+        <div class="d-flex">
+          <span
             @mouseover="toggleKey = true"
             @mouseout="toggleKey = false"
-            :class="{ 'svg-icon-primary': toggleLayout }"
-            class="svg-icon svg-icon-2x btn m-0 p-0"
+            class="svg-icon-primary svg-icon svg-icon-2x btn m-0 p-0"
           >
-            <inline-svg src="media/icons/duotune/art/art005.svg" />
+            <inline-svg src="media/icons/duotune/coding/cod005.svg" />
           </span>
+        </div>
+        <div
+          v-if="toggleKey"
+          style="background-color: #ffffff; z-index: 100; right: 0px"
+          class="position-absolute mt-2 d-flex flex-column m-2"
+        >
+          <span
+            v-for="item in aptTypelist"
+            :value="item.id"
+            :label="item.name"
+            :key="item.id"
+            class="badge mt-1"
+            :style="{ 'background-color': item.color }"
+            >{{ item.name }}</span
+          >
         </div>
       </div>
       <!--begin::Appointment Type Key-->
-      <span class="h-30px border-gray-200 border-start mx-4"></span>
+      <span class="h-30px border-gray-200 border-start mx-2"></span>
       <!--end::Appointment Type Key-->
       <!--begin::Layout Toggle-->
       <div class="d-inline-block mb-2 p-2">
         <div class="d-flex flex-row">
           <span
-            @click="toggleLayout = true"
+            @click="setToggleLayout(true)"
             :class="{ 'svg-icon-primary': toggleLayout }"
             class="svg-icon svg-icon-2x btn m-0 p-0"
           >
             <inline-svg src="media/icons/duotune/layouts/lay004.svg" />
           </span>
           <span
-            @click="toggleLayout = false"
+            @click="setToggleLayout(false)"
             :class="{ 'svg-icon-primary': !toggleLayout }"
             class="svg-icon svg-icon-2x btn m-0 p-0"
           >
@@ -60,7 +81,7 @@
   </div>
   <!--end::Booking Toolbar-->
   <div :class="{ row: toggleLayout }">
-    <div :class="{ 'col-2': toggleLayout }">
+    <div :class="{ 'col-4': toggleLayout }">
       <div class="card card-flush">
         <div class="card-body">
           <div :class="{ row: !toggleLayout }">
@@ -129,23 +150,57 @@
                   class="card-body card-scroll h-350px d-flex flex-column justify-content-between"
                 >
                   <div class="d-flex flex-column">
-                    <el-checkbox-group
-                      v-model="specialists_search.specialist_ids"
-                      class="d-flex flex-column"
+                    <el-checkbox
+                      v-model="isShowAllSpecialist"
+                      label="Show All Specialists"
+                      size="large"
+                    />
+                    <el-select
+                      v-model="specialistsData"
+                      multiple
+                      filterable
+                      remote
+                      reserve-keyword
+                      placeholder="Please type a specialist name"
+                      remote-show-suffix
+                      :remote-method="remoteMethodSpecalist"
+                      :loading="loading"
+                      :disabled="isShowAllSpecialist"
+                      @change="filterSpecialists"
                     >
-                      <template
-                        v-for="(specialist, index) in ava_specialists"
-                        :key="index"
-                      >
-                        <el-checkbox
-                          size="large"
-                          :label="specialist.id"
-                          :checked="true"
-                          >Dr. {{ specialist.first_name }}
-                          {{ specialist.last_name }}</el-checkbox
-                        >
-                      </template>
-                    </el-checkbox-group>
+                      <el-option
+                        v-for="item in options"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value"
+                      />
+                    </el-select>
+                  </div>
+                  <div class="d-flex flex-column">
+                    <el-checkbox
+                      v-model="isShowAllClinics"
+                      label="Show All Clinics"
+                      size="large"
+                    />
+                    <el-select
+                      v-model="clinicsData"
+                      multiple
+                      filterable
+                      remote
+                      reserve-keyword
+                      placeholder="Please type a clinc name"
+                      remote-show-suffix
+                      :remote-method="remoteMethodClinic"
+                      :loading="loading"
+                      :disabled="isShowAllClinics"
+                    >
+                      <el-option
+                        v-for="item in clinicOptions"
+                        :value="item.id"
+                        :label="item.name"
+                        :key="item.id"
+                      />
+                    </el-select>
                   </div>
                   <button
                     class="btn btn-light-primary w-100 mt-2"
@@ -257,12 +312,13 @@
         </div>
       </div>
     </div>
-    <div :class="{ 'col-10': toggleLayout }">
+    <div :class="{ 'col-8': toggleLayout }">
       <div class="card-body">
         <div class="scroll" :class="{ 'h-500px': !toggleLayout }">
           <div class="d-flex flex-column">
             <AppointmentTable
               :date="moment(date_search.date.toString()).format('MM-DD-YYYY')"
+              :filteredClinics="selectedClinicIds"
             />
           </div>
         </div>
@@ -270,9 +326,8 @@
     </div>
   </div>
 
-  <CreateModal></CreateModal>
+  <AptModal modalId="modal_create_apt" />
   <AppointmentListPopup
-    :available-slots-by-date="available_slots_by_date"
     :all-specialists="allSpecialists"
     :search-next-apts="search_next_apts"
     :apt-type-list="aptTypelist"
@@ -289,43 +344,48 @@ import {
   reactive,
   onMounted,
   computed,
+  watchEffect,
 } from "vue";
 import { useStore } from "vuex";
 import AppointmentListPopup from "@/components/appointments/AppointmentListPopup.vue";
-import CreateModal from "@/components/appointments/CreateApt.vue";
+import AptModal from "@/components/appointments/ModalApt.vue";
 import AppointmentTable from "@/components/appointments/AppointmentTable.vue";
 import VueCtkDateTimePicker from "vue-ctk-date-time-picker";
 import "vue-ctk-date-time-picker/dist/vue-ctk-date-time-picker.css";
 import moment from "moment";
 import { aptTimeList } from "@/core/data/apt-time";
-import { Actions, Mutations } from "@/store/enums/StoreEnums";
+import { Actions } from "@/store/enums/StoreEnums";
 import {
   AppointmentActions,
   AppointmentMutations,
 } from "@/store/enums/StoreAppointmentEnums";
 import { Modal } from "bootstrap";
 import { setCurrentPageBreadcrumbs } from "@/core/helpers/breadcrumb";
+import { DrawerComponent } from "@/assets/ts/components/_DrawerComponent";
 
 export default defineComponent({
   name: "bookings-dashboard",
   components: {
     VueCtkDateTimePicker,
-    CreateModal,
+    AptModal,
     AppointmentTable,
     AppointmentListPopup,
   },
   data: function () {
     return {
-      toggleLayout: false,
       toggleKey: false,
+      toggleRestrictionKey: false,
     };
   },
-  setup() {
+  setup: function () {
     const store = useStore();
     const format = ref("YYYY-MM-DD");
     const date_search = reactive({
       date: new Date(),
     });
+
+    const isShowAllSpecialist = ref(false);
+    const toggleLayout = ref(false);
 
     const validateAppointmentTypeId = (rule, value, callback) => {
       if (value === "") {
@@ -333,6 +393,11 @@ export default defineComponent({
       } else {
         callback();
       }
+    };
+
+    const setToggleLayout = (value) => {
+      toggleLayout.value = value;
+      localStorage.setItem("toggleBookingLayout", toggleLayout.value);
     };
 
     const searchAppointmentForm = ref({
@@ -357,8 +422,9 @@ export default defineComponent({
       appointment_type_id: "",
       specialist_id: "",
       time_requirement: 0,
-      x_weeks: "0",
+      date: moment(),
       clinic_id: "",
+      x_weeks: 0,
     });
 
     const specialists_search = reactive({
@@ -377,7 +443,17 @@ export default defineComponent({
       24: "In 6 months",
     });
 
-    const ava_specialists = computed(() => store.getters.getAvailableSPTData);
+    const specialistsList = ref([]);
+    const options = ref([]);
+    const specialistsData = ref([]);
+    const loading = ref(false);
+    const isShowAllClinics = ref(false);
+    const clinicOptions = ref([]);
+    const clinicsData = ref([]);
+
+    const filtered_specialists = computed(
+      () => store.getters.getAvailableSPTData
+    );
     const specialists = computed(() => store.getters.getFilteredData);
 
     const available_slots_by_date = computed(
@@ -391,21 +467,28 @@ export default defineComponent({
     const clinic_list = computed(() => store.getters.clinicsList);
 
     onMounted(() => {
-      store.dispatch(AppointmentActions.BOOKING.SEARCH.DATE, {
-        ...date_search,
-        ...specialists_search,
-      });
+      toggleLayout.value = false;
       store.dispatch(AppointmentActions.BOOKING.SEARCH.SPECIALISTS, {
         ...date_search,
-        ...specialists_search,
       });
-
-      store.dispatch(AppointmentActions.APPOINTMENT.APPOINTMENT_TYPES.LIST);
+      store.dispatch(AppointmentActions.APPOINTMENT_TYPES.LIST);
       store.dispatch(Actions.SPECIALIST.LIST);
       store.dispatch(Actions.APT_TIME_REQUIREMENT.LIST);
       store.dispatch(Actions.CLINICS.LIST);
+    });
 
-      setCurrentPageBreadcrumbs("Dashboard", ["Bookings"]);
+    const selectedClinicIds = computed(() => {
+      let newArray = [];
+      if (isShowAllClinics.value) {
+        newArray = clinic_list.value.map((item) => {
+          return item.id;
+        });
+      } else {
+        newArray = clinicsData.value.map((item) => {
+          return item;
+        });
+      }
+      return newArray;
     });
 
     const timeStr2Number = (time) => {
@@ -421,13 +504,11 @@ export default defineComponent({
             searchAppointmentForm.value.specialist_id;
           search_next_apts.time_requirement =
             searchAppointmentForm.value.time_requirement;
+          search_next_apts.date = moment(moment())
+            .add(searchAppointmentForm.value.x_weeks, "weeks")
+            .format("DD/MM/YYYY");
           search_next_apts.x_weeks = searchAppointmentForm.value.x_weeks;
           search_next_apts.clinic_id = searchAppointmentForm.value.clinic_id;
-
-          await store.dispatch(AppointmentActions.BOOKING.SEARCH.NEXT_APT, {
-            ...search_next_apts,
-          });
-
           const modal = new Modal(
             document.getElementById("modal_available_time_slot_popup")
           );
@@ -446,64 +527,39 @@ export default defineComponent({
       searchAppointmentForm.value.clinic_id = "";
       searchAppointmentForm.value.specialist_id = "";
       searchAppointmentForm.value.time_requirement = 0;
+      isShowAllClinics.value = true;
+      isShowAllSpecialist.value = true;
     };
 
+    watchEffect(() => {
+      if (
+        DrawerComponent?.getInstance(
+          "appointment-drawer"
+        )?.isBookingDrawerShown() === true
+      ) {
+        setTimeout(() => {
+          DrawerComponent?.getInstance("appointment-drawer")?.show();
+        }, 200);
+      }
+    });
     watch(date_search, () => {
-      store.dispatch(AppointmentActions.BOOKING.SEARCH.DATE, {
-        ...date_search,
-        specialists: [],
-      });
       store.dispatch(AppointmentActions.BOOKING.SEARCH.SPECIALISTS, {
         ...date_search,
-        ...specialists_search,
       });
     });
-
-    watch(ava_specialists, () => {
-      let temp = [];
-
-      ava_specialists.value.forEach((item) => {
-        specialists_search.specialist_ids.forEach((selected) => {
-          if (item.id === selected) temp.push(item);
-        });
+    watch(specialists, () => {
+      specialistsList.value = specialists.value.map((specialist) => {
+        return {
+          value: specialist.id,
+          label: `Dr.${specialist.first_name} ${specialist.last_name}`,
+        };
       });
-      if (temp.length === 0) temp = ava_specialists.value;
-      const data = ref({});
-      //const data_key = moment(date_search.date).format("YYYY-MM-DD").toString();
-      data.value = temp; //[data_key]
-      store.commit(
-        AppointmentMutations.SET_BOOKING.SEARCH.SPECIALISTS,
-        data.value
-      );
-      store.dispatch(AppointmentActions.BOOKING.SEARCH.SPECIALISTS, {
-        ...date_search,
-        ...specialists_search,
-      });
+      getFilterSpecialists();
     });
 
-    watch(specialists_search, () => {
-      let temp = [];
-      ava_specialists.value.forEach((item) => {
-        specialists_search.specialist_ids.forEach((selected) => {
-          if (item.id === selected) temp.push(item);
-        });
-      });
-      if (specialists_search.specialist_ids.length === 0)
-        temp = ava_specialists.value;
-      const data = ref({});
-      //const data_key = moment(date_search.date).format("YYYY-MM-DD").toString();
-      data.value = temp; //[data_key]
-      store.commit(
-        AppointmentMutations.SET_BOOKING.SEARCH.SPECIALISTS,
-        data.value
-      );
-      // store.dispatch(Actions.ADD_BODY_CLASSNAME, "page-loading");
-      // store.dispatch(Actions.BOOKING.SEARCH.SPECIALISTS, {
-      //   ...date_search,
-      //   ...specialists_search,
-      // });
+    watch(clinic_list, () => {
+      getSelectedClinics();
     });
-
     const changeDate = (mode) => {
       switch (mode) {
         case 0:
@@ -530,11 +586,140 @@ export default defineComponent({
       }
     };
 
+    watch(specialistsData, () => {
+      let newArray = [];
+      specialistsData.value.forEach(function (data) {
+        if (data.value) {
+          newArray.push(parseInt(data.value));
+        } else {
+          newArray.push(data);
+        }
+      });
+      localStorage.setItem("selectedSpecialist", JSON.stringify(newArray));
+    });
+
+    watch(clinicsData, () => {
+      let newArray = [];
+      clinicsData.value.forEach(function (data) {
+        if (data.value) {
+          newArray.push(parseInt(data.value));
+        } else {
+          newArray.push(data);
+        }
+      });
+      localStorage.setItem("selectedClinics", JSON.stringify(newArray));
+    });
+
+    watch(isShowAllSpecialist, () => {
+      filterSpecialists();
+    });
+
+    const remoteMethodSpecalist = (query) => {
+      if (query) {
+        loading.value = true;
+        setTimeout(() => {
+          loading.value = false;
+          options.value = specialistsList.value.filter((item) => {
+            return item.label.toLowerCase().includes(query.toLowerCase());
+          });
+        }, 200);
+      } else {
+        options.value = [];
+      }
+    };
+
+    const remoteMethodClinic = (query) => {
+      if (query) {
+        loading.value = true;
+        setTimeout(() => {
+          loading.value = false;
+          clinicOptions.value = clinic_list.value.filter((item) => {
+            return item.name.toLowerCase().includes(query.toLowerCase());
+          });
+        }, 200);
+      } else {
+        clinicOptions.value = clinic_list.value.filter((item) => {
+          return item.name.toLowerCase();
+        });
+      }
+    };
+
+    const checkSpecialistSelectected = (id) => {
+      let isSpecialistSelected = false;
+      specialistsData.value.forEach(function (val) {
+        if (val.value == id) isSpecialistSelected = true;
+        if (val === parseInt(id)) isSpecialistSelected = true;
+      });
+      return isSpecialistSelected;
+    };
+    const filterSpecialists = () => {
+      specialists.value.forEach(function (specialist) {
+        if (isShowAllSpecialist.value) {
+          specialist.checked = true;
+        } else {
+          let track = false;
+          specialistsData.value.forEach(function (val) {
+            if (val == specialist.id) {
+              track = true;
+              specialist.checked = true;
+            }
+          });
+          if (!track) specialist.checked = false;
+        }
+      });
+    };
+    //Getting selected specialists from localstorage
+    const getFilterSpecialists = () => {
+      let localSpecialistCodes = null;
+      if (localStorage.getItem("selectedSpecialist") !== null) {
+        localSpecialistCodes = localStorage.getItem("selectedSpecialist");
+        const savedSpecialists = JSON.parse(localSpecialistCodes);
+        if (savedSpecialists.length > 0) {
+          options.value = [];
+          specialists.value.forEach(function (specialist) {
+            options.value.push({
+              value: specialist.id,
+              label: `Dr. ${specialist.first_name} ${specialist.last_name}`,
+            });
+            savedSpecialists.forEach(function (e) {
+              if (e == specialist.id) {
+                specialist.checked = true;
+                if (!checkSpecialistSelectected(e)) {
+                  specialistsData.value.push(specialist.id);
+                }
+              }
+            });
+          });
+        } else {
+          isShowAllSpecialist.value = true;
+        }
+      } else {
+        isShowAllSpecialist.value = true;
+      }
+    };
+    //Getting selected clinics from localstorage
+    const getSelectedClinics = () => {
+      let localClinicCodes = null;
+      if (localStorage.getItem("selectedClinics") !== null) {
+        localClinicCodes = JSON.parse(localStorage.getItem("selectedClinics"));
+        if (localClinicCodes.length > 0) {
+          clinicsData.value = [];
+          remoteMethodClinic();
+          localClinicCodes.forEach(function (code) {
+            clinicsData.value.push(code);
+          });
+        } else {
+          isShowAllClinics.value = true;
+        }
+      } else {
+        isShowAllClinics.value = true;
+      }
+    };
     return {
       format,
       date_search,
       specialists_search,
-      ava_specialists,
+      filtered_specialists,
       specialists,
       available_slots_by_date,
       aptTypelist,
@@ -553,6 +738,19 @@ export default defineComponent({
       handleReset,
       timeStr2Number,
       changeDate,
+      toggleLayout,
+      setToggleLayout,
+      isShowAllSpecialist,
+      remoteMethodSpecalist,
+      specialistsData,
+      loading,
+      options,
+      filterSpecialists,
+      isShowAllClinics,
+      remoteMethodClinic,
+      clinicOptions,
+      clinicsData,
+      selectedClinicIds,
     };
   },
 });

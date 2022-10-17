@@ -4,6 +4,8 @@ import { Actions, Mutations } from "@/store/enums/StoreEnums";
 import { Module, Action, Mutation, VuexModule } from "vuex-module-decorators";
 
 export interface User {
+  profile: object;
+  organization: object;
   username: string;
   email: string;
   access_token: string;
@@ -36,6 +38,22 @@ export default class AuthModule extends VuexModule implements UserAuthInfo {
    */
   get userRole() {
     return this.user.role;
+  }
+
+  /**
+   * Get current user profile
+   * @returns User
+   */
+  get userProfile() {
+    return this.user.profile;
+  }
+
+  /**
+   * Get current user organization
+   * @returns User
+   */
+  get userOrganization() {
+    return this.user.organization;
   }
 
   /**
@@ -99,28 +117,6 @@ export default class AuthModule extends VuexModule implements UserAuthInfo {
   @Action
   [Actions.LOGOUT]() {
     this.context.commit(Mutations.PURGE_AUTH);
-  }
-
-  @Action
-  [Actions.REGISTER](credentials) {
-    return ApiService.post("register", credentials)
-      .then(({ data }) => {
-        this.context.commit(Mutations.SET_AUTH, data);
-      })
-      .catch(({ response }) => {
-        this.context.commit(Mutations.SET_ERROR, response.data);
-      });
-  }
-
-  @Action
-  [Actions.FORGOT_PASSWORD](payload) {
-    return ApiService.post("forgot_password", payload)
-      .then(() => {
-        this.context.commit(Mutations.SET_ERROR, {});
-      })
-      .catch(({ response }) => {
-        this.context.commit(Mutations.SET_ERROR, response.data);
-      });
   }
 
   @Action

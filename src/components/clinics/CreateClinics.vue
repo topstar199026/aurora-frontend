@@ -85,7 +85,17 @@
                 />
               </InputWrapper>
 
-              <span :class="colString"></span>
+              <InputWrapper
+                :class="colString"
+                label="Health Link"
+                prop="healthlink_edi"
+              >
+                <el-input
+                  v-model="formData.healthlink_edi"
+                  type="text"
+                  placeholder="Health Link"
+                />
+              </InputWrapper>
             </div>
             <el-divider />
           </div>
@@ -99,6 +109,7 @@
                 <el-input
                   required
                   v-model="formData.hospital_provider_number"
+                  v-mask="'#######A'"
                   type="text"
                   placeholder="Provider Number"
                 />
@@ -136,39 +147,6 @@
                 />
               </InputWrapper>
             </div>
-            <el-divider />
-            <InputWrapper
-              :class="colString"
-              label="Document Header"
-              prop="document_header"
-            >
-              <el-upload
-                action="#"
-                ref="upload"
-                list-type="picture-card"
-                :limit="1"
-                :auto-upload="false"
-                accept="image/*"
-              >
-                <i class="fa fa-plus"></i>
-              </el-upload>
-            </InputWrapper>
-            <InputWrapper
-              :class="colString"
-              label="Document Footer"
-              prop="document_footer"
-            >
-              <el-upload
-                action="#"
-                ref="upload"
-                list-type="picture-card"
-                :limit="1"
-                :auto-upload="false"
-                accept="image/*"
-              >
-                <i class="fa fa-plus"></i>
-              </el-upload>
-            </InputWrapper>
             <el-divider />
             <button
               type="button"
@@ -247,6 +225,7 @@ export default defineComponent({
       address: "",
       lspn_id: "",
       specimen_collection_point_number: "",
+      healthlink_edi: "",
     });
     const rules = ref({
       name: [
@@ -282,7 +261,7 @@ export default defineComponent({
           trigger: "change",
         },
         {
-          min: 6,
+          min: 7,
           message: "Provider Number must be at least 6 characters",
           trigger: "blur",
         },
@@ -333,11 +312,11 @@ export default defineComponent({
       formRef.value.validate((valid) => {
         if (valid) {
           loading.value = true;
-          Object.keys(formData.value).forEach((key) => {
-            Data.append(key, formData.value[key]);
-          });
+          // Object.keys(formData.value).forEach((key) => {
+          //   Data.append(key, formData.value[key]);
+          // });
           store
-            .dispatch(formInfo.submitAction, Data)
+            .dispatch(formInfo.submitAction, formData.value)
             .then(() => {
               loading.value = false;
               store.dispatch(Actions.CLINICS.LIST);
@@ -383,6 +362,7 @@ export default defineComponent({
         formInfo.isCreate = false;
         formInfo.submitButtonName = "Update";
         formInfo.submittedText = "Clinic Updated";
+        formInfo.submitAction = Actions.CLINICS.UPDATE;
       }
 
       store.dispatch(Actions.CLINICS.LIST);

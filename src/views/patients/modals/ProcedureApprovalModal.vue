@@ -53,6 +53,7 @@ import { hideModal } from "@/core/helpers/dom";
 import Swal from "sweetalert2/dist/sweetalert2.js";
 import { AppointmentActions } from "@/store/enums/StoreAppointmentEnums";
 import { PatientActions } from "@/store/enums/StorePatientEnums";
+import { Actions } from "@/store/enums/StoreEnums";
 import pdf from "pdfobject";
 import { mask } from "vue-the-mask";
 import { ElMessage } from "element-plus";
@@ -87,8 +88,9 @@ export default defineComponent({
     watch(appointmentData, () => {
       if (appointmentData.value.pre_admission?.pre_admission_file) {
         store
-          .dispatch(AppointmentActions.APPOINTMENT.PRE_ADMISSION.VIEW, {
+          .dispatch(Actions.FILE.VIEW, {
             path: appointmentData.value.pre_admission.pre_admission_file,
+            type: "PRE_ADMISSION",
           })
           .then((data) => {
             const blob = new Blob([data], { type: pdfType });
@@ -128,7 +130,7 @@ export default defineComponent({
       loading.value = true;
       uploadData.append("file", preAdmissionData.value.file[0]?.raw);
       store
-        .dispatch(AppointmentActions.APPOINTMENT.PROCEDURE_APPROVAL.UPLOAD, {
+        .dispatch(AppointmentActions.PROCEDURE_APPROVAL.UPLOAD, {
           appointment_id: appointmentData.value.id,
           uploadData: uploadData,
         })
@@ -145,12 +147,10 @@ export default defineComponent({
           }).then(() => {
             uploadDisabled.value = true;
             if (props.isEditable === "true") {
-              store.dispatch(
-                AppointmentActions.APPOINTMENT.PROCEDURE_APPROVAL.LIST
-              );
+              store.dispatch(AppointmentActions.PROCEDURE_APPROVAL.LIST);
             } else {
               store.dispatch(
-                PatientActions.PATIENTS.VIEW,
+                PatientActions.VIEW,
                 appointmentData.value.patient_id
               );
             }

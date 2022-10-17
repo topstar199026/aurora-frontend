@@ -4,6 +4,7 @@ import { Actions, Mutations } from "@/store/enums/StoreEnums";
 import { Module, Action, Mutation, VuexModule } from "vuex-module-decorators";
 
 export interface IEmployee {
+  role_id: number;
   id: number;
 }
 
@@ -23,6 +24,14 @@ export default class EmployeeModule extends VuexModule implements EmployeeInfo {
    */
   get employeeList(): Array<IEmployee> {
     return this.employeeData;
+  }
+
+  /**
+   * Get current anesthetist user object
+   * @returns AnesthetistList
+   */
+  get anesthetistList(): Array<IEmployee> {
+    return this.employeeData.filter((e) => e.role_id === 9);
   }
 
   /**
@@ -65,7 +74,7 @@ export default class EmployeeModule extends VuexModule implements EmployeeInfo {
   [Actions.EMPLOYEE.CREATE](payload) {
     if (JwtService.getToken()) {
       ApiService.setHeader();
-      ApiService.post("users", payload)
+      return ApiService.post("users", payload)
         .then(({ data }) => {
           return data.data;
         })
@@ -86,8 +95,7 @@ export default class EmployeeModule extends VuexModule implements EmployeeInfo {
           return data.data;
         })
         .catch(({ response }) => {
-          console.log(response.data.error);
-          // this.context.commit(Mutations.SET_ERROR, response.data.errors);
+          this.context.commit(Mutations.SET_ERROR, response.data.errors);
         });
     } else {
       this.context.commit(Mutations.PURGE_AUTH);
@@ -104,6 +112,23 @@ export default class EmployeeModule extends VuexModule implements EmployeeInfo {
         })
         .catch(({ response }) => {
           console.log(response.data.error);
+        });
+    } else {
+      this.context.commit(Mutations.PURGE_AUTH);
+    }
+  }
+
+  @Action
+  [Actions.EMPLOYEE.UPDATE_PASSWORD](item) {
+    if (JwtService.getToken()) {
+      ApiService.setHeader();
+      return ApiService.post("users/change-password", item)
+        .then(({ data }) => {
+          return data;
+        })
+        .catch(({ response }) => {
+          this.context.commit(Mutations.SET_ERROR, response.data.errors);
+          return response.data;
         });
     } else {
       this.context.commit(Mutations.PURGE_AUTH);

@@ -1,23 +1,11 @@
 <template>
   <CardSection heading="Appointment List">
-    <template #header-actions>
-      <label class="form-check my-auto form-check-custom form-check-solid">
-        <input
-          class="form-check-input"
-          type="checkbox"
-          v-model="showFutureApt"
-        />
-        <span class="form-check-label user-select-none">
-          Show Future Appointments
-        </span>
-      </label>
-    </template>
+    <template #header-actions> </template>
     <template #default>
       <Datatable
         v-if="tableData"
         :table-header="tableHeader"
         :table-data="tableData"
-        :key="tableKey"
         :rows-per-page="5"
         :enable-items-per-page-dropdown="true"
       >
@@ -176,7 +164,6 @@ import { Modal } from "bootstrap";
 import { Actions } from "@/store/enums/StoreEnums";
 import md5 from "js-md5";
 import { PatientActions } from "@/store/enums/StorePatientEnums";
-import tableHeader from "element-plus/es/components/table/src/table-header";
 export default defineComponent({
   name: "patient-appointments",
   components: {
@@ -189,8 +176,7 @@ export default defineComponent({
     const store = useStore();
     const router = useRouter();
     const route = useRoute();
-    const list = computed(() => store.getters.selectedPatient);
-    const formData = ref();
+    const patient = computed(() => store.getters.selectedPatient);
     const tableHeader = ref([
       {
         name: "Time/Place",
@@ -214,19 +200,18 @@ export default defineComponent({
       },
     ]);
     const tableData = ref([]);
-    const tableKey = ref(0);
-    const showFutureApt = ref(true);
-
-    const renderTable = () => tableKey.value++;
 
     const handlePay = (item) => {
-      router.push({ name: "make-payment-pay" });
-      store.dispatch(Actions.MAKE_PAYMENT.VIEW, item.id);
+      store.dispatch(Actions.MAKE_PAYMENT.VIEW, item.id).then(() => {
+        setTimeout(() => {
+          router.push({ name: "make-payment-pay" });
+        }, 100);
+      });
     };
 
     const handlePreAdmission = (item) => {
       selectedApt.value = {
-        patient_id: list.value.id,
+        patient_id: patient.value.id,
         ...item,
       };
       const modal = new Modal(
@@ -252,7 +237,7 @@ export default defineComponent({
 
     const handleCollectingPerson = (item) => {
       selectedApt.value = {
-        patient_id: list.value.id,
+        patient_id: patient.value.id,
         ...item,
       };
       // store.commit(Mutations.SET_APT.SELECT, item);
@@ -264,7 +249,7 @@ export default defineComponent({
 
     const handleReferral = (item) => {
       selectedApt.value = {
-        patient_id: list.value.id,
+        patient_id: patient.value.id,
         ...item,
       };
       const modal = new Modal(
@@ -279,55 +264,21 @@ export default defineComponent({
       });
     };
 
-    const generateID = (id) => {
-      let prefix = "";
-      let i = 0;
-      while (i < 6 - id.toString().length) {
-        prefix += "0";
-        i++;
-      }
-      return prefix + id.toString();
-    };
-
-    watch(showFutureApt, () => {
-      const today = moment(new Date());
-      if (showFutureApt.value) {
-        tableData.value = formData.value;
-      } else {
-        tableData.value = formData.value.filter((data) => {
-          return moment(data.date).isSameOrBefore(today.startOf("day"), "day");
-        });
-      }
-      renderTable();
-    });
-
     watchEffect(() => {
-      formData.value = list.value.appointments;
-      if (formData.value) {
-        const today = moment(new Date());
-        tableData.value = formData.value.filter((data) => {
-          return moment(data.date).isSameOrBefore(today.startOf("day"), "day");
-        });
-      } else {
-        tableData.value = formData.value;
-      }
-      renderTable();
+      console.log(patient.value);
+      tableData.value = patient.value.appointments;
     });
 
     onMounted(() => {
       setCurrentPageBreadcrumbs("Appointments", ["Patients"]);
       const id = route.params.id;
-      store.dispatch(PatientActions.PATIENTS.VIEW, id);
+      store.dispatch(PatientActions.VIEW, id);
     });
 
     return {
       tableHeader,
       tableData,
-      tableKey,
-      formData,
-      showFutureApt,
       selectedApt,
-      generateID,
       handlePay,
       handlePreAdmission,
       handlePreAdmissionTest,

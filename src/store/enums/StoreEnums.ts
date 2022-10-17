@@ -14,11 +14,17 @@ const Actions = {
   FORGOT_PASSWORD: "forgotPassword",
   SET_BREADCRUMB_ACTION: "setBreadcrumbAction",
   USER_LIST: "userList",
+  BILLING_TOKEN: "getBillingToken",
+
+  FILE: {
+    VIEW: "fileView",
+  },
 
   PROFILE: {
     VIEW: "viewProfile",
     UPDATE: "updateProfile",
     UPDATE_PASSWORD: "updatePassword",
+    UPDATE_SIGNATURE: "updateSignature",
   },
 
   ADMIN: {
@@ -36,23 +42,21 @@ const Actions = {
     SELECT: "selectOrg",
   },
 
-  ORG_MANAGER: {
-    LIST: "listOrgManager",
-    CREATE: "createOrgManager",
-    DELETE: "deleteOrgManager",
-    UPDATE: "updateOrgManager",
-  },
-
   ORG_ADMIN: {
     LIST: "listOrgAdmin",
     CREATE: "createOrgAdmin",
     DELETE: "deleteOrgAdmin",
     UPDATE: "updateOrgAdmin",
     UPLOAD_IMAGE: "uploadImage",
+    LOAD_ORGANIZATION_DATA: "loadOrganizationData",
     ORGANIZATION: {
       SETTINGS: {
         UPDATE: "updateOrganizationSettings"
-      } 
+      },
+      PRE_ADMISSION_SECTION: {
+        LIST: "listPreAdmissionSections",
+        UPDATE: "updatePreAdmissionSections",
+      }
     }
   },
 
@@ -61,6 +65,12 @@ const Actions = {
     CREATE: "createClinics",
     DELETE: "deleteClinics",
     UPDATE: "updateClinics",
+    ROOMS: {
+      LIST: "listClinicsRooms",
+      CREATE: "createClinicsRooms",
+      DELETE: "deleteClinicsRooms",
+      UPDATE: "updateClinicsRooms",
+    }
   },
 
 
@@ -81,6 +91,9 @@ const Actions = {
     CREATE: "createSpecialists",
     DELETE: "deleteSpecialists",
     UPDATE: "updateSpecialists",
+    SEARCH: {
+      LIST: "listSearchSpecialist",
+    },
   },
 
 
@@ -89,6 +102,7 @@ const Actions = {
     CREATE: "createEmployee",
     DELETE: "deleteEmployee",
     UPDATE: "updateEmployee",
+    UPDATE_PASSWORD: "updateEmployeePassword",
   },
 
   ANESTHETIST_QUES: {
@@ -135,10 +149,16 @@ const Actions = {
 
   REFERRAL_DOCTOR: {
     LIST: "searchReferralDoctor", // (get) 'referring-doctors'
+    CREATE: "createReferralDoctor",
+    DELETE: "deleteReferralDoctor",
+    UPDATE: "updateReferralDoctor",
   },
 
   LETTER_TEMPLATE: {
     LIST: "listLetterTemplate",
+    CREATE: "createLetterTemplate",
+    UPDATE: "updateLetterTemplate",
+    DELETE: "deleteLetterTemplate",
   },
 
   LETTER: {
@@ -152,6 +172,13 @@ const Actions = {
     CREATE: "createMakePayment",
   },
 
+  HEADER_FOOTER_TEMPLATE: {
+    LIST: "listHeaderFooterTemplate",
+    IMAGE: "downloadHeaderFooterTemplateImage",
+    CREATE: "createHeaderFooterTemplate",
+    UPDATE: "updateHeaderFooterTemplate",
+    DELETE: "deleteHeaderFooterTemplate",
+  },
 };
 
 const Mutations = {
@@ -169,10 +196,16 @@ const Mutations = {
   OVERRIDE_LAYOUT_CONFIG: "overrideLayoutConfig",
   OVERRIDE_PAGE_LAYOUT_CONFIG: "overridePageLayoutConfig",
   SET_USER_LIST: "setUserList",
+  SET_BILLING_TOKEN: "setBillingToken",
+  PURGE_BILLING_TOKEN: "deleteBillingToken",
+  SET_BILLING_VALIDATION: "setBillingValidation",
 
   SET_SPECIALIST: {
     LIST: "setSpecialists",
     SELECT: "setSelectSpecialists",
+    SEARCH: {
+      SEARCH_LIST: "setSearchSpecialists",
+    },
   },
 
   SET_ADMIN: {
@@ -199,6 +232,8 @@ const Mutations = {
   SET_CLINICS: {
     LIST: "setClinicsList",
     SELECT: "setSelectClinics",
+    LISTROOMS: "setClinicsRoomsList",
+    SELECTROOMS: "setSelectClinicsRooms",
   },
 
   SET_BIRTH_CODE: {
@@ -232,12 +267,17 @@ const Mutations = {
 
   SET_LETTER_TEMPLATE: {
     LIST: "setLetterTemplate",
+    SELECT: "setLetterTemplateSelect",
   },
-
 
   SET_REPORT_TEMPLATES: {
     LIST: "setReportTemplates",
     SELECT: "setSelectReportTemplate",
+  },
+
+  SET_REPORT_APPOINTMENTS: {
+    LIST: "setReportAppointments",
+    SELECT: "setSelectReportAppointment",
   },
 
   SET_MAILS: {
@@ -254,11 +294,15 @@ const Mutations = {
     LIST: "setNtfTemplates",
     SELECT: "setSelectNtfTemplates",
   },
-
   
   SET_MAKE_PAYMENT: {
     LIST: "setMakePayment",
     SELECT: "setSelectMakePayment",
+  },
+
+  SET_HEADER_FOOTER_TEMPLATE: {
+    LIST: "setHeaderFootersTemplate",
+    SELECT: "setHeaderFooterTemplateSelect",
   },
 };
 

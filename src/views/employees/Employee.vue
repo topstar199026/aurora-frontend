@@ -6,13 +6,14 @@
         <!--begin::Search-->
         <div class="d-flex align-items-center position-relative my-1">
           <span class="svg-icon svg-icon-1 position-absolute ms-6">
-            <inline-svg src="media/icons/duotune/general/gen021.svg" />
+            <InlineSVG icon="search" />
           </span>
           <input
             type="text"
             data-kt-subscription-table-filter="search"
             class="form-control form-control-solid w-250px ps-14"
             placeholder="Search Employees"
+            v-model="filterAndSort.searchText"
           />
         </div>
         <!--end::Search-->
@@ -29,7 +30,7 @@
           <!--begin::Add subscription-->
           <a @click="handleCreate" class="btn btn-primary">
             <span class="svg-icon svg-icon-2">
-              <inline-svg src="media/icons/duotune/arrows/arr075.svg" />
+              <InlineSVG icon="plus" />
             </span>
             Add
           </a>
@@ -60,59 +61,86 @@
           {{ item.email }}
         </template>
         <template v-slot:cell-action="{ row: item }">
-          <a
-            href="#"
-            class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1"
-          >
-            <span class="svg-icon svg-icon-3">
-              <inline-svg src="media/icons/duotune/coding/cod008.svg" />
-            </span>
-          </a>
+          <div class="d-flex justify-content-end">
+            <button
+              @click="handleEditProviderNumber(item)"
+              v-if="item.role_id == 5"
+              class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1"
+            >
+              <span class="svg-icon svg-icon-3">
+                <inline-svg src="media/icons/duotune/general/gen018.svg" />
+              </span>
+            </button>
 
-          <button
-            @click="handleEdit(item)"
-            class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1"
-          >
-            <span class="svg-icon svg-icon-3">
-              <inline-svg src="media/icons/duotune/art/art005.svg" />
-            </span>
-          </button>
+            <button
+              @click="handleUpdatePassword(item)"
+              class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1"
+            >
+              <span class="svg-icon svg-icon-3">
+                <inline-svg src="media/icons/duotune/coding/cod008.svg" />
+              </span>
+            </button>
 
-          <button
-            @click="handleDelete(item)"
-            class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm"
-          >
-            <span class="svg-icon svg-icon-3">
-              <inline-svg src="media/icons/duotune/general/gen027.svg" />
-            </span>
-          </button>
+            <button
+              @click="handleEdit(item)"
+              class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1"
+            >
+              <span class="svg-icon svg-icon-3">
+                <InlineSVG icon="pencil" />
+              </span>
+            </button>
+
+            <button
+              @click="handleDelete(item)"
+              class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm"
+            >
+              <span class="svg-icon svg-icon-3">
+                <InlineSVG icon="bin" />
+              </span>
+            </button>
+          </div>
         </template>
       </Datatable>
     </div>
   </div>
-  <CreateModal></CreateModal>
-  <EditModal></EditModal>
+  <ProviderModal></ProviderModal>
+  <EmployeePasswordModal></EmployeePasswordModal>
 </template>
-
 <script>
-import { defineComponent, onMounted, ref, computed, watchEffect } from "vue";
+import {
+  defineComponent,
+  onMounted,
+  ref,
+  computed,
+  watchEffect,
+  reactive,
+  watch,
+} from "vue";
 import { useStore } from "vuex";
 import { useRouter } from "vue-router";
 import { setCurrentPageBreadcrumbs } from "@/core/helpers/breadcrumb";
 import Datatable from "@/components/kt-datatable/KTDatatable.vue";
 import Swal from "sweetalert2/dist/sweetalert2.js";
 import { Actions, Mutations } from "@/store/enums/StoreEnums";
+import ProviderModal from "@/views/employees/modals/ProviderModal.vue";
+import EmployeePasswordModal from "@/views/employees/modals/EmployeePasswordModal.vue";
+import { Modal } from "bootstrap";
 
 export default defineComponent({
   name: "employee-main",
 
   components: {
     Datatable,
+    ProviderModal,
+    EmployeePasswordModal,
   },
 
   setup() {
     const store = useStore();
     const router = useRouter();
+    const filterAndSort = reactive({
+      searchText: "",
+    });
     const tableHeader = ref([
       {
         name: "Name",
@@ -144,8 +172,9 @@ export default defineComponent({
       },
     ]);
     const tableData = ref([]);
+    const filteredData = ref([]);
     const list = computed(() => store.getters.employeeList);
-    const organization = computed(() => store.getters.organization);
+    //const organization = computed(() => store.getters.organization);
     const loading = ref(true);
 
     const handleCreate = () => {
@@ -173,6 +202,22 @@ export default defineComponent({
     const handleEdit = (item) => {
       store.commit(Mutations.SET_EMPLOYEE.SELECT, item);
       router.push({ name: "employees-edit", params: { id: item.id } });
+    };
+
+    const handleEditProviderNumber = (item) => {
+      store.commit(Mutations.SET_EMPLOYEE.SELECT, item);
+      const modal = new Modal(
+        document.getElementById("modal_employee_provider")
+      );
+      modal.show();
+    };
+
+    const handleUpdatePassword = (item) => {
+      store.commit(Mutations.SET_EMPLOYEE.SELECT, item);
+      const modal = new Modal(
+        document.getElementById("modal_employee_password")
+      );
+      modal.show();
     };
 
     const deleteAfterConfirmation = (item) => {
@@ -235,19 +280,73 @@ export default defineComponent({
     onMounted(() => {
       loading.value = true;
       setCurrentPageBreadcrumbs("Employees", []);
-      store.dispatch(Actions.ORG.LIST);
       store.dispatch(Actions.EMPLOYEE.LIST).then(() => {
         tableData.value = list;
-        console.log(tableData.value);
         loading.value = false;
       });
     });
 
+    const applyFilterAndSort = () => {
+      if (filterAndSort.searchText != "") {
+        filteredData.value = list.value.filter((org) => {
+          if (
+            org.full_name
+              .toLowerCase()
+              .search(filterAndSort.searchText.toLowerCase()) >= 0
+          ) {
+            return true;
+          }
+
+          if (
+            org.email
+              .toLowerCase()
+              .search(filterAndSort.searchText.toLowerCase()) >= 0
+          ) {
+            return true;
+          }
+
+          if (
+            org.username
+              .toLowerCase()
+              .search(filterAndSort.searchText.toLowerCase()) >= 0
+          ) {
+            return true;
+          }
+
+          if (
+            org.role.name
+              .toLowerCase()
+              .search(filterAndSort.searchText.toLowerCase()) >= 0
+          ) {
+            return true;
+          }
+
+          return false;
+        });
+      } else {
+        filteredData.value = list.value;
+      }
+      tableData.value = filteredData;
+    };
+
     watchEffect(() => {
-      tableData.value = list;
-      loading.value = false;
+      applyFilterAndSort();
     });
-    return { tableHeader, tableData, handleEdit, handleDelete, handleCreate };
+
+    watch(filterAndSort, () => {
+      applyFilterAndSort();
+    });
+
+    return {
+      tableHeader,
+      tableData,
+      handleEdit,
+      handleDelete,
+      handleCreate,
+      filterAndSort,
+      handleEditProviderNumber,
+      handleUpdatePassword,
+    };
   },
 });
 </script>

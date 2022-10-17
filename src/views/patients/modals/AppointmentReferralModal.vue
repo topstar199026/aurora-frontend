@@ -23,7 +23,7 @@
             class="btn btn-icon btn-sm btn-active-icon-primary"
           >
             <span class="svg-icon svg-icon-1">
-              <inline-svg src="media/icons/duotune/arrows/arr061.svg" />
+              <InlineSVG icon="cross" />
             </span>
           </div>
 
@@ -162,10 +162,11 @@
 import { defineComponent, ref, computed, watch } from "vue";
 import { useStore } from "vuex";
 import { AppointmentActions } from "@/store/enums/StoreAppointmentEnums";
+import { Actions } from "@/store/enums/StoreEnums";
 import { hideModal } from "@/core/helpers/dom";
 import Swal from "sweetalert2/dist/sweetalert2.js";
 import { ElMessage } from "element-plus";
-
+import { PatientActions } from "@/store/enums/StorePatientEnums";
 import { mask } from "vue-the-mask";
 import InputWrapper from "@/components/presets/FormElements/InputWrapper.vue";
 import pdf from "pdfobject";
@@ -225,11 +226,12 @@ export default defineComponent({
       ],
     });
 
-    watch(appointmentData, () => {
+    const afterChangedData = () => {
       if (appointmentData.value.referral?.referral_file) {
         store
-          .dispatch(AppointmentActions.APPOINTMENT.REFERRAL.VIEW, {
+          .dispatch(Actions.FILE.VIEW, {
             path: appointmentData.value.referral.referral_file,
+            type: "REFERRAL",
           })
           .then((data) => {
             const blob = new Blob([data], { type: "application/pdf" });
@@ -265,6 +267,9 @@ export default defineComponent({
         document.getElementById("divPDFViewer").innerHTML =
           "No referral uploaded";
       }
+    };
+    watch(appointmentData, () => {
+      afterChangedData();
     });
 
     const submit = () => {
@@ -294,11 +299,11 @@ export default defineComponent({
           );
 
           store
-            .dispatch(AppointmentActions.APPOINTMENT.REFERRAL.UPDATE, {
+            .dispatch(AppointmentActions.REFERRAL.UPDATE, {
               appointment_id: appointmentData.value.id,
               submitData: submitData,
             })
-            .then(() => {
+            .then((data) => {
               loading.value = false;
               Swal.fire({
                 text: "Successfully Updated Referral",
@@ -309,8 +314,10 @@ export default defineComponent({
                   confirmButton: "btn btn-primary",
                 },
               }).then(() => {
-                document.getElementById("divPDFViewer").innerHTML =
-                  "No referral uploaded";
+                store.dispatch(
+                  PatientActions.VIEW,
+                  data.data.appointment.patient_id
+                );
                 hideModal(referralModalRef.value);
               });
             })
@@ -394,12 +401,6 @@ export default defineComponent({
       loading,
       referralModalRef,
     };
-  },
-  mounted() {
-    console.log("-0-------------");
-  },
-  unMounted() {
-    console.log("-1-------------");
   },
 });
 </script>

@@ -35,7 +35,7 @@ export interface BookingInfo {
   bookingData: IBookingData;
   filteredData: IBookingData;
   availableAppointmentList: IBookingData;
-  availableSPT: IBookingData;
+  filteredSpecialists: IBookingData;
   searchVal: ISearchVariable;
 }
 
@@ -44,7 +44,7 @@ export default class BooingModule extends VuexModule implements BookingInfo {
   bookingData = {} as IBookingData;
   filteredData = {} as IBookingData;
   availableAppointmentList = {} as IBookingData;
-  availableSPT = {} as IBookingData;
+  filteredSpecialists = {} as IBookingData;
   searchVal = {} as ISearchVariable;
   /**
    * Get current user object
@@ -75,7 +75,7 @@ export default class BooingModule extends VuexModule implements BookingInfo {
    * @returns SelectedclinicsData
    */
   get getAvailableSPTData(): IBookingData {
-    return this.availableSPT;
+    return this.filteredSpecialists;
   }
 
   /**
@@ -92,11 +92,6 @@ export default class BooingModule extends VuexModule implements BookingInfo {
   }
 
   @Mutation
-  [AppointmentMutations.SET_BOOKING.SEARCH.DATE](data: IBookingData) {
-    this.availableSPT = data;
-  }
-
-  @Mutation
   [AppointmentMutations.SET_BOOKING.SEARCH.SPECIALISTS](data: IBookingData) {
     this.filteredData = data;
   }
@@ -109,6 +104,13 @@ export default class BooingModule extends VuexModule implements BookingInfo {
   @Mutation
   [AppointmentMutations.SET_BOOKING.SEARCH.VARIABLE](data: ISearchVariable) {
     this.searchVal = data;
+  }
+
+  @Mutation
+  [AppointmentMutations.SET_BOOKING.SEARCH.FILLTEREDSPECIALISTS](
+    data: IBookingData
+  ) {
+    this.filteredSpecialists = data;
   }
 
   @Action
@@ -132,10 +134,6 @@ export default class BooingModule extends VuexModule implements BookingInfo {
 
   @Action
   [AppointmentActions.BOOKING.SEARCH.SPECIALISTS](payload) {
-    this.context.commit(
-      AppointmentMutations.SET_BOOKING.SEARCH.VARIABLE,
-      payload
-    );
     if (JwtService.getToken()) {
       ApiService.setHeader();
       ApiService.query("appointments/specialists", { params: payload })
@@ -144,30 +142,6 @@ export default class BooingModule extends VuexModule implements BookingInfo {
             AppointmentMutations.SET_BOOKING.SEARCH.SPECIALISTS,
             data.data
           );
-        })
-        .catch(({ response }) => {
-          console.log(response.data.error);
-        });
-    } else {
-      this.context.commit(Mutations.PURGE_AUTH);
-    }
-  }
-
-  @Action
-  [AppointmentActions.BOOKING.SEARCH.DATE](payload) {
-    this.context.commit(
-      AppointmentMutations.SET_BOOKING.SEARCH.VARIABLE,
-      payload
-    );
-    if (JwtService.getToken()) {
-      ApiService.setHeader();
-      ApiService.query("appointments/specialists", { params: payload })
-        .then(({ data }) => {
-          this.context.commit(
-            AppointmentMutations.SET_BOOKING.SEARCH.DATE,
-            data.data
-          );
-          console.log(data);
         })
         .catch(({ response }) => {
           console.log(response.data.error);

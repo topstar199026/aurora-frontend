@@ -9,13 +9,18 @@
     data-kt-drawer-overlay="true"
     data-kt-drawer-width="{default:'80px', '300px': '100px'}"
     data-kt-drawer-direction="start"
-    data-kt-drawer-toggle="#kt_aside_mobile_toggle"
+    data-kt-drawer-toggle="#kt_header_menu_mobile_toggle"
   >
     <!--begin::Brand-->
     <div class="aside-logo py-8" id="kt_aside_logo">
       <!--begin::Logo-->
       <router-link to="/dashboard" class="d-flex align-items-center">
-        <img alt="Logo" src="aurora-sml-logo.png" class="h-75px logo" />
+        <!-- <img alt="Logo" src="aurora-sml-logo.png" class="h-75px logo" /> -->
+        <img
+          alt="Logo"
+          :src="logo ? logo : `aurora-sml-logo.png`"
+          class="h-75px w-75px logo"
+        />
       </router-link>
       <!--end::Logo-->
     </div>
@@ -39,11 +44,12 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { computed, defineComponent, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import KTMenu from "@/layout/aside/Menu.vue";
 import { asideTheme } from "@/core/helpers/config";
-
+import { useStore } from "vuex";
+import { Actions } from "@/store/enums/StoreEnums";
 export default defineComponent({
   name: "KTAside",
   components: {
@@ -55,10 +61,37 @@ export default defineComponent({
   },
   setup() {
     const { t } = useI18n();
+    const store = useStore();
+    const currentUser = computed(() => store.getters.currentUser);
+    const logo = ref("");
+
+    watch(currentUser, () => {
+      if (currentUser.value.organization)
+        if (
+          currentUser.value.organization.logo !== null &&
+          currentUser.value.organization.logo !== ""
+        ) {
+          console.log("getting the logo");
+          store
+            .dispatch(Actions.FILE.VIEW, {
+              type: "ORGANIZATION_LOGO",
+              path: currentUser.value.organization.logo,
+            })
+            .then((data) => {
+              const blob = new Blob([data], { type: "application/image" });
+              const objectUrl = URL.createObjectURL(blob);
+              logo.value = objectUrl;
+            })
+            .catch(() => {
+              console.log("image load error");
+            });
+        }
+    });
 
     return {
       asideTheme,
       t,
+      logo,
     };
   },
 });
