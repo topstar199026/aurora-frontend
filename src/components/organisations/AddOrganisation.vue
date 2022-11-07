@@ -63,6 +63,22 @@
               placeholder=""
             />
           </InputWrapper>
+          <div class="d-flex flex-row">
+            <el-form-item class="px-6">
+              <el-checkbox
+                type="checkbox"
+                v-model="formData.has_billing"
+                label="Has billing"
+              />
+            </el-form-item>
+            <el-form-item class="px-6">
+              <el-checkbox
+                type="checkbox"
+                v-model="formData.has_coding"
+                label="Has coding"
+              />
+            </el-form-item>
+          </div>
         </CardSection>
 
         <!--begin::Modal footer-->
@@ -139,33 +155,14 @@ export default defineComponent({
       appointment_length: "30",
       max_clinics: "",
       max_employees: "",
+      has_billing: false,
+      has_coding: false,
     });
     const uploadDisabled = ref(false);
     const upload = ref(null);
     const Data = new FormData();
     const dialogImageUrl = ref("");
     const dialogVisible = ref(false);
-
-    const validatePass = (rule, value, callback) => {
-      if (value === "") {
-        callback(new Error("Please input the password"));
-      } else {
-        if (formData.value.password_confirmation !== "") {
-          formRef.value.validateField("checkPass", () => null);
-        }
-        callback();
-      }
-    };
-
-    const validatePass2 = (rule, value, callback) => {
-      if (value === "") {
-        callback(new Error("Please input the password again"));
-      } else if (value !== formData.value.password) {
-        callback(new Error("Password doesn't match!"));
-      } else {
-        callback();
-      }
-    };
 
     const rules = ref({
       name: [
@@ -216,24 +213,6 @@ export default defineComponent({
           trigger: ["blur", "change"],
         },
       ],
-      password: [
-        { validator: validatePass, trigger: "blur" },
-        {
-          required: true,
-          message: "Password cannot be blank",
-          trigger: "change",
-        },
-        { min: 6, message: "The password must be at least 6 characters" },
-      ],
-      password_confirmation: [
-        { validator: validatePass2, trigger: "blur" },
-        {
-          required: true,
-          message: "Confirm Password cannot be blank.",
-          trigger: "change",
-        },
-        { min: 6, message: "The password must be at least 6 characters" },
-      ],
     });
 
     const handleChange = (file, fileList) => {
@@ -265,7 +244,11 @@ export default defineComponent({
       formRef.value.validate((valid) => {
         if (valid) {
           Object.keys(formData.value).forEach((key) => {
-            Data.append(key, formData.value[key]);
+            key !== "has_billing" &&
+              key !== "has_coding" &&
+              Data.append(key, formData.value[key]);
+            (key === "has_billing" || key == "has_coding") &&
+              Data.append(key, formData.value[key] ? 1 : 0);
           });
           store
             .dispatch(Actions.ORG.CREATE, Data)

@@ -5,6 +5,7 @@
     tabindex="-1"
     aria-hidden="true"
     ref="bModalRef"
+    :data-bs-backdrop="static ? 'static' : 'none'"
   >
     <div class="modal-dialog modal-dialog-centered mw-850px">
       <div class="modal-content">
@@ -43,6 +44,7 @@ export default {
     modalId: { type: String, required: true },
     modalRef: { type: Object, required: false },
     updateRef: { type: Function, required: false },
+    static: { type: Boolean, required: false },
   },
   setup(props) {
     const bModalRef = ref(null);

@@ -22,6 +22,23 @@
         />
       </InputWrapper>
 
+      <div class="d-flex flex-row">
+        <el-form-item class="px-6">
+          <el-checkbox
+            type="checkbox"
+            v-model="formData.has_billing"
+            label="Has billing"
+          />
+        </el-form-item>
+        <el-form-item class="px-6">
+          <el-checkbox
+            type="checkbox"
+            v-model="formData.has_coding"
+            label="Has coding"
+          />
+        </el-form-item>
+      </div>
+
       <div class="px-6">
         <router-link
           type="reset"
@@ -88,7 +105,7 @@ export default defineComponent({
     const orgList = computed(() => store.getters.orgList);
     const formInfo = reactive({
       title: "Edit Organisation",
-      submitAction: Actions.ORG.CREATE,
+      submitAction: Actions.ORG.UPDATE,
       submitButtonName: "UPDATE",
     });
     const formData = ref({
@@ -98,11 +115,11 @@ export default defineComponent({
       name: "",
       email: "",
       mobile_number: "",
-      password: "",
-      password_confirmation: "",
       logoUploaded: "media/avatars/300-1.jpg",
       max_clinics: "",
       max_employees: "",
+      has_billing: false,
+      has_coding: false,
     });
     const Data = new FormData();
 
@@ -155,28 +172,17 @@ export default defineComponent({
         },
         { validator: validatePhone, trigger: "blur" },
       ],
-      password: [
-        {
-          required: true,
-          message: "Password cannot be blank.",
-          trigger: "change",
-        },
-      ],
-      password_confirmation: [
-        {
-          required: true,
-          message: "Confirm Password cannot be blank.",
-          trigger: "change",
-        },
-      ],
     });
 
     watch(orgList, () => {
       const id = route.params.id;
-
       orgList.value.forEach((item) => {
         if (item.id == id) {
-          formData.value = item;
+          formData.value = {
+            ...item,
+            has_billing: item.has_billing === 1 ? true : false,
+            has_coding: item.has_coding === 1 ? true : false,
+          };
 
           formData.value.logoUploaded = item.logo;
         }
@@ -210,12 +216,23 @@ export default defineComponent({
 
           Object.keys(formData.value).forEach((key) => {
             if (key != "logo") {
-              Data.append(key, formData.value[key]);
+              key !== "has_billing" &&
+                key !== "has_coding" &&
+                Data.append(key, formData.value[key]);
+              (key === "has_billing" || key == "has_coding") &&
+                Data.append(key, formData.value[key] ? "1" : "0");
             }
           });
 
           store
-            .dispatch(formInfo.submitAction, Data)
+            .dispatch(formInfo.submitAction, {
+              id: route.params.id,
+              data: {
+                ...formData.value,
+                has_billing: formData.value.has_billing === true ? 1 : 0,
+                has_coding: formData.value.has_coding === true ? 1 : 0,
+              },
+            })
             .then(() => {
               loading.value = false;
               store.dispatch(Actions.ORG.LIST);

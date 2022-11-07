@@ -1,6 +1,6 @@
 <template>
   <div
-    class="modal fade"
+    class="modal fade patient-alert"
     :id="'modal_patient_alert_' + alertData.id"
     tabindex="-1"
     aria-hidden="true"
@@ -91,7 +91,9 @@ export default defineComponent({
           patient_alert_id: props.alert.id,
           is_dismissed: true,
         })
-
+        .then((data) => {
+          store.dispatch(PatientActions.VIEW, data.patient_id);
+        })
         .catch(({ response }) => {
           console.log(response.data.error);
         });
@@ -109,7 +111,6 @@ export default defineComponent({
         icon.value = icons.bell;
         color.value = "primary";
       }
-      console.log(["props.alert=" + props.alert.id, props.alert, color.value]);
     });
 
     return {

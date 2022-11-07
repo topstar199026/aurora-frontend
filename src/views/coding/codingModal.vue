@@ -7,13 +7,17 @@
     ref="codingModalRef"
   >
     <!--begin::Modal dialog-->
-    <div class="modal-dialog modal-dialog-centered mw-1000px">
+    <div class="modal-dialog modal-dialog-centered mw-100">
       <!--begin::Modal content-->
       <div class="modal-content">
         <!--begin::Modal header-->
         <div class="modal-header" id="kt_modal_coding_header">
           <!--begin::Modal title-->
-          <h2 class="fw-bolder">Coding Update</h2>
+          <h2 class="fw-bolder">
+            Coding: {{ formData.aus_formatted_date }},
+            {{ formData.formatted_appointment_time }}
+            {{ formData.appointment_type_name }}
+          </h2>
           <!--end::Modal title-->
 
           <!--begin::Close-->
@@ -51,24 +55,10 @@
             >
               <div class="d-flex flex-row">
                 <div class="col-6">
-                  <InfoSection heading="Patient Name">{{
-                    formData.patient_name.full
-                  }}</InfoSection
-                  ><br />
-                  <InfoSection heading="Patient DOB">{{
-                    formData.patient_details.date_of_birth
-                  }}</InfoSection
-                  ><br />
-                  <InfoSection heading="Patient gender">{{
-                    formData.patient.gender_name
-                  }}</InfoSection
-                  ><br />
-                </div>
-                <div class="column col-6">
-                  <InfoSection heading="Appointment">
-                    {{ formData.date }},
-                    {{ formData.formatted_appointment_time }}
-                    {{ formData.appointment_type_name }} </InfoSection
+                  <InfoSection heading="Patient"
+                    >{{ formData.patient_name.full }} ({{
+                      formData.patient_details.date_of_birth
+                    }}) </InfoSection
                   ><br />
                   <InfoSection heading="Specialist">
                     {{ formData.specialist_name }} </InfoSection
@@ -76,125 +66,110 @@
                   <InfoSection heading="Clinic">
                     {{ formData.clinic_details.name }} </InfoSection
                   ><br />
+
+                  <div class="row mt-10">
+                    <InputWrapper
+                      class="col-12"
+                      label="Procedures Undertaken"
+                      prop="undertaken"
+                    >
+                      <el-select
+                        class="w-100"
+                        multiple
+                        filterable
+                        v-model="formData.undertaken"
+                      >
+                        <el-option
+                          v-for="item in undertaken"
+                          :value="item"
+                          :label="item"
+                          :key="item"
+                        />
+                      </el-select>
+                    </InputWrapper>
+                    <InputWrapper
+                      class="col-12"
+                      label="Extra Items Used"
+                      prop="undertaken"
+                    >
+                      <el-select
+                        class="w-100"
+                        multiple
+                        filterable
+                        v-model="formData.extraitems"
+                      >
+                        <el-option
+                          v-for="item in extraitems"
+                          :value="item"
+                          :label="item"
+                          :key="item"
+                        />
+                      </el-select>
+                    </InputWrapper>
+                    <InputWrapper
+                      class="col-12"
+                      label="Diagnosis"
+                      prop="diagnosis"
+                    >
+                      <el-select
+                        class="w-100"
+                        multiple
+                        remote
+                        filterable
+                        v-model="selected"
+                        :remote-method="searchCodes"
+                        :loading="loadingICD"
+                      >
+                        <el-option
+                          v-for="item in codes"
+                          :key="item[0]"
+                          :label="item[0] + ' - ' + item[1]"
+                          :value="item[0]"
+                        />
+                      </el-select>
+                    </InputWrapper>
+                  </div>
+                  <div
+                    class="d-flex flex-row justify-content-around gap-3 mt-10 button-group"
+                  >
+                    <LargeIconButton
+                      v-if="formData?.id != aptList[aptList.length - 1]?.id"
+                      @click="move(-1)"
+                      heading="&lt;&lt; Back"
+                      :color="'primary'"
+                    />
+                    <LargeIconButton
+                      @click="submit(0)"
+                      heading="Mark Incomplete"
+                      :color="'danger'"
+                    />
+
+                    <LargeIconButton
+                      @click="submit(0)"
+                      heading="Mark Complete and close"
+                      :color="'success'"
+                    />
+
+                    <LargeIconButton
+                      v-if="formData?.id != aptList[aptList.length - 1]?.id"
+                      @click="submit(0)"
+                      heading="Mark Complete and next"
+                      :color="'success'"
+                    />
+
+                    <LargeIconButton
+                      v-if="formData?.id != aptList[aptList.length - 1]?.id"
+                      @click="move(+1)"
+                      heading="SKIP >>"
+                      :color="'primary'"
+                    />
+                  </div>
                 </div>
+                <div
+                  class="col-6 ml-2 document-viewer"
+                  id="documents_viewer"
+                ></div>
               </div>
-              <div class="row mt-10">
-                <InputWrapper
-                  class="col-6"
-                  label="Procedures Undertaken"
-                  prop="undertaken"
-                >
-                  <el-select
-                    class="w-100"
-                    multiple
-                    filterable
-                    v-model="formData.undertaken"
-                  >
-                    <el-option
-                      v-for="item in undertaken"
-                      :value="item"
-                      :label="item"
-                      :key="item"
-                    />
-                  </el-select>
-                </InputWrapper>
-                <InputWrapper
-                  class="col-6"
-                  label="Extra Items Used"
-                  prop="undertaken"
-                >
-                  <el-select
-                    class="w-100"
-                    multiple
-                    filterable
-                    v-model="formData.extraitems"
-                  >
-                    <el-option
-                      v-for="item in extraitems"
-                      :value="item"
-                      :label="item"
-                      :key="item"
-                    />
-                  </el-select>
-                </InputWrapper>
-                <InputWrapper
-                  class="col-6"
-                  label="Indications"
-                  prop="indications"
-                >
-                  <el-select
-                    class="w-100"
-                    multiple
-                    remote
-                    filterable
-                    v-model="selected"
-                    :remote-method="searchCodes"
-                    :loading="loadingICD"
-                  >
-                    <el-option
-                      v-for="item in codes"
-                      :key="item[0]"
-                      :label="item[0] + ' - ' + item[1]"
-                      :value="item[0]"
-                    />
-                  </el-select>
-                </InputWrapper>
-                <InputWrapper class="col-6" label="Diagnosis" prop="diagnosis">
-                  <el-select
-                    class="w-100"
-                    filterable
-                    multiple
-                    v-model="formData.diagnosis"
-                  >
-                    <el-option
-                      v-for="item in diagnosis"
-                      :value="item"
-                      :label="item"
-                      :key="item"
-                    />
-                  </el-select>
-                </InputWrapper>
-              </div>
-
-              <div
-                class="d-flex flex-row justify-content-around gap-3 mt-10 button-group"
-              >
-                <LargeIconButton
-                  v-if="formData?.id != aptList[aptList.length - 1]?.id"
-                  @click="move(-1)"
-                  heading="&lt;&lt; Back"
-                  :color="'primary'"
-                />
-                <LargeIconButton
-                  @click="submit(0)"
-                  heading="Mark Incomplete"
-                  :color="'danger'"
-                />
-
-                <LargeIconButton
-                  @click="submit(0)"
-                  heading="Mark Complete and close"
-                  :color="'success'"
-                />
-
-                <LargeIconButton
-                  v-if="formData?.id != aptList[aptList.length - 1]?.id"
-                  @click="submit(0)"
-                  heading="Mark Complete and next"
-                  :color="'success'"
-                />
-
-                <LargeIconButton
-                  v-if="formData?.id != aptList[aptList.length - 1]?.id"
-                  @click="move(+1)"
-                  heading="SKIP >>"
-                  :color="'primary'"
-                />
-              </div>
-              <div
-                class="row mt-10 document-viewer"
-                id="documents_viewer"
-              ></div>
             </div>
             <!--end::Scroll-->
           </div>
@@ -226,7 +201,6 @@ export default defineComponent({
     const aptList = computed(() => store.getters.getCodingAptList);
     const undertaken = ref(["UA", "UB", "UC", "UD", "UE"]);
     const extraitems = ref(["EA", "EB", "EC", "ED", "EE"]);
-    const indications = ref(["IA", "IB", "IC", "ID", "IE"]);
     const diagnosis = ref(["DA", "DB", "DC", "DD", "DE"]);
 
     // ICD-10 API seach
@@ -254,7 +228,6 @@ export default defineComponent({
       },
       undertaken,
       extraitems,
-      indications,
       diagnosis,
     });
 
@@ -288,13 +261,6 @@ export default defineComponent({
         {
           required: false,
           message: "Extra Items cannot be blank",
-          trigger: "change",
-        },
-      ],
-      indications: [
-        {
-          required: false,
-          message: "Indications cannot be blank",
           trigger: "change",
         },
       ],
@@ -407,7 +373,6 @@ export default defineComponent({
       codingModalRef,
       undertaken,
       extraitems,
-      indications,
       diagnosis,
       aptList,
       move,

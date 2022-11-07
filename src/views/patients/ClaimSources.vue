@@ -109,15 +109,16 @@
         </template>
       </Datatable>
 
-      <MedicareUpdateDetailsModal
-        :patientId="selectedPatient?.id"
-        :updateDetails="updateDetails"
+      <AddClaimSourceModal
+        :patient="selectedPatient"
+        v-on:closeModal="closeAddClaimSourceModal"
+        v-on:updateDetails="updatePatientDetails"
       />
 
-      <AddClaimSourceModal :patient="selectedPatient" />
       <UpdateClaimSourceModal
         :patient="selectedPatient"
         :claimSource="updatingSource"
+        v-on:updateDetails="updatePatientDetails"
       />
     </template>
   </CardSection>
@@ -140,7 +141,6 @@ import { Actions } from "@/store/enums/StoreEnums";
 import moment from "moment";
 import Swal from "sweetalert2/dist/sweetalert2.js";
 import Datatable from "@/components/kt-datatable/KTDatatable.vue";
-import MedicareUpdateDetailsModal from "@/views/patients/modals/MedicareUpdateDetailsModal.vue";
 import AddClaimSourceModal from "@/views/patients/modals/AddClaimSourceModal.vue";
 import UpdateClaimSourceModal from "@/views/patients/modals/UpdateClaimSourceModal.vue";
 import IconButton from "@/components/presets/GeneralElements/IconButton.vue";
@@ -150,7 +150,6 @@ import PatientBillingTypes from "@/core/data/patient-billing-types";
 export default defineComponent({
   name: "patient-claim-sources",
   components: {
-    MedicareUpdateDetailsModal,
     AddClaimSourceModal,
     UpdateClaimSourceModal,
     IconButton,
@@ -199,6 +198,7 @@ export default defineComponent({
     const tableKey = ref(0);
     const updateDetails = ref({});
     const updatingSource = ref(null);
+    const addClaimSourceModal = ref(null);
 
     const renderTable = () => tableKey.value++;
 
@@ -211,16 +211,19 @@ export default defineComponent({
     };
 
     const getHealthFund = (id) => {
-      const foundFund = healthFundsList.value.find((fund) => fund.id == id);
+      const foundFund = healthFundsList.value.find((fund) => fund.code == id);
 
       return foundFund?.name ?? null;
     };
 
     const handleAddClaimSource = () => {
-      const modal = new Modal(
-        document.getElementById("modal_add_claim_source")
-      );
-      modal.show();
+      if (!addClaimSourceModal.value) {
+        addClaimSourceModal.value = new Modal(
+          document.getElementById("modal_add_claim_source")
+        );
+      }
+
+      addClaimSourceModal.value.show();
     };
 
     const handleUpdateClaimSource = (source) => {
@@ -304,35 +307,6 @@ export default defineComponent({
           }
 
           store.dispatch(PatientActions.CLAIM_SOURCE.UPDATE, item);
-
-          if (
-            !Object.prototype.hasOwnProperty.call(
-              validation.data,
-              "update_details"
-            )
-          ) {
-            for (const detailName in validation.data.update_details) {
-              switch (detailName) {
-                case "givenName":
-                  updateDetails.value.first_name =
-                    validation.data.update_details[detailName];
-                  break;
-                case "familyName":
-                  updateDetails.value.last_name =
-                    validation.data.update_details[detailName];
-                  break;
-                case "memberRefNumber":
-                  updateDetails.value.member_reference_number =
-                    validation.data.update_details[detailName];
-                  break;
-              }
-            }
-
-            const modal = new Modal(
-              document.getElementById("modal_update_patient_details")
-            );
-            modal.show();
-          }
         })
         .catch((e) => {
           const errors = store.getters.getErrors;
@@ -397,10 +371,6 @@ export default defineComponent({
           break;
         case 2: {
           // Health Fund
-          const healthFund = healthFundsList.value.find(
-            (fund) => fund.id === item.value.health_fund_id
-          );
-
           validationData = {
             first_name: selectedPatient.value.first_name,
             last_name: selectedPatient.value.last_name,
@@ -408,7 +378,7 @@ export default defineComponent({
             sex: selectedPatient.value.gender,
             fund_member_number: item.member_number,
             fund_reference_number: item.member_reference_number,
-            fund_organisation_code: healthFund?.code,
+            fund_organisation_code: item.value.health_fund_id,
             minor_id: minorId.value.minorId,
           };
           endpoint = PatientActions.CLAIM_SOURCE.VALIDATE_HEALTH_FUND;
@@ -443,6 +413,54 @@ export default defineComponent({
       const endpoint = PatientActions.CLAIM_SOURCE.VALIDATE_CONCESSION;
 
       doValidation(endpoint, validationData, item, true);
+    };
+
+    const updatePatientDetails = (details) => {
+      const previousData = {
+        patient_id: selectedPatient.value.id,
+        first_name: selectedPatient.value.first_name,
+        last_name: selectedPatient.value.last_name,
+      };
+
+      const updateData = {
+        id: selectedPatient.value.id,
+        first_name: selectedPatient.value.first_name,
+        last_name: selectedPatient.value.last_name,
+        date_of_birth: selectedPatient.value.date_of_birth,
+      };
+
+      for (const detailName in details) {
+        updateData[detailName] = details[detailName];
+      }
+
+      store
+        .dispatch(PatientActions.UPDATE, updateData)
+        .then(() => {
+          store.dispatch(PatientActions.LIST);
+        })
+        .catch(({ response }) => {
+          console.log(response.data.error);
+        })
+        .finally(() => {
+          loading.value = null;
+        });
+
+      store
+        .dispatch(PatientActions.ALSO_KNOWN_AS.CREATE, previousData)
+        .then(() => {
+          store.dispatch(PatientActions.LIST);
+        })
+        .catch(({ response }) => {
+          console.log(response.data.error);
+        })
+        .finally(() => {
+          loading.value = null;
+        });
+    };
+
+    const closeAddClaimSourceModal = () => {
+      renderTable();
+      addClaimSourceModal.value.hide();
     };
 
     onMounted(() => {
@@ -481,6 +499,8 @@ export default defineComponent({
       getHealthFund,
       updatingSource,
       handleUpdateClaimSource,
+      closeAddClaimSourceModal,
+      updatePatientDetails,
     };
   },
 });

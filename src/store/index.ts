@@ -26,7 +26,7 @@ import SpecialistsModule from "@/store/modules/SpecialistsModule";
 import NtfTemplatesModule from "@/store/modules/NtfTemplatesModule";
 import MakePaymentModule from "@/store/modules/MakePaymentModule";
 import ProfileModule from "@/store/modules/ProfileModule";
-import ReferralDoctorModule from "@/store/modules/ReferralDoctorModule";
+import DoctorAddressBookModule from "@/store/modules/DoctorAddressBookModule";
 import ProcedureApprovalsModule from "@/store/modules/ProcedureApprovalsModule";
 import LetterModule from "@/store/modules/LetterModule";
 import DocumentModule from "@/store/modules/DocumentModule";
@@ -39,6 +39,8 @@ import BulletinModule from "@/store/modules/BulletinModule";
 import BillingTokenModule from "@/store/modules/BillingTokenModule";
 import BillingValidationModule from "@/store/modules/BillingValidationModule";
 import FileModule from "@/store/modules/FileModule";
+import MbsModule from "@/store/modules/MbsModule";
+import OutgoingModule from "@/store/modules/OutgoingModule";
 
 config.rawError = true;
 
@@ -69,7 +71,7 @@ const store = createStore({
     SpecialistsModule,
     MakePaymentModule,
     ProfileModule,
-    ReferralDoctorModule,
+    DoctorAddressBookModule,
     ProcedureApprovalsModule,
     LetterModule,
     DocumentModule,
@@ -82,6 +84,8 @@ const store = createStore({
     BillingTokenModule,
     BillingValidationModule,
     FileModule,
+    MbsModule,
+    OutgoingModule,
   },
 });
 

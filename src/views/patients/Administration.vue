@@ -71,10 +71,28 @@
         </InputWrapper>
 
         <InputWrapper :class="colString" label="Address" prop="address">
+          <div class="el-input">
+            <GMapAutocomplete
+              :value="formData.address"
+              ref="addressRef"
+              placeholder="Enter the Address"
+              @place_changed="handleAddressChange"
+              :options="{
+                componentRestrictions: {
+                  country: 'au',
+                },
+              }"
+            >
+            </GMapAutocomplete>
+          </div>
+        </InputWrapper>
+
+        <InputWrapper :class="colString" label="Post Code" prop="postcode">
           <el-input
+            disabled
             type="text"
-            v-model="formData.address"
-            placeholder="Address"
+            v-model="formData.postcode"
+            placeholder="Post Code"
           />
         </InputWrapper>
 
@@ -119,20 +137,36 @@
           />
         </InputWrapper>
 
+        <InputWrapper :class="colString" label="Race" prop="race">
+          <el-select class="w-100" v-model="formData.race" placeholder="Race">
+            <el-option
+              v-for="item in race"
+              :key="item.value"
+              :value="item.value"
+              :label="item.label"
+            />
+          </el-select>
+        </InputWrapper>
+
         <InputWrapper
           :class="colString"
-          label="Aboriginal or Torres Strait Islander?"
-          prop="aborginality"
+          label="Country Of Birth"
+          prop="country_of_birth"
         >
           <el-select
             class="w-100"
-            v-model="formData.aborginality"
-            placeholder="Aborginality"
+            v-model="formData.country_of_birth"
+            placeholder="Country Of Birth"
           >
-            <el-option :value="0" label="No" />
-            <el-option :value="1" label="Yes" />
+            <el-option
+              v-for="item in country_of_birth"
+              :key="item.value"
+              :value="item.value"
+              :label="item.label"
+            />
           </el-select>
         </InputWrapper>
+        <span :class="colString"></span>
         <span :class="colString"></span>
       </div>
 
@@ -209,6 +243,8 @@ import Swal from "sweetalert2/dist/sweetalert2.js";
 import maritalStatus from "@/core/data/marital-status";
 import titles from "@/core/data/titles";
 import genders from "@/core/data/genders";
+import race from "@/core/data/race";
+import country_of_birth from "@/core/data/patient-birth-country";
 import InputWrapper from "@/components/presets/FormElements/InputWrapper.vue";
 
 import { mask } from "vue-the-mask";
@@ -233,11 +269,13 @@ export default defineComponent({
       first_name: "",
       last_name: "",
       date_of_birth: "",
+      country_of_birth: "0000",
       contact_number: "",
       email: "",
       address: "",
+      postcode: "",
       gender: "",
-      aborginality: "",
+      race: "",
       occupation: "",
       marital_status: "",
       kin_name: "",
@@ -326,6 +364,18 @@ export default defineComponent({
     });
     const loading = ref(false);
 
+    const handleAddressChange = (e) => {
+      formData.value.address = e.formatted_address;
+      const postCodeData = e.address_components.filter((data) => {
+        return data.types.some((type) => type === "postal_code");
+      });
+      if (postCodeData && postCodeData.length > 0) {
+        formData.value.postcode = postCodeData[0].short_name;
+      } else {
+        formData.value.postcode = "";
+      }
+    };
+
     const submit = () => {
       if (!formRef.value) {
         return;
@@ -371,7 +421,10 @@ export default defineComponent({
       rules,
       titles,
       genders,
+      race,
+      country_of_birth,
       maritalStatus,
+      handleAddressChange,
       submit,
     };
   },

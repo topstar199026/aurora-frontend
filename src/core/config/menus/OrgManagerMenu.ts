@@ -59,16 +59,16 @@ const OrgManagerMenu = [
     fontIcon: "bi-send",
     pages: [
       {
-        heading: "Document Outbox",
-        route: "/outbox",
-      },
-      {
         heading: "Document Inbox",
         route: "/inbox",
       },
       {
         heading: "Patient Recall",
         route: "/recalls",
+      },
+      {
+        heading: "Outgoing Message Log",
+        route: "/outgoing-log",
       },
     ],
   },

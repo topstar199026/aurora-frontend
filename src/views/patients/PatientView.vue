@@ -54,8 +54,8 @@
                 <IconButton
                   v-if="userRole == 'specialist'"
                   iconSRC="media/icons/duotune/arrows/arr009.svg"
-                  @click="handleReferral"
-                  label="Referral"
+                  @click="handleDoctorAddressBook"
+                  label="Doctor Address"
                 />
                 <IconButton
                   v-if="userRole == 'specialist'"
@@ -244,7 +244,7 @@ export default defineComponent({
       email: "",
       date_of_birth: "",
       contact_number: "",
-      alerts: {},
+      alerts: [],
     });
 
     const handleRecallReminder = () => {
@@ -268,8 +268,8 @@ export default defineComponent({
       modal.show();
     };
 
-    const handleReferral = () => {
-      store.dispatch(Actions.REFERRAL_DOCTOR.LIST);
+    const handleDoctorAddressBook = () => {
+      store.dispatch(Actions.DOCTOR_ADDRESS_BOOK.LIST);
       const modal = new Modal(document.getElementById("modal_referral"));
       modal.show();
     };
@@ -300,7 +300,7 @@ export default defineComponent({
       handleRecallReminder,
       CreatePatientAlertModal,
       handleReport,
-      handleReferral,
+      handleDoctorAddressBook,
       handleLetter,
       handleAudio,
       handleUploadDocument,

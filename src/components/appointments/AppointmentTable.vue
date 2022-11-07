@@ -1,160 +1,180 @@
-<template ref="appointmentTableRef">
-  <table
-    id="appointment_filteredspecialists_table"
-    v-if="filteredSpecialists.length !== 0"
-  >
-    <thead>
-      <tr>
-        <th
-          class="appointment-table-header text-center text-white py-3"
-          :colSpan="
-            filteredSpecialists.length ? 1 + filteredSpecialists.length * 2 : 3
-          "
-        >
-          {{ tableTitle }}
-        </th>
-      </tr>
-      <tr style="background-color: #fff8dd">
-        <th></th>
-        <template
-          v-for="specialist in filteredSpecialists"
-          :key="specialist.id"
-        >
-          <template
-            v-if="
-              specialist.checked &&
-              filterClinics(specialist.schedule_timeslots[0].clinic_id)
-            "
-          >
-            <th style="height: 60px; width: 40px"></th>
-            <th class="text-center text-primary py-3">
-              {{
-                filteredSpecialists.length > 0
-                  ? "Dr. " + specialist.full_name
-                  : ""
-              }}
-              <br />
-              {{
-                specialist.schedule_timeslots
-                  ? specialist.schedule_timeslots[0].clinic_name
-                  : ""
-              }}
-            </th>
-          </template>
-        </template>
-      </tr>
-    </thead>
-    <tbody class="bg-white fw-bold appointment-table-body">
-      <tr
-        v-for="appointmentTimeslot in appointmentTimesList"
-        :key="appointmentTimeslot"
+<template>
+  <CardSection class="mt-2">
+    <template v-if="calendarOptions">
+      <FullCalendar
+        ref="appointmentCalendarRef"
+        class="demo-app-calendar"
+        :options="calendarOptions"
       >
-        <td class="p-2 text-center w-70px">
-          {{ appointmentTimeslot }}
-        </td>
-        <template
-          v-for="specialist in filteredSpecialists"
-          :key="specialist.id"
-        >
-          <template
-            v-if="
-              specialist.checked &&
-              filterClinics(specialist.schedule_timeslots[0].clinic_id)
-            "
-          >
-            <CreateAppointmentTableData
-              v-if="specialist"
-              :specialist="specialist"
-              :date="_apt_date"
-              :startTime="appointmentTimeslot"
-            />
+        <template v-slot:eventContent="event">
+          <template v-if="event.event.display != 'background'">
             <AppointmentTableData
-              v-if="getAppointmentAtTime(specialist, appointmentTimeslot)"
-              :appointment="
-                getAppointmentAtTime(specialist, appointmentTimeslot)
-              "
-              @click="
-                handleShowAppointmentDrawer(
-                  getAppointmentAtTime(specialist, appointmentTimeslot)
-                )
-              "
+              :appointment="event.event.extendedProps.appointment"
             />
-            <td
-              v-else-if="
-                !specialistHasAppointmentInSlot(specialist, appointmentTimeslot)
-              "
-              style="background: #f1f1f1"
-            ></td>
+          </template>
+          <template v-else>
+            {{ event.event.extendedProps.text }}
           </template>
         </template>
-      </tr>
-    </tbody>
-  </table>
+      </FullCalendar>
+    </template>
+  </CardSection>
+  <MoveModal :isDisableAptTypeList="true" />
 </template>
+<style>
+.fc-non-business {
+  background-color: #7d7d7d !important;
+}
 
-<script lang="ts">
+.fc .fc-timegrid-slot {
+  height: 3em !important;
+}
+</style>
+<script>
 import {
   defineComponent,
   ref,
   computed,
-  onMounted,
   watchEffect,
   watch,
+  onMounted,
 } from "vue";
 import { useStore } from "vuex";
-import moment from "moment";
-import { Actions, Mutations } from "@/store/enums/StoreEnums";
 import { DrawerComponent } from "@/assets/ts/components/_DrawerComponent";
-import CreateAppointmentTableData from "@/components/appointments/partials/CreateAppointmentTableData.vue";
-import AppointmentTableData from "@/components/appointments/partials/AppointmentTableData.vue";
-import { AppointmentMutations } from "@/store/enums/StoreAppointmentEnums";
-
+import moment from "moment";
+import FullCalendar from "@fullcalendar/vue3";
+import dayGridPlugin from "@fullcalendar/daygrid";
+import timeGridPlugin from "@fullcalendar/timegrid";
+import listPlugin from "@fullcalendar/list";
+import interactionPlugin from "@fullcalendar/interaction";
+import resourceTimeGridPlugin from "@fullcalendar/resource-timegrid";
+import {
+  AppointmentActions,
+  AppointmentMutations,
+} from "@/store/enums/StoreAppointmentEnums";
+import AppointmentTableData from "./partials/AppointmentTableData.vue";
+import { Modal } from "bootstrap";
+import MoveModal from "@/components/appointments/AppointmentMoveModal.vue";
 export default defineComponent({
-  components: { CreateAppointmentTableData, AppointmentTableData },
+  components: {
+    FullCalendar,
+    AppointmentTableData,
+    MoveModal,
+  },
   props: {
-    date: { type: String, required: true },
-    filteredClinics: { type: Array, required: true },
+    visibleDate: { type: String, required: true },
+    visibleSpecialists: { type: Object, required: true },
+    organization: { type: Object, required: true },
   },
   setup(props) {
     const store = useStore();
-    const tableData = ref({});
-    const tableTitle = computed(() =>
-      moment(props.date.toString()).format("dddd, MMMM Do YYYY")
-    );
-    const _apt_date = computed(() => props.date);
+    const calendarOptions = ref(null);
+    const appointmentCalendarRef = ref(null); //this.$refs.refAppointmentCalendar.getApi();
+    const appointmentsRaw = computed(() => store.getters.getAptList);
+    const appointments = ref([]);
+    const allSpecialists = computed(() => store.getters.getSpecialistList);
 
-    const clinic_list = computed(() => store.getters.clinicsList);
-
-    const format = ref("YYYY-MM-DD");
-
-    const filteredSpecialists = computed(() => store.getters.getFilteredData);
-    const appointmentTimesList = ref();
-    //  The length of each time slot i.e 30 min = 7:00 - 7:30
-    const timeslot_length = ref(30);
-
-    const timeStr2Number = (time) => {
-      return Number(time.split(":")[0] + time.split(":")[1]);
-    };
-
-    onMounted(() => {
-      appointmentTimesList.value = generateAppointmentTimes();
+    watch(props, () => {
+      let date = moment(props.visibleDate.date).format("YYYY-MM-DD");
     });
 
-    const generateAppointmentTimes = () => {
-      let start_time = "07:00";
-      let time_increment = start_time;
-      let end_time = "18:00";
-      let appointment_time_list: string[] = [];
+    watch(appointments, () => {
+      var check = moment(props.visibleDate.date, "YYYY/MM/DD");
+      var day = check.format("ddd").toUpperCase();
+      allSpecialists.value.forEach((specialist) => {
+        specialist.schedule_timeslots.forEach((timeslot) => {
+          if (timeslot.week_day == day) {
+            let date = moment(props.visibleDate.date, "YYYY/MM/DD").format(
+              "YYYY-MM-DD"
+            );
+            let start_time = date + "T" + timeslot.start_time;
+            let end_time = date + "T" + timeslot.end_time;
 
-      while (timeStr2Number(time_increment) < timeStr2Number(end_time)) {
-        appointment_time_list.push(time_increment);
-        time_increment = moment(time_increment, "HH:mm")
-          .add(timeslot_length.value, "minutes")
-          .format("HH:mm")
-          .toString();
+            let color = "";
+            if (timeslot.restriction == "CONSULTATION") {
+              color = "#DDC1F0";
+            } else if (timeslot.restriction == "PROCEDURE") {
+              color = "#F0E9C1";
+            } else {
+              color = "#C1F0C1";
+            }
+
+            appointments.value.push({
+              id: appointments.value.length,
+              resourceId: specialist.id,
+              start: start_time,
+              end: end_time,
+              display: "background",
+              backgroundColor: color,
+              text: timeslot.clinic_name,
+            });
+          }
+        });
+      });
+
+      const duration = moment()
+        .startOf("day")
+        .add(props.organization.appointment_length, "minutes")
+        .format("HH:mm:ss")
+        .toString();
+      calendarOptions.value = {
+        schedulerLicenseKey: "CC-Attribution-NonCommercial-NoDerivatives",
+        plugins: [
+          dayGridPlugin,
+          timeGridPlugin,
+          listPlugin,
+          interactionPlugin,
+          resourceTimeGridPlugin,
+        ],
+        headerToolbar: {
+          left: "prev,next today",
+          center: "title",
+          right: "",
+        },
+        resources: props.visibleSpecialists,
+        nowIndicator: true,
+        slotEventOverlap: false,
+        initialView: "resourceTimeGridDay",
+        navLinks: false, // can click day/week names to navigate views
+        selectable: true,
+        selectMirror: false,
+        allDaySlot: false,
+        height: 700,
+        contentHeight: 700,
+        expandRows: true,
+        slotMinTime: props.organization.start_time,
+        slotMaxTime: props.organization.end_time,
+        slotDuration: duration,
+        views: {
+          timeGridDay: { buttonText: "day" },
+        },
+        editable: false,
+        dayMaxEvents: false,
+        events: appointments,
+        selectConstraint: "businessHours",
+        eventClick: handleShowAppointmentDrawer,
+        select: handleCreateAppointment,
+      };
+
+      if (appointmentCalendarRef.value) {
+        appointmentCalendarRef.value
+          .getApi()
+          .gotoDate(moment(props.visibleDate.date).format("YYYY-MM-DD"));
       }
-      return appointment_time_list;
-    };
+    });
+
+    watch(appointmentsRaw, () => {
+      appointments.value = [];
+      appointmentsRaw.value.forEach((appointment) => {
+        appointments.value.push({
+          id: appointment.id,
+          resourceId: appointment.specialist_id,
+          start: appointment.date + "T" + appointment.start_time,
+          end: appointment.date + "T" + appointment.end_time,
+          appointment: appointment,
+        });
+      });
+    });
 
     watchEffect(() => {
       if (
@@ -166,69 +186,50 @@ export default defineComponent({
       }
     });
 
-    const isDuringWorkHours = (specialist, timeSlot) => {
-      if (
-        timeStr2Number(specialist.work_hours.time_slot[0]) <=
-          timeStr2Number(timeSlot) &&
-        timeStr2Number(specialist.work_hours.time_slot[1]) >
-          timeStr2Number(timeSlot)
-      ) {
-        return true;
-      }
-      return false;
-    };
-
-    const handleShowAppointmentDrawer = (item) => {
-      store.commit(AppointmentMutations.SET_APT.SELECT, item);
+    const handleShowAppointmentDrawer = (info) => {
+      info.jsEvent.preventDefault();
+      let appointment = info.event.extendedProps.appointment;
+      store.commit(AppointmentMutations.SET_APT.SELECT, appointment);
       DrawerComponent?.getInstance("appointment-drawer")?.toggle();
     };
 
-    const getAppointmentAtTime = (specialist, time) => {
-      let appointmentsAtTime;
-      if (
-        specialist != null &&
-        specialist.appointments &&
-        specialist.appointments !== undefined
-      ) {
-        appointmentsAtTime = specialist.appointments.find(
-          (x) => x.start_time === time + ":00"
-        );
-      }
-
-      return appointmentsAtTime;
-    };
-
-    const specialistHasAppointmentInSlot = (specialist, time) => {
-      let appointments = specialist.appointments;
-
-      let timeSlotBefore = moment(time, "HH:mm")
-        .subtract(timeslot_length.value, "minutes")
-        .format("HH:mm")
-        .toString();
-      let appointmentsOneBeforeSlot = appointments?.find(
-        (x) => x.start_time === timeSlotBefore + ":00"
+    const handleCreateAppointment = (info) => {
+      info.jsEvent.preventDefault();
+      const date = moment(info.start).format("YYYY-MM-DD").toString();
+      const time = moment(info.start).format("HH:mm").toString();
+      const timeF = moment(info.start).format("HH:mm:ss").toString();
+      const weekDay = moment(info.start).format("ddd").toUpperCase();
+      // filter correct specialist base on info
+      let specialists = [];
+      allSpecialists.value.map((specialist) => {
+        if (specialist.id == info.resource.id) {
+          specialists = { ...specialist };
+        }
+      });
+      let restriction = null;
+      specialists.schedule_timeslots = specialists.schedule_timeslots.filter(
+        (slot) => {
+          //make this more accurate filter this by clinic ID as well
+          if (
+            slot.week_day == weekDay &&
+            slot.start_time <= timeF &&
+            slot.end_time > timeF
+          ) {
+            restriction = slot.restriction;
+            return slot;
+          }
+        }
       );
-
-      let timeSlotDoubleBefore = moment(time, "HH:mm")
-        .subtract(timeslot_length.value * 2, "minutes")
-        .format("HH:mm")
-        .toString();
-      let appointmentsTwoBeforeSlot = appointments?.find(
-        (x) => x.start_time === timeSlotDoubleBefore + ":00"
-      );
-
-      if (
-        appointmentsTwoBeforeSlot?.appointment_type
-          .appointment_length_as_number === 3 ||
-        appointmentsOneBeforeSlot?.appointment_type
-          .appointment_length_as_number === 2 ||
-        appointmentsOneBeforeSlot?.appointment_type
-          .appointment_length_as_number === 3
-      ) {
-        return true;
-      }
-
-      return false;
+      const item = {
+        time_slot: [date + "T" + time],
+        date: date,
+        selected_specialist: specialists,
+        restriction: restriction,
+      };
+      store.commit(AppointmentMutations.SET_BOOKING.SELECT, item);
+      store.commit(AppointmentMutations.SET_APT.SELECT_SPECIALIST, specialists);
+      const modal = new Modal(document.getElementById("modal_create_apt"));
+      modal.show();
     };
 
     //Check specialist clinic is selected one in filter or not
@@ -236,23 +237,13 @@ export default defineComponent({
       return props.filteredClinics.includes(id, 0);
     };
     return {
-      format,
-      tableData,
-      tableTitle,
-      specialistHasAppointmentInSlot,
       handleShowAppointmentDrawer,
-      getAppointmentAtTime,
-      isDuringWorkHours,
-      appointmentTimesList,
-      filteredSpecialists,
-      clinic_list,
-      _apt_date,
       filterClinics,
+      calendarOptions,
+      appointments,
+      appointmentCalendarRef,
+      AppointmentTableData,
     };
   },
 });
 </script>
-
-<style lang="scss">
-@import "../../assets/sass/components/booking/appointmentTable.scss";
-</style>

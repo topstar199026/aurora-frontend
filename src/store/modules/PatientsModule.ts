@@ -125,11 +125,13 @@ export default class PatientsModule extends VuexModule implements PatientsInfo {
   }
 
   @Action
-  [PatientActions.UPDATE](data) {
+  [PatientActions.UPDATE](patient) {
     if (JwtService.getToken()) {
       ApiService.setHeader();
-      ApiService.update("patients", data.id, data)
+      ApiService.update("patients", patient.id, patient)
         .then(({ data }) => {
+          console.log(patient.patient_id);
+          this.context.dispatch(PatientActions.VIEW, patient.id);
           return data.data;
         })
         .catch(({ response }) => {
@@ -244,11 +246,12 @@ export default class PatientsModule extends VuexModule implements PatientsInfo {
   }
 
   @Action
-  [PatientActions.CLAIM_SOURCE.ADD](data) {
+  [PatientActions.CLAIM_SOURCE.ADD](source) {
     if (JwtService.getToken()) {
       ApiService.setHeader();
-      ApiService.put("patients/billing", data)
+      ApiService.put("patients/billing", source)
         .then(({ data }) => {
+          this.context.dispatch(PatientActions.VIEW, source.patient_id);
           return data;
         })
         .catch(({ response }) => {
@@ -261,11 +264,12 @@ export default class PatientsModule extends VuexModule implements PatientsInfo {
   }
 
   @Action
-  [PatientActions.CLAIM_SOURCE.UPDATE](data) {
+  [PatientActions.CLAIM_SOURCE.UPDATE](source) {
     if (JwtService.getToken()) {
       ApiService.setHeader();
-      ApiService.update("patients/billing", data.id, data)
+      ApiService.update("patients/billing", source.id, source)
         .then(({ data }) => {
+          this.context.dispatch(PatientActions.VIEW, source.patient_id);
           return data;
         })
         .catch(({ response }) => {
@@ -297,6 +301,84 @@ export default class PatientsModule extends VuexModule implements PatientsInfo {
         .catch(({ response }) => {
           console.log(response.data.error);
           // this.context.commit(Mutations.SET_ERROR, response.data.errors);
+        });
+    } else {
+      this.context.commit(Mutations.PURGE_AUTH);
+    }
+  }
+
+  @Action
+  [PatientActions.ALSO_KNOWN_AS.CREATE](details) {
+    if (JwtService.getToken()) {
+      ApiService.setHeader();
+      ApiService.put("patients/also-known-as", details)
+        .then(({ data }) => {
+          this.context.dispatch(PatientActions.VIEW, details.patient_id);
+          return data.data;
+        })
+        .catch(({ response }) => {
+          console.log(response.data.error);
+          // this.context.commit(Mutations.SET_ERROR, response.data.errors);
+        });
+    } else {
+      this.context.commit(Mutations.PURGE_AUTH);
+    }
+  }
+
+  @Action
+  [PatientActions.ALSO_KNOWN_AS.UPDATE](details) {
+    if (JwtService.getToken()) {
+      ApiService.setHeader();
+      ApiService.update("patients/also-known-as", details.id, details)
+        .then(({ data }) => {
+          this.context.dispatch(PatientActions.VIEW, details.patient_id);
+          return data.data;
+        })
+        .catch(({ response }) => {
+          console.log(response.data.error);
+          // this.context.commit(Mutations.SET_ERROR, response.data.errors);
+        });
+    } else {
+      this.context.commit(Mutations.PURGE_AUTH);
+    }
+  }
+
+  @Action
+  [PatientActions.ALSO_KNOWN_AS.DELETE](details) {
+    if (JwtService.getToken()) {
+      ApiService.setHeader();
+      ApiService.delete(`patients/also-known-as/${details.id}`)
+        .then(({ data }) => {
+          this.context.dispatch(PatientActions.VIEW, details.patient_id);
+          Swal.fire({
+            text: "Successfully Deleted!",
+            icon: "success",
+            buttonsStyling: false,
+            confirmButtonText: "Ok, got it!",
+            customClass: {
+              confirmButton: "btn btn-secondary",
+            },
+          });
+        })
+        .catch(({ response }) => {
+          console.log(response.data.error);
+          // this.context.commit(Mutations.SET_ERROR, response.data.errors);
+        });
+    } else {
+      this.context.commit(Mutations.PURGE_AUTH);
+    }
+  }
+
+  @Action
+  [PatientActions.ALLERGIES_LIST]() {
+    if (JwtService.getToken()) {
+      ApiService.setHeader();
+      return ApiService.get("patients/allergies")
+        .then(({ data }) => {
+          return data.data;
+        })
+        .catch(({ response }) => {
+          console.log(response.data.error);
         });
     } else {
       this.context.commit(Mutations.PURGE_AUTH);

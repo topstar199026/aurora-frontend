@@ -70,7 +70,8 @@ const Actions = {
       CREATE: "createClinicsRooms",
       DELETE: "deleteClinicsRooms",
       UPDATE: "updateClinicsRooms",
-    }
+    },
+    MINOR_ID: "createClinicMinorId",
   },
 
 
@@ -147,11 +148,11 @@ const Actions = {
   },
 
 
-  REFERRAL_DOCTOR: {
-    LIST: "searchReferralDoctor", // (get) 'referring-doctors'
-    CREATE: "createReferralDoctor",
-    DELETE: "deleteReferralDoctor",
-    UPDATE: "updateReferralDoctor",
+  DOCTOR_ADDRESS_BOOK: {
+    LIST: "searchDoctorAddressBook", // (get) 'doctor-address-books'
+    CREATE: "createDoctorAddressBook",
+    DELETE: "deleteDoctorAddressBook",
+    UPDATE: "updateDoctorAddressBook",
   },
 
   LETTER_TEMPLATE: {
@@ -179,6 +180,14 @@ const Actions = {
     UPDATE: "updateHeaderFooterTemplate",
     DELETE: "deleteHeaderFooterTemplate",
   },
+
+  MBS: {
+    LIST: "listMbsItems",
+  },
+
+  OUTGOING: {
+    LIST: "getOutgoingLogs",
+  }
 };
 
 const Mutations = {
@@ -234,6 +243,7 @@ const Mutations = {
     SELECT: "setSelectClinics",
     LISTROOMS: "setClinicsRoomsList",
     SELECTROOMS: "setSelectClinicsRooms",
+    MINOR_ID: "setClinicMinorId",
   },
 
   SET_BIRTH_CODE: {
@@ -261,8 +271,8 @@ const Mutations = {
 
 
 
-  SET_REFERRAL_DOCTOR: {
-    LIST: "setReferralDoctor",
+  SET_DOCTOR_ADDRESS_BOOK: {
+    LIST: "setDoctorAddressBook",
   },
 
   SET_LETTER_TEMPLATE: {
@@ -303,6 +313,15 @@ const Mutations = {
   SET_HEADER_FOOTER_TEMPLATE: {
     LIST: "setHeaderFootersTemplate",
     SELECT: "setHeaderFooterTemplateSelect",
+  },
+
+  SET_MBS: {
+    LIST: "setMbsItems",
+  },
+
+  SET_OUTGOING: {
+    LIST: "setOutgoingLogs",
+    SELECT: "setOutgoingSelectLog",
   },
 };
 

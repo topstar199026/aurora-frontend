@@ -3,6 +3,7 @@
     title="Add New Claim Source"
     modalId="add_claim_source"
     modalRef="addClaimSourceRef"
+    :static="true"
   >
     <el-form
       @submit.prevent
@@ -60,8 +61,8 @@
           >
             <el-option
               v-for="item in healthFundsList"
-              :key="item.id"
-              :value="item.id"
+              :key="item.code"
+              :value="item.code"
               :label="item.name"
             />
           </el-select>
@@ -83,7 +84,41 @@
       icon=""
     />
 
+    <div
+      v-if="Object.keys(updateDetails).length !== 0"
+      class="p-3 m-3 card border border-dashed border-primary"
+    >
+      <p>
+        The following patient details can be updated to match Medicare records.
+        Please select which details you would like to update.
+      </p>
+      <p>
+        Any previous name(s) will be stored as an alternative name on the
+        Demographics page.
+      </p>
+
+      <div
+        v-for="(item, index) in updateDetails"
+        :key="`update-details-item-${index}`"
+        class="px-6"
+      >
+        <el-checkbox
+          type="checkbox"
+          v-model="item.update"
+          :label="`${item.label}: ${item.oldVal} → ${item.newVal}`"
+        />
+      </div>
+    </div>
+
     <div class="d-flex justify-content-end">
+      <button
+        v-if="detailsToUpdateExist"
+        class="btn btn-lg btn-primary me-2"
+        @click="handleUpdateDetails"
+      >
+        Update Details
+      </button>
+
       <button
         v-if="!validated"
         :data-kt-indicator="loading ? 'on' : null"
@@ -155,25 +190,27 @@ import {
 import { useStore } from "vuex";
 import { Actions } from "@/store/enums/StoreEnums";
 import { PatientActions } from "@/store/enums/StorePatientEnums";
-import { hideModal } from "@/core/helpers/dom";
 import Swal from "sweetalert2/dist/sweetalert2.js";
 import moment from "moment";
 import PatientBillingTypes from "@/core/data/patient-billing-types";
 import AlertBadge from "@/components/presets/GeneralElements/AlertBadge.vue";
+import { Modal } from "bootstrap";
 
 export default defineComponent({
   name: "add-claim-source-modal",
   props: {
     patient: { required: true },
     claimSource: { type: Object },
-    isUpdate: { type: Boolean, default: false },
+    shouldEmit: { type: Boolean, default: false },
   },
+  emits: ["addClaimSource", "closeModal", "updateDetails"],
   components: {
     AlertBadge,
   },
-  setup(props) {
+  setup(props, { emit }) {
     const store = useStore();
     const claimSource = computed(() => props.claimSource);
+    const shouldEmit = computed(() => props.shouldEmit);
     const parentModal = ref(null);
     const addClaimSourceFormRef = ref(null);
     const healthFundsList = computed(() => store.getters.healthFundsList);
@@ -227,14 +264,52 @@ export default defineComponent({
           trigger: "change",
         },
       ],
-      member_ref_number: [
+      member_reference_number: [
         {
-          required: true,
-          message: "",
+          required: false,
+          message: "Member reference number cannot be blank",
           trigger: "change",
         },
       ],
     });
+
+    const detailsToUpdateExist = computed(() => {
+      for (const detailName in updateDetails.value) {
+        if (updateDetails.value[detailName].update) {
+          return true;
+        }
+      }
+
+      return false;
+    });
+
+    const handleUpdateDetails = () => {
+      let detailsToEmit = {};
+      let shouldEmit = false;
+
+      for (const detailName in updateDetails.value) {
+        switch (detailName) {
+          case "first_name":
+            detailsToEmit.first_name = updateDetails.value[detailName].newVal;
+            shouldEmit = true;
+            break;
+          case "last_name":
+            detailsToEmit.last_name = updateDetails.value[detailName].newVal;
+            shouldEmit = true;
+            break;
+          case "member_reference_number":
+            formData.value.member_reference_number =
+              updateDetails.value[detailName].newVal;
+            break;
+        }
+      }
+
+      if (shouldEmit) {
+        emit("updateDetails", detailsToEmit);
+      }
+
+      updateDetails.value = {};
+    };
 
     const doValidation = (endpoint, data, isConcession = false) => {
       loading.value = true;
@@ -266,7 +341,7 @@ export default defineComponent({
           }
 
           if (
-            !Object.prototype.hasOwnProperty.call(
+            Object.prototype.hasOwnProperty.call(
               validation.data,
               "update_details"
             )
@@ -274,16 +349,28 @@ export default defineComponent({
             for (const detailName in validation.data.update_details) {
               switch (detailName) {
                 case "givenName":
-                  updateDetails.value.first_name =
-                    validation.data.update_details[detailName];
+                  updateDetails.value.first_name = {
+                    label: "First Name",
+                    oldVal: patient.value.first_name,
+                    newVal: validation.data.update_details[detailName],
+                    update: false,
+                  };
                   break;
                 case "familyName":
-                  updateDetails.value.last_name =
-                    validation.data.update_details[detailName];
+                  updateDetails.value.last_name = {
+                    label: "Last Name",
+                    oldVal: patient.value.last_name,
+                    newVal: validation.data.update_details[detailName],
+                    update: false,
+                  };
                   break;
                 case "memberRefNumber":
-                  updateDetails.value.member_reference_number =
-                    validation.data.update_details[detailName];
+                  updateDetails.value.member_reference_number = {
+                    label: "Reference Number",
+                    oldVal: formData.value.member_reference_number,
+                    newVal: validation.data.update_details[detailName],
+                    update: false,
+                  };
                   break;
               }
             }
@@ -320,47 +407,55 @@ export default defineComponent({
             confirmButton: "btn btn-primary",
           },
         }).then(() => {
+          loading.value = false;
+          closeModal();
           return;
         });
       }
 
-      let validationData = {
-        first_name: patient.value.first_name,
-        last_name: patient.value.last_name,
-        date_of_birth: patient.value.date_of_birth,
-        sex: patient.value.gender,
-        minor_id: minorId.value.minorId,
-      };
-      let endpoint;
-
-      switch (formData.value.billing_type) {
-        case 1:
-          // Medicare card
-          validationData.medicare_number = formData.value.member_number;
-          validationData.medicare_reference_number =
-            formData.value.member_reference_number;
-          endpoint = PatientActions.CLAIM_SOURCE.VALIDATE_MEDICARE;
-          break;
-        case 2: {
-          // Health Fund
-          const healthFund = healthFundsList.value.find(
-            (fund) => fund.id === formData.value.health_fund_id
-          );
-          validationData.fund_member_number = formData.value.member_number;
-          validationData.fund_reference_number =
-            formData.value.member_reference_number;
-          validationData.fund_organisation_code = healthFund?.code;
-          endpoint = PatientActions.CLAIM_SOURCE.VALIDATE_HEALTH_FUND;
-          break;
-        }
-        case 3:
-          // DVA
-          validationData.veteran_number = formData.value.member_number;
-          endpoint = PatientActions.CLAIM_SOURCE.VALIDATE_DVA;
-          break;
+      if (!addClaimSourceFormRef.value) {
+        return;
       }
 
-      doValidation(endpoint, validationData);
+      addClaimSourceFormRef.value.validate((valid) => {
+        if (valid) {
+          let validationData = {
+            first_name: patient.value.first_name,
+            last_name: patient.value.last_name,
+            date_of_birth: patient.value.date_of_birth,
+            sex: patient.value.gender ?? 9, // If provided, use gender. Otherwise, use "unspecified" value: 9
+            minor_id: minorId.value.minorId,
+          };
+          let endpoint;
+
+          switch (formData.value.billing_type) {
+            case 1:
+              // Medicare card
+              validationData.medicare_number = formData.value.member_number;
+              validationData.medicare_reference_number =
+                formData.value.member_reference_number;
+              endpoint = PatientActions.CLAIM_SOURCE.VALIDATE_MEDICARE;
+              break;
+            case 2: {
+              // Health Fund
+              validationData.fund_member_number = formData.value.member_number;
+              validationData.fund_reference_number =
+                formData.value.member_reference_number;
+              validationData.fund_organisation_code =
+                formData.value.health_fund_id;
+              endpoint = PatientActions.CLAIM_SOURCE.VALIDATE_HEALTH_FUND;
+              break;
+            }
+            case 3:
+              // DVA
+              validationData.veteran_number = formData.value.member_number;
+              endpoint = PatientActions.CLAIM_SOURCE.VALIDATE_DVA;
+              break;
+          }
+
+          doValidation(endpoint, validationData);
+        }
+      });
     };
 
     const handleCheckConcession = () => {
@@ -377,16 +472,29 @@ export default defineComponent({
       doValidation(endpoint, validationData, true);
     };
 
+    const closeModal = () => {
+      emit("closeModal");
+    };
+
     const addNewClaimSource = () => {
-      loading.value = true;
-      store
-        .dispatch(PatientActions.CLAIM_SOURCE.ADD, formData)
-        .then(() => {
-          parentModal.value.hide();
-        })
-        .finally(() => {
-          loading.value = false;
-        });
+      const claimSource = JSON.parse(JSON.stringify(formData))._value;
+      claimSource.has_medicare_concession = concessionValidated.value;
+
+      if (shouldEmit.value) {
+        emit("addClaimSource", claimSource);
+        closeModal();
+      } else {
+        loading.value = true;
+        claimSource.patient_id = patient.value.id;
+        store
+          .dispatch(PatientActions.CLAIM_SOURCE.ADD, claimSource)
+          .then(() => {
+            closeModal();
+          })
+          .finally(() => {
+            loading.value = false;
+          });
+      }
     };
 
     const resetForm = () => {
@@ -428,6 +536,9 @@ export default defineComponent({
       handleCheckConcession,
       rules,
       addNewClaimSource,
+      updateDetails,
+      detailsToUpdateExist,
+      handleUpdateDetails,
     };
   },
 });

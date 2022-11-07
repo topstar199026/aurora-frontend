@@ -77,13 +77,13 @@
                   dataStepperElement="nav"
                   stepperNumber="4"
                   stepperTitle="Other Info"
-                  stepperDescription="Referral information and Appointment history"
+                  stepperDescription="Doctor Address information and Appointment history"
                 />
                 <!--begin::Appointment Overview-->
                 <AptOverview
                   :aptInfoData="aptInfoData"
                   :patientInfoData="patientInfoData"
-                  :specialistName="specialist_name"
+                  :specialist="cur_specialist"
                   :appointmentName="appointment_name"
                   :startTime="start_time"
                 />
@@ -382,7 +382,7 @@
                     class="w-100"
                     @submit.prevent=""
                   >
-                    <div class="row scroll h-500px">
+                    <div class="row scroll h-300px">
                       <Datatable
                         :table-header="patientTableHeader"
                         :table-data="patientTableData"
@@ -426,6 +426,21 @@
                         </template>
                       </Datatable>
                     </div>
+                    <span v-if="patientInfoData.is_ok === false">
+                      This patient is blacklisted and cannot be booked in.
+                      Please speak to your organization manager to resolve.
+                    </span>
+                    <div class="special-patient-alerts d-flex gap-2 flex-row">
+                      <template
+                        v-for="alert in patientInfoData.alerts"
+                        :key="alert.id"
+                      >
+                        <template v-if="!alert.is_dismissed">
+                          <PatientAlert :alert="alert" />
+                          <ViewPatientAlertModal :alert="alert" />
+                        </template>
+                      </template>
+                    </div>
                     <div class="d-flex justify-content-between">
                       <button
                         type="button"
@@ -439,6 +454,19 @@
                           />
                         </span>
                         Back
+                      </button>
+                      <button
+                        type="button"
+                        v-if="patientInfoData.is_ok"
+                        class="btn btn-lg btn-primary align-self-end"
+                        @click="afterSelectPatient"
+                      >
+                        Continue
+                        <span class="svg-icon svg-icon-4 ms-1 me-0">
+                          <inline-svg
+                            src="media/icons/duotune/arrows/arr064.svg"
+                          />
+                        </span>
                       </button>
                     </div>
                   </el-form>
@@ -460,6 +488,7 @@
                         <el-input
                           type="text"
                           v-model="patientInfoData.first_name"
+                          @keyup="matchExistPatientHandle(event)"
                           placeholder="Enter First Name"
                         />
                       </InputWrapper>
@@ -472,6 +501,7 @@
                         <el-input
                           type="text"
                           v-model="patientInfoData.last_name"
+                          @keyup="matchExistPatientHandle(event)"
                           placeholder="Enter Last Name"
                         />
                       </InputWrapper>
@@ -487,6 +517,7 @@
                           class="w-100"
                           format="DD-MM-YYYY"
                           v-model="patientInfoData.date_of_birth"
+                          @change="matchExistPatientHandle(event)"
                           placeholder=""
                         />
                       </InputWrapper>
@@ -504,19 +535,37 @@
                         />
                       </InputWrapper>
 
-                      <InputWrapper label="Address" prop="address">
-                        <GMapAutocomplete
-                          :value="patientInfoData.address"
-                          ref="addressRef"
-                          placeholder="Enter the Address"
-                          @place_changed="handleAddressChange"
-                          :options="{
-                            componentRestrictions: {
-                              country: 'au',
-                            },
-                          }"
+                      <div
+                        class="exist-message px-7 mt-2 mb-2"
+                        v-if="patientInfoData.is_exist"
+                      >
+                        <label class="mb-2">
+                          A patient matching these details already exists
+                        </label>
+                        <button
+                          type="button"
+                          class="btn btn-lg btn-primary w-100 mb-5"
+                          @click="showMatchPatientsHandle"
                         >
-                        </GMapAutocomplete>
+                          Show match patients
+                        </button>
+                      </div>
+
+                      <InputWrapper label="Address" prop="address">
+                        <div class="el-input">
+                          <GMapAutocomplete
+                            :value="patientInfoData.address"
+                            ref="addressRef"
+                            placeholder="Enter the Address"
+                            @place_changed="handleAddressChange"
+                            :options="{
+                              componentRestrictions: {
+                                country: 'au',
+                              },
+                            }"
+                          >
+                          </GMapAutocomplete>
+                        </div>
                       </InputWrapper>
 
                       <InputWrapper class="col-6" label="Email" prop="email">
@@ -543,6 +592,18 @@
                       </InputWrapper>
 
                       <InputWrapper
+                        class="col-12"
+                        label="Clinical Alerts"
+                        prop="clinical_alerts"
+                      >
+                        <el-input
+                          type="textarea"
+                          v-model="patientInfoData.clinical_alerts"
+                          placeholder="Enter Clinical Alerts"
+                        />
+                      </InputWrapper>
+
+                      <!-- <InputWrapper
                         class="col-6"
                         label="Allergies"
                         prop="allergies"
@@ -552,18 +613,28 @@
                           v-model="patientInfoData.allergies"
                           placeholder="Enter Allergies"
                         />
-                      </InputWrapper>
-
+                      </InputWrapper> -->
                       <InputWrapper
-                        class="col-6"
-                        label="Clinical Alerts"
-                        prop="clinical_alerts"
+                        class="col-12"
+                        label="Allergies"
+                        prop="allergies"
                       >
-                        <el-input
-                          type="textarea"
-                          v-model="patientInfoData.clinical_alerts"
-                          placeholder="Enter Clinical Alerts"
-                        />
+                        <el-select
+                          class="w-100"
+                          multiple
+                          filterable
+                          allow-create
+                          default-first-option
+                          :reserve-keyword="false"
+                          v-model="patientInfoData.allergies"
+                        >
+                          <el-option
+                            v-for="item in allergiesList"
+                            :value="item.id"
+                            :label="item.name"
+                            :key="item.id"
+                          />
+                        </el-select>
                       </InputWrapper>
                     </div>
                     <div class="d-flex justify-content-between">
@@ -651,124 +722,75 @@
 
                       <el-divider />
 
-                      <InputWrapper
-                        class="col-6"
-                        label="Medicare Number"
-                        prop="medicare_number"
-                      >
-                        <el-input
-                          type="text"
-                          v-model="billingInfoData.medicare_number"
-                          placeholder="Enter Medicare Number"
-                        />
-                      </InputWrapper>
-                      <InputWrapper
-                        class="col-6"
-                        label="Medicare Reference Number"
-                        prop="medicare_reference_number"
-                      >
-                        <el-input
-                          type="text"
-                          v-model="billingInfoData.medicare_reference_number"
-                          placeholder=""
-                        />
-                      </InputWrapper>
-                      <InputWrapper
-                        class="col-6"
-                        label="Medicare Expiry Date"
-                        prop="medicare_expiry_date"
-                      >
-                        <el-date-picker
-                          editable
-                          class="w-100"
-                          v-model="billingInfoData.medicare_expiry_date"
-                          format="MM-YYYY"
-                          placeholder="Enter Expiry Date"
-                        />
-                      </InputWrapper>
-                      <el-divider />
-
-                      <div
-                        class="row"
-                        v-if="
-                          billingInfoData.charge_type ===
-                            'private-health-excess' ||
-                          billingInfoData.charge_type ===
-                            'private-health-excess-0'
-                        "
-                      >
-                        <InputWrapper
-                          class="col-6"
-                          label="Health Fund"
-                          prop="health_fund_id"
+                      <div>
+                        <button
+                          type="button"
+                          class="btn btn-light btn-icon-primary me-3 mb-3"
+                          @click="showAddClaimSourceModal"
                         >
-                          <el-select
-                            class="w-100"
-                            v-model="billingInfoData.health_fund_id"
+                          Add Claim Source
+                        </button>
+
+                        <div
+                          v-for="(item, index) in billingInfoData.claim_sources"
+                          :key="`new-claim-source-${index}`"
+                          class="d-flex flex-row align-items-center justify-content-between p-3 mb-3 card border border-dashed border-primary gap-4"
+                        >
+                          <div>
+                            <label class="fs-5 text-primary">
+                              {{ getBillingType(item.billing_type) }}:
+
+                              <span class="text-black fs-5">
+                                {{ item.member_number }}
+                              </span>
+                            </label>
+
+                            <div
+                              v-if="item.billing_type != 3"
+                              class="d-flex gap-3"
+                            >
+                              <label class="text-primary">
+                                Reference:
+
+                                <span class="text-black">
+                                  {{ item.member_ref_number ?? "N/A" }}
+                                </span>
+                              </label>
+
+                              <label
+                                v-if="item.billing_type == 2"
+                                class="text-primary"
+                              >
+                                Fund:
+
+                                <span class="text-black">
+                                  {{ getHealthFund(item.health_fund_id) }}
+                                </span>
+                              </label>
+                            </div>
+                          </div>
+
+                          <button
+                            type="button"
+                            class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm"
+                            @click="deleteClaimSource(item)"
                           >
-                            <el-option
-                              v-for="item in healthFundsList"
-                              :value="item.id"
-                              :label="item.code + '-' + item.name"
-                              :key="item.id"
-                            />
-                          </el-select>
-                        </InputWrapper>
-                        <InputWrapper
-                          class="col-6"
-                          label="Health Fund Membership Number"
-                          prop="health_fund_membership_number"
-                        >
-                          <el-input
-                            type="text"
-                            v-model="
-                              billingInfoData.health_fund_membership_number
-                            "
-                            placeholder="12345678"
-                          />
-                        </InputWrapper>
-                        <InputWrapper
-                          class="col-6"
-                          label="Health Fund Reference Number"
-                          prop="health_fund_reference_number"
-                        >
-                          <el-input
-                            type="text"
-                            v-model="
-                              billingInfoData.health_fund_reference_number
-                            "
-                            placeholder="00"
-                          />
-                        </InputWrapper>
+                            <span class="svg-icon svg-icon-3">
+                              <InlineSVG icon="bin" />
+                            </span>
+                          </button>
+                        </div>
 
-                        <InputWrapper
-                          class="col-6"
-                          label="Health Fund Expiry Date"
-                          prop="health_fund_expiry_date"
-                        >
-                          <el-date-picker
-                            editable
-                            class="w-100"
-                            v-model="billingInfoData.health_fund_expiry_date"
-                            format="MM-YYYY"
-                          />
-                        </InputWrapper>
-
-                        <InputWrapper
-                          v-if="
-                            billingInfoData.charge_type ===
-                            'private-health-excess'
-                          "
-                          class="col-6"
-                          label="Fund Excess"
-                          prop="fund_excess"
-                        >
-                          <el-input
-                            type="text"
-                            v-model.number="billingInfoData.fund_excess"
-                          />
-                        </InputWrapper>
+                        <AddClaimSourceModal
+                          :patient="patientInfoData"
+                          v-on:addClaimSource="addNewClaimSource"
+                          v-on:closeModal="closeAddClaimSourceModal"
+                          v-on:updateDetails="updatePatientDetails"
+                          shouldEmit
+                        />
                       </div>
+
+                      <el-divider />
 
                       <InputWrapper
                         v-if="billingInfoData.charge_type === 'pension-card'"
@@ -807,50 +829,6 @@
                           v-model="billingInfoData.healthcare_card_number"
                         />
                       </InputWrapper>
-
-                      <div
-                        class="row"
-                        v-if="
-                          billingInfoData.charge_type === 'department-veteran'
-                        "
-                      >
-                        <InputWrapper
-                          class="col-6"
-                          label="DVA Number"
-                          prop="dva_number"
-                        >
-                          <el-input
-                            class="w-100"
-                            v-model="billingInfoData.dva_number"
-                          />
-                        </InputWrapper>
-                        <InputWrapper
-                          class="col-6"
-                          label="DVA Type"
-                          prop="dva_expiry_date"
-                        >
-                          <el-date-picker
-                            editable
-                            class="w-100"
-                            format="MM-YYYY"
-                            v-model="billingInfoData.dva_expiry_date"
-                          />
-                        </InputWrapper>
-                        <InputWrapper
-                          class="col-6"
-                          label="DVA Expiry Date"
-                          prop="dva_type"
-                        >
-                          <el-select
-                            class="w-100"
-                            v-model="billingInfoData.dva_type"
-                          >
-                            <el-option value="white" label="White" />
-                            <el-option value="gold" label="Gold" />
-                            <el-option value="orange" label="Orange" />
-                          </el-select>
-                        </InputWrapper>
-                      </div>
 
                       <div
                         class="col-sm-6 d-flex align-items-center justify-content-center"
@@ -978,24 +956,24 @@
                           <el-divider />
                         </div>
                       </div>
-                      <!--start::Referral Information-->
+                      <!--start::Doctor Address Information-->
                       <div class="card-info">
                         <div class="mb-6 d-flex justify-content-between">
                           <span class="fs-3 fw-bold text-muted"
-                            >Referral Information</span
+                            >Doctor Address Information</span
                           >
                           <el-checkbox
                             type="checkbox"
                             v-model="otherInfoData.no_referral"
-                            label="No Referral"
+                            label="No Doctor Address"
                           />
                         </div>
                         <div class="row">
                           <template v-if="otherInfoData.no_referral">
                             <InputWrapper
                               class="col-6"
-                              label="No Referral Reason"
-                              prop="no_referral_reason"
+                              label="No Doctor Reason"
+                              prop="no_doctor_reason"
                             >
                               <el-input
                                 type="text"
@@ -1007,17 +985,17 @@
                           <template v-else>
                             <InputWrapper
                               class="col-6"
-                              label="Referring Doctor"
-                              prop="referring_doctor_id"
+                              label="Doctor Address Book"
+                              prop="doctor_address_book_id"
                             >
                               <el-autocomplete
                                 class="w-100"
-                                v-model="otherInfoData.referring_doctor_name"
+                                v-model="otherInfoData.doctor_address_book_name"
                                 value-key="full_name"
-                                :fetch-suggestions="searchReferralDoctor"
+                                :fetch-suggestions="searchDoctorAddressBook"
                                 placeholder="Please input"
                                 :trigger-on-focus="false"
-                                @select="handleSelectReferringDoctor"
+                                @select="handleSelectDoctorAddressBook"
                               >
                                 <template #default="{ item }">
                                   <div class="name">
@@ -1064,10 +1042,25 @@
                       </div>
                       <!--end::Referral Information-->
                       <!--start::Appointment History-->
-                      <div class="card-info">
+                      <div class="card-info" v-if="patientStatus === 'exist'">
                         <span class="fs-3 fw-bold text-muted"
                           >Appointment History</span
                         >
+
+                        <div style="color: grey">
+                          <span class="me-2"
+                            >Total Appointments:
+                            {{ patientAptData.appointment_count }}
+                          </span>
+                          <span class="me-2">
+                            <span class="me-2">/</span>Cancelled:
+                            {{ patientAptData.cancelled_appointment_count }}
+                          </span>
+                          <span class="me-2">
+                            <span class="me-2">/</span>Missed:
+                            {{ patientAptData.missed_appointment_count }}
+                          </span>
+                        </div>
 
                         <AppointmentHistory
                           :pastAppointments="patientAptData.pastAppointments"
@@ -1134,6 +1127,17 @@
   <!--end::Modal - Create App-->
 </template>
 
+<style lang="scss">
+.special-patient-alerts .modal.patient-alert .modal-footer {
+  display: none;
+}
+
+.exist-message {
+  label {
+    color: grey;
+  }
+}
+</style>
 <script>
 import {
   defineComponent,
@@ -1165,13 +1169,18 @@ import AppointmentHistory from "@/components/presets/PatientElements/Appointment
 import StepperNavItem from "@/components/presets/StepperElements/StepperNavItem.vue";
 import InputWrapper from "@/components/presets/FormElements/InputWrapper.vue";
 import AlertBadge from "@/components/presets/GeneralElements/AlertBadge.vue";
+import PatientAlert from "@/components/presets/PatientElements/PatientAlert.vue";
+import ViewPatientAlertModal from "@/views/patients/modals/ViewPatientAlertModal.vue";
+import PatientBillingTypes from "@/core/data/patient-billing-types";
+import AddClaimSourceModal from "@/views/patients/modals/AddClaimSourceModal.vue";
+import { Modal } from "bootstrap";
 
 export default defineComponent({
   props: {
     modalId: { type: String, required: true },
   },
 
-  name: "create-apt-modal",
+  name: "Apt-Modal",
   directives: {
     mask,
   },
@@ -1182,6 +1191,9 @@ export default defineComponent({
     InputWrapper,
     AlertBadge,
     AptOverview,
+    PatientAlert,
+    ViewPatientAlertModal,
+    AddClaimSourceModal,
   },
 
   setup(props) {
@@ -1192,8 +1204,13 @@ export default defineComponent({
     const formRef_4 = ref(null);
     const loading = ref(false);
     const tableKey = ref(0);
-    const referralDoctors = computed(() => store.getters.getReferralDoctorList);
+
+    const doctorAddressBooks = computed(
+      () => store.getters.getDoctorAddressBookList
+    );
+
     const router = useRouter();
+    const claimSourceModal = ref(null);
 
     const aptInfoData = ref({
       clinic_name: "",
@@ -1220,24 +1237,13 @@ export default defineComponent({
       appointment_confirm_method: "",
       allergies: "",
       clinical_alerts: "",
+      also_known_as: [],
+      is_exist: false,
     });
 
     const billingInfoData = ref({
       charge_type: chargeTypes[0].value,
-      medicare_number: "",
-      medicare_reference_number: "",
-      medicare_expiry_date: "",
-      health_fund_id: "",
-      health_fund_membership_number: "",
-      health_fund_reference_number: "",
-      health_fund_expiry_date: "",
-      fund_excess: "",
-      pension_card_number: "",
-      healthcare_card_number: "",
-      expiry_date: "",
-      dva_number: "",
-      dva_expiry: "",
-      dva_type: "",
+      claim_sources: [],
       procedure_price: "",
       add_other_account_holder: false,
     });
@@ -1245,8 +1251,8 @@ export default defineComponent({
     const otherInfoData = ref({
       anesthetic_questions: false,
       anesthetic_answers: [],
-      referring_doctor_name: "",
-      referring_doctor_id: "",
+      doctor_address_book_name: "",
+      doctor_address_book_id: "",
       referral_duration: "",
       referral_date: "",
       no_referral: false,
@@ -1324,33 +1330,6 @@ export default defineComponent({
           message: "Procedure price must be a number",
         },
       ],
-      fund_excess: [
-        {
-          type: "number",
-          message: "Fund excess must be a number",
-        },
-      ],
-      medicare_number: [
-        {
-          required: false,
-          message: "Medicare number cannot be blank.",
-          trigger: "blur",
-        },
-      ],
-      medicare_reference_number: [
-        {
-          required: false,
-          message: "Medicare Reference Number cannot be blank.",
-          trigger: "blur",
-        },
-      ],
-      medicare_expiry_date: [
-        {
-          required: false,
-          message: "Medicare expiry date cannot be blank.",
-          trigger: "blur",
-        },
-      ],
       appointment_confirm_method: [
         {
           required: false,
@@ -1397,6 +1376,7 @@ export default defineComponent({
     const title = ref(null);
     const refName = ref(null);
     const refCode = ref(null);
+    const allergiesList = ref([]);
 
     const patientTableData = ref([]);
     const patientTableHeader = ref([
@@ -1440,11 +1420,11 @@ export default defineComponent({
     const aptTypeList = computed(() => store.getters.getAptTypesList);
     const aptTypeListWithRestriction = ref();
     const searchVal = computed(() => store.getters.getSearchVariable);
-    const organisation = computed(() => store.getters.orgList);
     const patientList = computed(() => store.getters.patientsList);
     const patientAptData = computed(() => store.getters.getPatientAppointments);
     const aptData = computed(() => store.getters.getAptSelected);
     const bookingData = computed(() => store.getters.bookingDatas);
+    const referralDoctors = computed(() => store.getters.getReferralDoctorList);
 
     // Setting modal Heading and Ids
     const setTitle = () => {
@@ -1463,6 +1443,48 @@ export default defineComponent({
       return moment(date).format("DD-MM-YYYY").toString();
     };
 
+    const getBillingType = (type) => {
+      const foundType = PatientBillingTypes.find(
+        (billing) => billing.value == type
+      );
+
+      return foundType?.label ?? null;
+    };
+
+    const getHealthFund = (id) => {
+      const foundFund = healthFundsList.value.find((fund) => fund.code == id);
+
+      return foundFund?.name ?? null;
+    };
+
+    const showAddClaimSourceModal = () => {
+      if (!claimSourceModal.value) {
+        claimSourceModal.value = new Modal(
+          document.getElementById("modal_add_claim_source")
+        );
+      }
+
+      claimSourceModal.value.show();
+    };
+
+    const closeAddClaimSourceModal = () => {
+      claimSourceModal.value.hide();
+    };
+
+    const addNewClaimSource = (event) => {
+      billingInfoData.value.claim_sources.push(event);
+    };
+
+    const deleteClaimSource = (source) => {
+      const index = billingInfoData.value.claim_sources.indexOf(source);
+
+      billingInfoData.value.claim_sources.splice(index, 1);
+
+      if (Object.prototype.hasOwnProperty.call(source, "id")) {
+        store.dispatch(PatientActions.CLAIM_SOURCE.DELETE, source);
+      }
+    };
+
     const updateAptTime = (startTime, endTime) => {
       aptInfoData.value.time_slot = [];
       aptInfoData.value.time_slot.push(
@@ -1475,18 +1497,35 @@ export default defineComponent({
       aptInfoData.value.start_time = moment(startTime, "HH:mm").format("HH:mm");
     };
 
+    const getAptTypeName = (id) => {
+      if (id) {
+        const _selected = aptTypeList.value.filter(
+          (aptType) => aptType.id === id
+        )[0];
+        if (_selected.name) {
+          appointment_name.value = _selected.name;
+        }
+      }
+    };
     // Get Selected APT data when user edit appointments
     watch(aptData, () => {
       if (props.modalId == "modal_edit_apt") {
         for (let key in aptInfoData.value)
           aptInfoData.value[key] = aptData.value[key];
         cur_appointment_type_id.value = aptData.value.appointment_type_id;
+        getAptTypeName(aptData.value.appointment_type_id);
+        cur_specialist.value = aptData.value.specialist;
         for (let key in patientInfoData.value)
           patientInfoData.value[key] = aptData.value.patient[key];
-        for (let key in billingInfoData.value)
-          billingInfoData.value[key] = aptData.value.patient.billing[0][key];
+        /*
+
+         Set Billing options here when user edit
+         */
+        //for (let key in billingInfoData.value)
+        // billingInfoData.value[key] = aptData.value.patient.billing[0][key];
         for (let key in otherInfoData.value)
-          otherInfoData.value[key] = aptData.value[key];
+          otherInfoData.value[key] = aptData.value.referral[key];
+        // for (let key in patientInfoData.value)
         aptInfoData.value.clinic_id = aptData.value.clinic_id;
         aptInfoData.value.clinic_name = aptData.value.clinic.name;
         specialist_name.value = aptData.value.specialist.full_name;
@@ -1500,88 +1539,88 @@ export default defineComponent({
     });
 
     watch(cur_appointment_type_id, () => {
-      aptInfoData.value.appointment_type_id = cur_appointment_type_id.value;
-      const _selected = aptTypeList.value.filter(
-        (aptType) => aptType.id === cur_appointment_type_id.value
-      )[0];
-
-      if (typeof _selected === "undefined") {
-        appointment_name.value = "";
-        _appointment_time.value = Number(appointment_time.value);
-        arrival_time.value = 30;
-
-        aptInfoData.value.clinical_code = "";
-        aptInfoData.value.mbs_code = "";
-        apt_type.value = "";
-      } else {
-        appointment_name.value = _selected.name;
-        appointmentType.value = _selected.type;
-        _appointment_time.value = Number(
-          appointment_length[_selected.appointment_time] *
-            appointment_time.value
-        );
-        arrival_time.value = Number(_selected.arrival_time);
-        aptInfoData.value.clinical_code = _selected.clinical_code;
-        aptInfoData.value.mbs_code = _selected.mbs_code;
-        apt_type.value = _selected.type;
-      }
-
-      end_time.value = moment(start_time.value, "HH:mm")
-        .add(_appointment_time.value, "minutes")
-        .format("HH:mm")
-        .toString();
+      getAptTypeName(cur_appointment_type_id.value);
       if (props.modalId == "modal_create_apt") {
+        // setting up selected appointment type
+        aptInfoData.value.appointment_type_id = cur_appointment_type_id.value;
+        const _selected = aptTypeList.value.filter(
+          (aptType) => aptType.id === cur_appointment_type_id.value
+        )[0];
+
+        if (typeof _selected === "undefined") {
+          appointment_name.value = "";
+          _appointment_time.value = Number(appointment_time.value);
+          arrival_time.value = 30;
+
+          aptInfoData.value.clinical_code = "";
+          aptInfoData.value.mbs_code = "";
+          apt_type.value = "";
+        } else {
+          appointment_name.value = _selected.name;
+          appointmentType.value = _selected.type;
+          _appointment_time.value = Number(
+            appointment_length[_selected.appointment_time] *
+              appointment_time.value
+          );
+          arrival_time.value = Number(_selected.arrival_time);
+          aptInfoData.value.clinical_code = _selected.clinical_code;
+          aptInfoData.value.mbs_code = _selected.mbs_code;
+          apt_type.value = _selected.type;
+        }
+
+        end_time.value = moment(start_time.value, "HH:mm")
+          .add(_appointment_time.value, "minutes")
+          .format("HH:mm")
+          .toString();
         updateAptTime(start_time.value, end_time.value);
         aptInfoData.value.arrival_time = moment(start_time.value, "HH:mm")
           .subtract(arrival_time.value, "minutes")
           .format("HH:mm")
           .toString();
-      }
 
-      if (apt_type.value === "Consultation") {
-        otherInfoData.value.anesthetic_questions = false;
-      }
-
-      const specialist = store.getters.getSelectedSpecialist;
-
-      let cnt = 0;
-      if (specialist) {
-        for (let i in specialist.appointments) {
-          let _apt_temp = specialist.appointments[i];
-          if (
-            (timeStr2Number(start_time.value) <=
-              timeStr2Number(_apt_temp.start_time) &&
-              timeStr2Number(_apt_temp.start_time) <
-                timeStr2Number(end_time.value)) ||
-            (timeStr2Number(_apt_temp.start_time) <=
-              timeStr2Number(start_time.value) &&
-              timeStr2Number(start_time.value) <
-                timeStr2Number(_apt_temp.end_time))
-          ) {
-            cnt++;
+        const specialist = store.getters.getSelectedSpecialist;
+        if (apt_type.value === "Consultation") {
+          otherInfoData.value.anesthetic_questions = false;
+        }
+        let cnt = 0;
+        if (specialist) {
+          for (let i in specialist.appointments) {
+            let _apt_temp = specialist.appointments[i];
+            if (
+              (timeStr2Number(start_time.value) <=
+                timeStr2Number(_apt_temp.start_time) &&
+                timeStr2Number(_apt_temp.start_time) <
+                  timeStr2Number(end_time.value)) ||
+              (timeStr2Number(_apt_temp.start_time) <=
+                timeStr2Number(start_time.value) &&
+                timeStr2Number(start_time.value) <
+                  timeStr2Number(_apt_temp.end_time))
+            ) {
+              cnt++;
+            }
           }
         }
+        overlapping_cnt.value = cnt;
       }
-
-      overlapping_cnt.value = cnt;
     });
 
     // Make sure this watch runs only edit
-    watch(cur_specialist_id, () => {
-      aptInfoData.value.specialist_id = cur_specialist_id.value;
-      const _selected = ava_specialist.value.filter(
-        (item) => item.id === cur_specialist_id.value
-      )[0];
-      specialist_name.value = _selected.name;
-      anesthetist.value = _selected.anesthetist;
-      aptInfoData.value.anesthetist_id = _selected.anesthetist.id;
-    });
+    // watch(cur_specialist_id, () => {
+    //   // aptInfoData.value.specialist_id = cur_specialist_id.value;
+    //   const specialist = store.getters.getSelectedSpecialist;
+    //   const _selected = specialist.filter(
+    //     (item) => item.id === cur_specialist_id.value
+    //   )[0];
+    //   specialist_name.value = _selected.name;
+    //   anesthetist.value = _selected.anesthetist;
+    //   aptInfoData.value.anesthetist_id = _selected.anesthetist.id;
+    // });
 
     watch(cur_specialist, () => {
       aptInfoData.value.specialist_id = cur_specialist.value.id;
       specialist_name.value = cur_specialist.value.full_name;
-      //anesthetist.value = _selected.anesthetist;
-      //aptInfoData.value.anesthetist_id = _selected.anesthetist.id;
+      // anesthetist.value = _selected.anesthetist;
+      // aptInfoData.value.anesthetist_id = _selected.anesthetist.id;
     });
 
     watch(start_time, () => {
@@ -1600,7 +1639,12 @@ export default defineComponent({
 
     watch(patientStatus, () => {
       if (patientStatus.value === "new") patientStep.value = 3;
-      else patientStep.value = 1;
+      else {
+        patientStep.value = 1;
+        filterPatient.first_name = "";
+        filterPatient.last_name = "";
+        filterPatient.date_of_birth = "";
+      }
     });
 
     const renderTable = () => tableKey.value++;
@@ -1625,6 +1669,28 @@ export default defineComponent({
       otherInfoData.value.procedure_answers = temp;
     };
 
+    const matchExistPatientHandle = () => {
+      let filtered_patients = patientList.value.filter(
+        (p) =>
+          p.first_name === patientInfoData.value.first_name &&
+          p.last_name === patientInfoData.value.last_name &&
+          moment(p.date_of_birth).format("DD/MM/YYYY") ===
+            moment(patientInfoData.value.date_of_birth).format("DD/MM/YYYY")
+      );
+      if (filtered_patients.length) {
+        patientInfoData.value.is_exist = true;
+      }
+    };
+
+    const showMatchPatientsHandle = () => {
+      patientStep.value = 1;
+      filterPatient.first_name = patientInfoData.value.first_name;
+      filterPatient.last_name = patientInfoData.value.last_name;
+      filterPatient.date_of_birth = patientInfoData.value.date_of_birth;
+      patientStep_1();
+      patientInfoData.value.is_exist = false;
+    };
+
     watch(patientList, () => {
       patientTableData.value = patientList;
       renderTable();
@@ -1638,11 +1704,11 @@ export default defineComponent({
     });
 
     watchEffect(() => {
-      appointment_time.value = 30; // Create api for this
+      appointment_time.value = 30;
       const bookingData = store.getters.bookingDatas;
       ava_specialist.value = bookingData.ava_specialist;
-
       let specialistRestriction = bookingData.restriction;
+      // Setting appointment types base on apt create or edit
       if (
         specialistRestriction === "NONE" ||
         props.modalId === "modal_edit_apt"
@@ -1659,6 +1725,7 @@ export default defineComponent({
         start_time.value = moment(bookingData.time_slot[0]).format("HH:mm");
         end_time.value = moment(bookingData.time_slot[1]).format("HH:mm");
       }
+
       if (cur_appointment_type_id.value == "") {
         overlapping_cnt.value = bookingData.overlapping_cnt;
       }
@@ -1671,8 +1738,10 @@ export default defineComponent({
         if (bookingData.selected_specialist) {
           clinic.value =
             bookingData.selected_specialist.schedule_timeslots[0].clinic;
-          aptInfoData.value.clinic_name = clinic.value.name;
-          aptInfoData.value.clinic_id = clinic.value.id;
+          if (props.modalId !== "modal_edit_apt") {
+            aptInfoData.value.clinic_name = clinic.value.name;
+            aptInfoData.value.clinic_id = clinic.value.id;
+          }
           if (props.modalId === "modal_create_apt") {
             aptInfoData.value.date = bookingData.date;
           }
@@ -1698,11 +1767,14 @@ export default defineComponent({
       setTitle();
       _stepperObj.value = StepperComponent.createInstance(createAptRef.value);
       if (props.modalId === "modal_create_apt") {
-        store.dispatch(Actions.REFERRAL_DOCTOR.LIST);
+        store.dispatch(Actions.DOCTOR_ADDRESS_BOOK.LIST);
       }
       store.dispatch(Actions.HEALTH_FUND.LIST);
       store.dispatch(Actions.ANESTHETIST_QUES.ACTIVE_LIST);
       store.dispatch(AppointmentActions.APPOINTMENT_TYPES.LIST);
+      store.dispatch(PatientActions.ALLERGIES_LIST).then((data) => {
+        allergiesList.value = data;
+      });
     });
 
     const getAvailableRooms = () => {
@@ -1714,7 +1786,6 @@ export default defineComponent({
           })
           .catch(({ response }) => {
             console.log(response.data.errors);
-            // this.context.commit(Mutations.PURGE_AUTH);
           });
       } else {
         // this.context.commit(Mutations.PURGE_AUTH);
@@ -1724,6 +1795,13 @@ export default defineComponent({
     const handleStep_1 = () => {
       if (!formRef_1.value) {
         return;
+      }
+
+      //custom
+      if (patientStatus.value === "new") {
+        patientStep.value = 3;
+      } else {
+        patientStep.value = 1;
       }
 
       if (props.modalId == "modal_create_apt") {
@@ -1737,6 +1815,7 @@ export default defineComponent({
           appointment_confirm_method: "sms",
           allergies: "",
           clinical_alerts: "",
+          also_known_as: [],
         };
         if (formRef_2.value) formRef_2.value.resetFields();
       }
@@ -1747,6 +1826,7 @@ export default defineComponent({
           if (!_stepperObj.value) {
             return;
           }
+          store.dispatch(PatientActions.LIST);
           _stepperObj.value.goNext();
         }
       });
@@ -1786,6 +1866,7 @@ export default defineComponent({
     // Send request to update exiting appointment
     const handleSave = () => {
       loading.value = true;
+      aptInfoData.value.appointment_type_id = cur_appointment_type_id.value;
       store
         .dispatch(AppointmentActions.APT.UPDATE, {
           id: aptData.value.id,
@@ -1798,15 +1879,6 @@ export default defineComponent({
           loading.value = false;
           store.dispatch(AppointmentActions.LIST);
           hideModal(createAptModalRef.value);
-          if (searchVal.value.date) {
-            store.dispatch(AppointmentActions.BOOKING.SEARCH.SPECIALISTS, {
-              ...searchVal.value,
-            });
-          } else {
-            store.dispatch(AppointmentActions.BOOKING.SEARCH.NEXT_APT, {
-              ...searchVal.value,
-            });
-          }
           resetCreateModal();
         })
         .catch(({ response }) => {
@@ -1831,6 +1903,10 @@ export default defineComponent({
         cur_appointment_type_id.value = "";
         for (let key in patientInfoData.value) patientInfoData.value[key] = "";
         for (let key in billingInfoData.value) billingInfoData.value[key] = "";
+        billingInfoData.value.claim_sources = [];
+        patientInfoData.value.also_known_as = [];
+        patientStatus.value = "new";
+        patientStep.value = 3;
       } else {
         // Edit modal
         store.dispatch(PatientActions.LIST);
@@ -1843,6 +1919,7 @@ export default defineComponent({
     };
 
     const handleCancel = () => {
+      _stepperObj.value = StepperComponent.createInstance(createAptRef.value);
       resetCreateModal();
     };
 
@@ -1874,16 +1951,29 @@ export default defineComponent({
     };
 
     const createApt = () => {
+      const billingInfo = billingInfoData.value;
+      const patientInfo = patientInfoData.value;
+
+      billingInfo.claim_sources = billingInfo.claim_sources.filter((source) => {
+        return !Object.prototype.hasOwnProperty.call(source, "id");
+      });
+
+      patientInfo.also_known_as = patientInfo.also_known_as.filter((source) => {
+        return !Object.prototype.hasOwnProperty.call(source, "id");
+      });
+
       store
         .dispatch(AppointmentActions.APT.CREATE, {
           ...aptInfoData.value,
-          ...patientInfoData.value,
-          ...billingInfoData.value,
+          ...patientInfo,
+          ...billingInfo,
           ...otherInfoData.value,
         })
         .then(() => {
           loading.value = false;
-          store.dispatch(AppointmentActions.LIST);
+          store.dispatch(AppointmentActions.LIST, {
+            date: bookingData.value.date,
+          });
           handleCancel();
           Swal.fire({
             text: "Successfully Created!",
@@ -1899,18 +1989,6 @@ export default defineComponent({
           }).then((result) => {
             hideModal(createAptModalRef.value);
             resetCreateModal();
-            if (searchVal.value.date) {
-              store.dispatch(AppointmentActions.BOOKING.SEARCH.SPECIALISTS, {
-                ...searchVal.value,
-              });
-            } else {
-              store.dispatch(AppointmentActions.BOOKING.SEARCH.NEXT_APT, {
-                ...searchVal.value,
-              });
-            }
-
-            resetCreateModal();
-
             if (result.dismiss === "cancel") {
               router.push({ name: "make-payment-pay" });
             }
@@ -1923,30 +2001,30 @@ export default defineComponent({
     };
 
     const updateApt = () => {
+      const billingInfo = billingInfoData.value;
+      const patientInfo = patientInfoData.value;
+      aptInfoData.value.appointment_type_id = cur_appointment_type_id.value;
+
+      billingInfo.claim_sources = billingInfo.claim_sources.filter((source) => {
+        return !Object.prototype.hasOwnProperty.call(source, "id");
+      });
+
+      patientInfo.also_known_as = patientInfo.also_known_as.filter((source) => {
+        return !Object.prototype.hasOwnProperty.call(source, "id");
+      });
+
       store
         .dispatch(Actions.APT.UPDATE, {
           id: aptData.value.id,
           ...aptInfoData.value,
-          ...patientInfoData.value,
-          ...billingInfoData.value,
+          ...patientInfo,
+          ...billingInfo,
           ...otherInfoData.value,
         })
         .then(() => {
           loading.value = false;
           store.dispatch(Actions.APT.LIST);
           hideModal(editAptModalRef.value);
-          if (searchVal.value.date) {
-            store.dispatch(Actions.BOOKING.SEARCH.SPECIALIST, {
-              ...searchVal.value,
-            });
-            store.dispatch(Actions.BOOKING.SEARCH.SPECIALISTS, {
-              ...searchVal.value,
-            });
-          } else {
-            store.dispatch(Actions.BOOKING.SEARCH.NEXT_APT, {
-              ...searchVal.value,
-            });
-          }
         })
         .catch(({ response }) => {
           loading.value = false;
@@ -1956,6 +2034,11 @@ export default defineComponent({
 
     const patientStep_1 = () => {
       patientTableData.value = [];
+      for (let key in patientInfoData.value) patientInfoData.value[key] = "";
+      if (filterPatient.date_of_birth != "")
+        filterPatient.date_of_birth = moment(
+          filterPatient.date_of_birth
+        ).format("YYYY-MM-DD");
       store.dispatch(PatientActions.LIST, filterPatient);
       patientStep.value++;
     };
@@ -1963,17 +2046,37 @@ export default defineComponent({
     const selectPatient = (item) => {
       store.dispatch(PatientActions.APPOINTMENTS, item.id);
       store.dispatch(PatientActions.VIEW, item.id);
-      patientInfoData.value = item;
+      //patientInfoData.value = item;
+      for (let key in patientInfoData.value)
+        patientInfoData.value[key] = item[key];
+      patientInfoData.value.alerts = item.alerts;
       aptInfoData.value.patient_id = item.id;
 
       for (let key in billingInfoData.value) {
-        if (key === "charge_type" || key === "procedure_price") {
+        if (
+          key === "charge_type" ||
+          key === "procedure_price" ||
+          key === "claim_sources"
+        ) {
           continue;
         }
 
         billingInfoData.value[key] = item[key];
       }
 
+      billingInfoData.value.claim_sources = item.billing;
+
+      patientInfoData.value.also_known_as = item.also_known_as;
+
+      patientInfoData.value.is_ok = true;
+      let blocklist = patientInfoData.value.alerts.filter(
+        (a) => a.alert_level == "BLACKLISTED" && !a.is_dismissed
+      );
+      if (blocklist.length) patientInfoData.value.is_ok = false;
+      // patientStep.value++;
+    };
+
+    const afterSelectPatient = () => {
       patientStep.value++;
     };
 
@@ -1989,15 +2092,15 @@ export default defineComponent({
       else patientStep.value--;
     };
 
-    const handleSelectReferringDoctor = (item) => {
-      otherInfoData.value.referring_doctor_id = item.id;
+    const handleSelectDoctorAddressBook = (item) => {
+      otherInfoData.value.doctor_address_book_id = item.id;
     };
 
     let timeout;
-    const searchReferralDoctor = (term, cb) => {
+    const searchDoctorAddressBook = (term, cb) => {
       const results = term
-        ? referralDoctors.value.filter(createReferringDotorFilter(term))
-        : referralDoctors.value;
+        ? doctorAddressBooks.value.filter(createDotorAddressBookFilter(term))
+        : doctorAddressBooks.value;
 
       clearTimeout(timeout);
       timeout = setTimeout(() => {
@@ -2005,19 +2108,19 @@ export default defineComponent({
       }, 1000);
     };
 
-    const createReferringDotorFilter = (term) => {
+    const createDotorAddressBookFilter = (term) => {
       const keyword = term.toString();
-      return (referralDoctor) => {
+      return (doctorAddressBook) => {
         const full_name =
-          referralDoctor.title +
+          doctorAddressBook.title +
           " " +
-          referralDoctor.first_name +
+          doctorAddressBook.first_name +
           " " +
-          referralDoctor.last_name;
+          doctorAddressBook.last_name;
         const full_name_pos = full_name
           .toLowerCase()
           .indexOf(keyword.toLowerCase());
-        const address_pos = referralDoctor.address
+        const address_pos = doctorAddressBook.address
           .toLowerCase()
           .indexOf(keyword.toLowerCase());
         return full_name_pos !== -1 || address_pos !== -1;
@@ -2026,6 +2129,19 @@ export default defineComponent({
 
     const timeStr2Number = (time) => {
       return Number(time.split(":")[0] + time.split(":")[1]);
+    };
+
+    const updatePatientDetails = (details) => {
+      const previousData = {
+        first_name: patientInfoData.value.first_name,
+        last_name: patientInfoData.value.last_name,
+      };
+
+      for (const detailName in details) {
+        patientInfoData.value[detailName] = details[detailName];
+      }
+
+      patientInfoData.value.also_known_as.push(previousData);
     };
 
     return {
@@ -2076,6 +2192,7 @@ export default defineComponent({
       patientTableHeader,
       patientTableData,
       selectPatient,
+      afterSelectPatient,
       patientPrevStep,
       aptInfoData,
       patientInfoData,
@@ -2084,17 +2201,27 @@ export default defineComponent({
       formatDate,
       patientAptData,
       overlapping_cnt,
-      searchReferralDoctor,
-      handleSelectReferringDoctor,
+      searchDoctorAddressBook,
+      handleSelectDoctorAddressBook,
       tableKey,
       gotoPage,
       editAptRef,
       editAptModalRef,
       handleSave,
       aptTypeList,
-      cur_specialist_id,
       title,
       refName,
+      matchExistPatientHandle,
+      showMatchPatientsHandle,
+      PatientBillingTypes,
+      showAddClaimSourceModal,
+      addNewClaimSource,
+      closeAddClaimSourceModal,
+      deleteClaimSource,
+      getBillingType,
+      getHealthFund,
+      updatePatientDetails,
+      allergiesList,
     };
   },
 });
