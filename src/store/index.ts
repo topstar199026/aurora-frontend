@@ -41,6 +41,8 @@ import BillingValidationModule from "@/store/modules/BillingValidationModule";
 import FileModule from "@/store/modules/FileModule";
 import MbsModule from "@/store/modules/MbsModule";
 import OutgoingModule from "@/store/modules/OutgoingModule";
+import ScheduleFeeModule from "@/store/modules/ScheduleFeeModule";
+import ScheduleItemModule from "@/store/modules/ScheduleItemModule";
 
 config.rawError = true;
 
@@ -86,6 +88,8 @@ const store = createStore({
     FileModule,
     MbsModule,
     OutgoingModule,
+    ScheduleFeeModule,
+    ScheduleItemModule,
   },
 });
 

@@ -15,7 +15,9 @@
       <div class="modal-content">
         <div class="modal-header" id="kt_modal_move_appointment_header">
           <div class="d-block">
-            <h2 class="fw-bolder">Moving Appointment:</h2>
+            <h2 class="fw-bolder">
+              {{ aptData.action === "move" ? "Moving" : "Copy" }} Appointment:
+            </h2>
             <div class="mt-1">
               <span class="me-1">{{ aptData?.patient_name?.full }},</span>
               <span class="me-1">{{ aptData?.aus_formatted_date }},</span>
@@ -149,7 +151,9 @@
                 <span class="caption-content me-2">
                   {{
                     cliniclist.filter((c) => c.id === formData.clinic_id)[0]
-                      ?.name
+                      ? cliniclist.filter((c) => c.id === formData.clinic_id)[0]
+                          .name
+                      : "Any"
                   }}
                 </span>
                 <span class="me-1">Specialist:</span>
@@ -157,7 +161,11 @@
                   {{
                     allSpecialist.filter(
                       (c) => c.id === formData.specialist_id
-                    )[0].full_name
+                    )[0]
+                      ? allSpecialist.filter(
+                          (c) => c.id === formData.specialist_id
+                        )[0].full_name
+                      : "Any"
                   }}
                 </span>
                 <span class="me-1">Time Requirement:</span>
@@ -231,7 +239,7 @@
                     }})
                   </InfoSection>
                   <InfoSection :heading="'Clinic'">{{
-                    aptData.clinic_details?.name
+                    bookingData?.clinic_name
                   }}</InfoSection>
 
                   <InfoSection :heading="'Date'">
@@ -239,7 +247,7 @@
                   </InfoSection>
 
                   <InfoSection :heading="'Time'">
-                    {{ moment(bookingData.time_slot[0]).format("HH:mm") }}-
+                    {{ moment(bookingData.time_slot[0]).format("HH:mm") }} -
                     {{ moment(bookingData.time_slot[1]).format("HH:mm") }}
                   </InfoSection>
 
@@ -248,7 +256,7 @@
                   }}</InfoSection>
 
                   <InfoSection :heading="'Specialist'">{{
-                    aptData.specialist_name
+                    bookingData?.specialist_name
                   }}</InfoSection>
                 </div>
               </div>
@@ -256,7 +264,11 @@
                 class="btn btn-primary mt-3 w-100"
                 @click.prevent="handleConfirm"
               >
-                MOVE APPOINTMENT
+                {{
+                  aptData.action === "move"
+                    ? "MOVE APPOINTMENT"
+                    : "COPY APPOINTMENT"
+                }}
               </button>
             </el-form>
           </div>
@@ -298,14 +310,7 @@
 }
 </style>
 <script>
-import {
-  defineComponent,
-  computed,
-  ref,
-  onMounted,
-  watch,
-  watchEffect,
-} from "vue";
+import { defineComponent, computed, ref, onMounted, watch } from "vue";
 import { Actions } from "@/store/enums/StoreEnums";
 import { useStore } from "vuex";
 import { hideModal } from "@/core/helpers/dom";
@@ -371,6 +376,7 @@ export default defineComponent({
       appointment_confirm_method: "",
       allergies: "",
       clinical_alerts: "",
+      also_known_as: [],
     });
 
     const billingInfoData = ref({
@@ -391,17 +397,11 @@ export default defineComponent({
       no_referral_reason: "",
     });
 
-    watch(formData.value.x_weeks, () => {
-      console.log(formData.value);
-    });
-
     watch(aptData, () => {
-      //formData.value.step = 0;
       store.dispatch(AppointmentActions.APPOINTMENT_TYPES.LIST).then(() => {
         formData.value.appointment_type_id = aptData.value.appointment_type?.id;
       });
       store.dispatch(Actions.CLINICS.LIST).then(() => {
-        console.log();
         formData.value.clinic_id = aptData.value.clinic_id;
       });
       store.dispatch(Actions.SPECIALIST.LIST).then(() => {
@@ -429,50 +429,52 @@ export default defineComponent({
         if (aptData.value.patient.billing.length)
           billingInfoData.value[key] = aptData.value.patient.billing[0][key];
       for (let key in otherInfoData.value)
-        otherInfoData.value[key] = aptData.value[key];
+        if (aptData.value.referral[key] !== undefined)
+          otherInfoData.value[key] = aptData.value.referral[key];
       aptInfoData.value.date = moment(bookingData.value.date)
         .format("DD-MM-YYYY")
         .toString();
       aptInfoData.value.time_slot = bookingData.value.time_slot;
-      const _selected = aptTypelist.value.filter(
-        (aptType) => aptType.id === aptData.value.appointment_type_id
-      )[0];
-      let arrival_time = 30;
-      if (typeof _selected !== "undefined") {
-        arrival_time = Number(_selected.arrival_time);
-      }
-      aptInfoData.value.arrival_time = moment(
-        bookingData.value.time_slot[0],
-        "HH:mm"
-      )
-        .subtract(arrival_time, "minutes")
-        .format("HH:mm")
-        .toString();
       aptInfoData.value.start_time = moment(
         bookingData.value.time_slot[0]
       ).format("HH:mm");
+      aptInfoData.value.end_time = moment(
+        bookingData.value.time_slot[1]
+      ).format("HH:mm");
+      aptInfoData.value.specialist_id = bookingData.value.specialist_id;
+      aptInfoData.value.clinic_id = bookingData.value.clinic_id;
+      aptInfoData.value.clinic_name = bookingData.value.clinic_name;
+
+      let submitData = {
+        ...aptInfoData.value,
+        ...patientInfoData.value,
+        ...billingInfoData.value,
+        ...otherInfoData.value,
+      };
+
+      let submitAction = AppointmentActions.APT.CREATE;
+      if (aptData.value.action === "move") {
+        submitData.id = aptData.value.id;
+        submitAction = AppointmentActions.APT.UPDATE;
+      }
+
       store
-        .dispatch(AppointmentActions.APT.UPDATE, {
-          id: aptData.value.id,
-          ...aptInfoData.value,
-          ...patientInfoData.value,
-          ...billingInfoData.value,
-          ...otherInfoData.value,
-        })
+        .dispatch(submitAction, submitData)
         .then(() => {
-          loading.value = false;
-          store.dispatch(AppointmentActions.LIST).then((data) => {
+          store.dispatch(AppointmentActions.LIST).then(() => {
+            loading.value = false;
             hideModal(MoveAptModalRef.value);
-            console.log(["updaed list", data]);
-            let updatedApt = data.filter((a) => a.id == aptData.value.id);
-            if (updatedApt.length)
-              store.commit(AppointmentMutations.SET_APT.SELECT, updatedApt[0]);
-            DrawerComponent?.getInstance("appointment-drawer")?.toggle();
+            if (aptData.value.action === "move") {
+              DrawerComponent?.getInstance("appointment-drawer")?.toggle();
+            } else {
+              let newAptData = aptData.value;
+              for (let key in submitData) newAptData[key] = submitData[key];
+              store.commit(AppointmentMutations.SET_APT.SELECT, newAptData);
+            }
           });
         })
         .catch(({ response }) => {
           loading.value = false;
-          console.log(response.data.errors);
         });
     };
 

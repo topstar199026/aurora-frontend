@@ -315,6 +315,7 @@
     </div>
     <div :class="{ 'col-8': toggleLayout }">
       <AppointmentTable
+        v-if="organization && visibleSpecialists"
         :organization="organization"
         :visibleDate="visibleDate"
         :visibleSpecialists="visibleSpecialists"
@@ -500,6 +501,10 @@ export default defineComponent({
       store.dispatch(Actions.EMPLOYEE.LIST);
       store.dispatch(AppointmentActions.LIST, { date: formattedDate });
 
+      window.setInterval(() => {
+        store.dispatch(AppointmentActions.LIST, { date: formattedDate });
+      }, 8000);
+
       const month = $(
         ".datepicker-container-label>span:first-child>button>span:nth-child(2)"
       ).text();
@@ -637,7 +642,7 @@ export default defineComponent({
       specialistsList.value = [];
       specialists.value.map((specialist) => {
         let i = true;
-        specialist.schedule_timeslots.map((slot) => {
+        specialist.hrm_weekly_schedule.map((slot) => {
           if (
             slot.week_day ===
               moment(date_search.date).format("ddd").toUpperCase() &&
@@ -649,7 +654,7 @@ export default defineComponent({
               label: `Dr.${specialist.first_name} ${specialist.last_name}`,
               id: specialist.id,
               title: `Dr.${specialist.first_name} ${specialist.last_name}`,
-              businessHours: getBusinessHours(specialist.schedule_timeslots),
+              businessHours: getBusinessHours(specialist.hrm_weekly_schedule),
             });
           }
         });
@@ -664,7 +669,7 @@ export default defineComponent({
       if (!isShowAllClinics.value) {
         const result = [];
         specialists.value.map((specialist) => {
-          specialist.schedule_timeslots.map((slot) => {
+          specialist.hrm_weekly_schedule.map((slot) => {
             clinicsData.value.map((clinic) => {
               if (
                 clinic == slot.clinic_id &&

@@ -1,4 +1,4 @@
-import icons from "@/core/data/icons";
+// import icons from "@/core/data/icons";
 
 const AnesthetistMenu = [
   {
@@ -23,6 +23,10 @@ const AnesthetistMenu = [
       {
         heading: "Bulletin Board",
         route: "/hrm/bulletin-board",
+      },
+      {
+        heading: "My Schedule",
+        route: "/hrm/my-schedule",
       },
     ],
   },
