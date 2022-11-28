@@ -3,7 +3,7 @@
     :title="modalTitle"
     modalId="payment_item"
     modalRef="paymentItemModalRef"
-    :static="true"
+    :is-static="true"
   >
     <el-form
       @submit.prevent
@@ -23,25 +23,36 @@
               v-for="(item, index) in availableItems"
               :key="`item-modal-select-option-${index}`"
               :value="item.id"
-              :label="item.name ?? item.description"
+              :label="getItemName(item)"
             />
           </el-select>
         </InputWrapper>
 
-        <InputWrapper label="Price" prop="price">
-          <el-input
-            type="text"
-            v-model="formData.price"
-            placeholder="Enter price"
-          />
+        <InputWrapper v-if="canEditItem" label="Price" prop="price">
+          <CurrencyInput v-model="formData.price" placeholder="Enter price" />
         </InputWrapper>
+
+        <div v-if="!canEditItem" class="px-6 pb-6">
+          <InfoSection heading="Price">
+            {{ convertToCurrency(formData.price) }}
+          </InfoSection>
+        </div>
       </div>
     </el-form>
 
     <div class="d-flex justify-content-end">
       <button
+        v-if="!canEditItem"
+        class="btn btn-lg btn-secondary me-2"
+        @click="openPinConfirmModal"
+      >
+        {{ mode === "add" ? "Edit Price" : "Enable Editing" }}
+      </button>
+
+      <button
         v-if="mode === 'edit'"
         class="btn btn-lg btn-danger me-2"
+        :disabled="!canEditItem"
         @click="handleDelete"
       >
         Delete
@@ -63,6 +74,12 @@
         Cancel
       </button>
     </div>
+
+    <VerifyPinModal
+      customId="verify_org_pin_item_modal"
+      v-on:verified="enableEditPrice"
+      v-on:closeModal="closePinConfirmModal"
+    />
   </ModalWrapper>
 </template>
 
@@ -77,12 +94,17 @@ import {
 } from "vue";
 import { useStore } from "vuex";
 import { Actions } from "@/store/enums/StoreEnums";
+import { convertToCurrency } from "@/core/data/billing";
 import Swal from "sweetalert2/dist/sweetalert2.js";
 import moment from "moment";
 import { Modal } from "bootstrap";
+import VerifyPinModal from "@/components/organisations/VerifyPinModal.vue";
 
 export default defineComponent({
   name: "payment-item-modal",
+  components: {
+    VerifyPinModal,
+  },
   props: {
     item: { type: Object },
   },
@@ -100,6 +122,8 @@ export default defineComponent({
     const mode = ref("add");
     const category = ref("");
     const scheduleItems = computed(() => store.getters.scheduleItemList);
+    const canEditItem = ref(false);
+    const verifyOrganizationPinModal = ref();
 
     const rules = ref({
       billing_type: [
@@ -124,6 +148,25 @@ export default defineComponent({
         },
       ],
     });
+
+    const enableEditPrice = () => {
+      canEditItem.value = true;
+      closePinConfirmModal();
+    };
+
+    const openPinConfirmModal = () => {
+      if (!verifyOrganizationPinModal.value) {
+        verifyOrganizationPinModal.value = new Modal(
+          document.getElementById("modal_verify_org_pin_item_modal")
+        );
+      }
+
+      verifyOrganizationPinModal.value.show();
+    };
+
+    const closePinConfirmModal = () => {
+      verifyOrganizationPinModal.value.hide();
+    };
 
     const closeModal = () => {
       emit("closeModal");
@@ -165,6 +208,23 @@ export default defineComponent({
       emit("submitItem", data);
     };
 
+    const getItemName = (item) => {
+      const isMbsItem = item.mbs_item_code ? true : false;
+
+      if (isMbsItem) {
+        return `${item.mbs_item_code} - ${item.name}`;
+      }
+
+      let name = [];
+      if (item.internal_code) {
+        name.push(item.internal_code);
+      }
+
+      name.push(item.name);
+
+      return name.join(" - ");
+    };
+
     const modalTitle = computed(() => {
       let title = mode.value === "add" ? "Add " : "Edit ";
 
@@ -188,10 +248,10 @@ export default defineComponent({
 
       return scheduleItems.value.filter((item) => {
         if (isMbs) {
-          return item.mbs_code !== null;
+          return item.mbs_item_code !== null;
         }
 
-        return item.mbs_code === null;
+        return item.mbs_item_code === null;
       });
     });
 
@@ -199,9 +259,10 @@ export default defineComponent({
       () => item,
       () => {
         resetForm();
-
         formData.value.schedule_item_id = item.value.item?.id;
-        formData.value.price = item.value.item?.price;
+        formData.value.price = item.value.item?.price
+          ? item.value.item?.price / 100
+          : 0;
         mode.value = item.value.mode;
         category.value = item.value.category;
       },
@@ -211,7 +272,7 @@ export default defineComponent({
     watch(
       () => formData.value.schedule_item_id,
       (value) => {
-        if (value) {
+        if (mode.value === "add" && value) {
           const selectedItem = scheduleItems.value.find(
             (item) => item.id === value
           );
@@ -225,6 +286,11 @@ export default defineComponent({
 
     onMounted(() => {
       store.dispatch(Actions.SCHEDULE_ITEM.LIST);
+
+      const modal = document.getElementById("modal_payment_item");
+      modal.addEventListener("shown.bs.modal", function () {
+        canEditItem.value = false;
+      });
     });
 
     return {
@@ -240,6 +306,12 @@ export default defineComponent({
       availableItems,
       handleDelete,
       submitItem,
+      openPinConfirmModal,
+      canEditItem,
+      enableEditPrice,
+      closePinConfirmModal,
+      getItemName,
+      convertToCurrency,
     };
   },
 });

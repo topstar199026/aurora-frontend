@@ -55,7 +55,11 @@
     </div>
   </div>
   <div class="hrm-filter-container fill-buttons">
-    <el-button type="warning" @click="isShowFillFromTemplate = true" plain
+    <el-button
+      type="warning"
+      @click="isShowFillFromTemplate = true"
+      plain
+      :disabled="canPullFromTemplate"
       >Fill From Template
     </el-button>
     <el-button type="warning" @click="PublishAllSlots" plain
@@ -68,6 +72,7 @@
       :employeeList="employeeList"
       :clinicFilter="clinicFilter"
       :dateOptions="dateRange"
+      :leaveList="leaveList"
       :canEdit="true"
     />
   </div>
@@ -85,7 +90,7 @@ import { Actions } from "@/store/enums/StoreEnums";
 import HRMTimeScheduleTable from "@/components/HRM/HRMWeeklyScheduleTable";
 import moment from "moment";
 import { HRMActions } from "@/store/enums/StoreHRMEnums";
-import FillFromTemplateModal from "@/views/HRM/FillFromTemplateModal";
+import FillFromTemplateModal from "@/views/HRM/modals/FillFromTemplateModal";
 import Swal from "sweetalert2";
 import { ElNotification } from "element-plus";
 
@@ -128,6 +133,7 @@ export default defineComponent({
     });
 
     const clinics = computed(() => store.getters.clinicsList);
+    const leaveList = computed(() => store.getters.hrmDataList);
     const employeeList = computed(() => {
       const allEmployees = store.getters.hrmWeeklyTemplatesData;
       let filteredList = [];
@@ -162,7 +168,7 @@ export default defineComponent({
     });
 
     onMounted(() => {
-      setCurrentPageBreadcrumbs("Weekly Schedule Template", ["HRM"]);
+      setCurrentPageBreadcrumbs("Weekly Schedule", ["HRM"]);
       store.dispatch(Actions.CLINICS.LIST);
       setDate(0);
     });
@@ -211,8 +217,16 @@ export default defineComponent({
           date: moment(dateRange.value.startDate).format("YYYY-MM-DD"),
         })
         .then(() => {
-          loading.value = false;
+          store
+            .dispatch(HRMActions.EMPLOYEE_LEAVE.LIST, {
+              date: moment(dateRange.value.startDate).format("YYYY-MM-DD"),
+              status: "Approved",
+            })
+            .then((e) => {
+              loading.value = false;
+            });
         });
+
       let day = dateRange.value.startDate;
       dateRange.value.datesInWeek = [];
       if (day !== null) {
@@ -243,6 +257,7 @@ export default defineComponent({
       return result;
     });
 
+    // send the request to copy data from template to hrm weekly schedule
     const processFillFromTemplate = (data) => {
       isShowFillFromTemplate.value = false;
       if (data)
@@ -256,11 +271,57 @@ export default defineComponent({
       });
     };
 
+    // Find if there unpublished shifts available in selected date range
+    const findUnpublishedShifts = () => {
+      let result = {
+        unpublishedShiftFound: false,
+        shiftCount: 0,
+        orgShiftCount: 0,
+        publishSlots: {
+          id: 6,
+          date: dateRange.value.startDate.format("YYYY-MM-DD").toString(),
+          timeslots: [],
+          deleteTimeslots: [],
+          notifyUsers: [],
+        },
+      };
+      employeeList.value.map((employee) => {
+        employee.schedule_timeslots.map(() => ++result.orgShiftCount);
+        employee.hrm_weekly_schedule.map((slot) => {
+          if (slot.status == "UNPUBLISHED") {
+            result.publishSlots.timeslots.push(slot);
+            result.publishSlots.notifyUsers.push(slot.user_id);
+            result.unpublishedShiftFound = true;
+            result.shiftCount++;
+          }
+        });
+      });
+      return result;
+    };
+
     const PublishAllSlots = () => {
+      const shiftData = findUnpublishedShifts();
+      let text = "You are about to publish " + shiftData.shiftCount + " Shifts";
+      if (!shiftData.unpublishedShiftFound) {
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          text: "Unpublished shifts couldn't be found !",
+        });
+        return;
+      }
+
+      if (shiftData.shiftCount > shiftData.orgShiftCount)
+        text += " and it's more than shifts in template.";
+      else if (shiftData.shiftCount < shiftData.orgShiftCount)
+        text += " and it's less than shifts in template.";
+
       Swal.fire({
+        icon: "warning",
         title:
           "Do you want to Publish all Shifts on " +
           displayDateRange.value.defaultF,
+        text: text,
         showDenyButton: true,
         showCancelButton: true,
         width: 600,
@@ -268,32 +329,17 @@ export default defineComponent({
         denyButtonText: `Cancel`,
       }).then((result) => {
         if (result.isConfirmed) {
-          processApiCall();
+          processApiCall(shiftData);
         }
       });
-      const processApiCall = () => {
-        let publishSlots = {
-          id: 6,
-          date: dateRange.value.startDate.format("YYYY-MM-DD").toString(),
-          timeslots: [],
-          deleteTimeslots: [],
-          notifyUsers: [],
-        };
-        let unpublishedShiftFound = false;
 
-        employeeList.value.map((employee) => {
-          employee.hrm_weekly_schedule.map((slot) => {
-            if (slot.status == "UNPUBLISHED") {
-              slot.status = "PUBLISHED";
-              publishSlots.timeslots.push(slot);
-              publishSlots.notifyUsers.push(slot.user_id);
-              unpublishedShiftFound = true;
-            }
-          });
-        });
-        if (unpublishedShiftFound) {
+      const processApiCall = (shiftData) => {
+        shiftData.publishSlots.timeslots.map(
+          (slot) => (slot.status = "PUBLISHED")
+        );
+        if (shiftData.unpublishedShiftFound) {
           store
-            .dispatch(HRMActions.WEEKLY_TEMPLATE.UPDATE, publishSlots)
+            .dispatch(HRMActions.WEEKLY_TEMPLATE.UPDATE, shiftData.publishSlots)
             .then(() => {
               store.dispatch(HRMActions.WEEKLY_TEMPLATE.LIST, {
                 date: moment(dateRange.value.startDate).format("YYYY-MM-DD"),
@@ -308,7 +354,16 @@ export default defineComponent({
         }
       };
     };
-
+    const canPullFromTemplate = computed(() => {
+      let result = false;
+      const allEmployees = store.getters.hrmWeeklyTemplatesData;
+      allEmployees.map((user) => {
+        user.hrm_weekly_schedule.map((slot) => {
+          if (slot.hrm_filled_week_id) result = true;
+        });
+      });
+      return result;
+    });
     return {
       clinics,
       clinicFilter,
@@ -324,6 +379,8 @@ export default defineComponent({
       isShowFillFromTemplate,
       processFillFromTemplate,
       PublishAllSlots,
+      canPullFromTemplate,
+      leaveList,
     };
   },
 });

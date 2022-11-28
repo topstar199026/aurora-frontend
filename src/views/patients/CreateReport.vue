@@ -19,6 +19,21 @@
         ref="formRef"
       >
         <div class="report-template-wrapper">
+          <InputWrapper class="fill-out" label="Report Template">
+            <el-select
+              class="w-100"
+              v-model="templateData"
+              placeholder="Select Report Template"
+            >
+              <el-option
+                v-for="(option, idx) in reportTemplatesData"
+                :key="option.id"
+                :value="idx"
+                :label="option.title"
+              />
+            </el-select>
+          </InputWrapper>
+
           <InputWrapper class="title-input-wrapper fill-out" prop="title">
             <el-input
               v-model="formData.title"
@@ -47,58 +62,13 @@
             </el-select>
           </InputWrapper>
 
+          <el-divider />
+
           <InputWrapper
-            required
             class="fill-out"
             label="Procedures Undertaken"
             prop="procedures_undertaken"
           >
-            <div
-              class="d-flex flex-column flex-md-row align-items-center w-100 gap-3"
-            >
-              <div
-                class="d-flex flex-column flex-md-row gap-3 flex-grow-1 w-100"
-              >
-                <el-input
-                  class="w-100 w-md-50"
-                  type="text"
-                  v-model="proceduresUndertakenSearch.item_number"
-                  placeholder="Search by MBS item number"
-                  :disabled="proceduresLoading"
-                />
-
-                <el-input
-                  class="w-100 w-md-50"
-                  type="text"
-                  v-model="proceduresUndertakenSearch.description"
-                  placeholder="Search by MBS description"
-                  :disabled="proceduresLoading"
-                />
-              </div>
-
-              <button
-                :data-kt-indicator="proceduresLoading ? 'on' : null"
-                class="btn btn-lg btn-primary text-nowrap"
-                :disabled="
-                  proceduresLoading ||
-                  (!proceduresUndertakenSearch.item_number &&
-                    !proceduresUndertakenSearch.description)
-                "
-                @click="handleProceduresUndertakenSearch"
-              >
-                <span v-if="!proceduresLoading" class="indicator-label">
-                  Search
-                </span>
-
-                <span v-if="proceduresLoading" class="indicator-progress">
-                  Searching...
-                  <span
-                    class="spinner-border spinner-border-sm align-middle ms-2"
-                  ></span>
-                </span>
-              </button>
-            </div>
-
             <el-select
               class="col-12 mt-3"
               placeholder="Select MBS item"
@@ -115,7 +85,7 @@
                 v-for="(taken, idx) in proceduresUndertakenDataFiltered"
                 :key="idx"
                 :value="taken"
-                :label="taken"
+                :label="getItemName(taken)"
               />
             </el-select>
 
@@ -125,7 +95,7 @@
               class="w-100 d-flex flex-row align-items-center p-3 card border border-dashed border-primary mt-3"
             >
               <div class="col-11 text-truncate">
-                {{ item }}
+                {{ getItemName(item) }}
               </div>
 
               <div class="col-1 d-flex justify-content-end">
@@ -143,57 +113,10 @@
           </InputWrapper>
 
           <InputWrapper
-            required
             class="fill-out"
             label="Extra items used"
             prop="extra_items_used"
           >
-            <div
-              class="d-flex flex-column flex-md-row align-items-center w-100 gap-3"
-            >
-              <div
-                class="d-flex flex-column flex-md-row gap-3 flex-grow-1 w-100"
-              >
-                <el-input
-                  class="w-100 w-md-50"
-                  type="text"
-                  v-model="extraItemsUsedSearch.item_number"
-                  placeholder="Search by MBS item number"
-                  :disabled="extraItemsLoading"
-                />
-
-                <el-input
-                  class="w-100 w-md-50"
-                  type="text"
-                  v-model="extraItemsUsedSearch.description"
-                  placeholder="Search by MBS description"
-                  :disabled="extraItemsLoading"
-                />
-              </div>
-
-              <button
-                :data-kt-indicator="extraItemsLoading ? 'on' : null"
-                class="btn btn-lg btn-primary text-nowrap"
-                :disabled="
-                  extraItemsLoading ||
-                  (!extraItemsUsedSearch.item_number &&
-                    !extraItemsUsedSearch.description)
-                "
-                @click="handleExtraItemsSearch"
-              >
-                <span v-if="!extraItemsLoading" class="indicator-label">
-                  Search
-                </span>
-
-                <span v-if="extraItemsLoading" class="indicator-progress">
-                  Searching...
-                  <span
-                    class="spinner-border spinner-border-sm align-middle ms-2"
-                  ></span>
-                </span>
-              </button>
-            </div>
-
             <el-select
               class="col-12 mt-3"
               placeholder="Select MBS item"
@@ -210,7 +133,7 @@
                 v-for="(taken, idx) in extraItemsUsedDataFiltered"
                 :key="idx"
                 :value="taken"
-                :label="taken"
+                :label="getItemName(taken)"
               />
             </el-select>
 
@@ -220,7 +143,7 @@
               class="w-100 d-flex flex-row align-items-center p-3 card border border-dashed border-primary mt-3"
             >
               <div class="col-11 text-truncate">
-                {{ item }}
+                {{ getItemName(item) }}
               </div>
 
               <div class="col-1 d-flex justify-content-end">
@@ -237,6 +160,54 @@
             </div>
           </InputWrapper>
 
+          <InputWrapper
+            class="fill-out"
+            label="Non-MBS items used"
+            prop="admin_items_used"
+          >
+            <el-select
+              class="col-12 mt-3"
+              placeholder="Select Non-MBS item"
+              props="admin_items_used"
+              filterable
+              remote
+              reserve-keyword
+              :remote-method="filterAdminHandle"
+              :loading="loading"
+              :disabled="adminItemsUsedDataFiltered.length === 0"
+              @change="selectNewAdminItems"
+            >
+              <el-option
+                v-for="(taken, idx) in adminItemsUsedDataFiltered"
+                :key="idx"
+                :value="taken"
+                :label="getItemName(taken)"
+              />
+            </el-select>
+
+            <div
+              v-for="(item, index) in formData.admin_items_used"
+              :key="`admin-items-${index}`"
+              class="w-100 d-flex flex-row align-items-center p-3 card border border-dashed border-primary mt-3"
+            >
+              <div class="col-11 text-truncate">
+                {{ getItemName(item) }}
+              </div>
+
+              <div class="col-1 d-flex justify-content-end">
+                <button
+                  type="button"
+                  class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm"
+                  @click="deleteAdminItems(index)"
+                >
+                  <span class="svg-icon svg-icon-3">
+                    <InlineSVG icon="bin" />
+                  </span>
+                </button>
+              </div>
+            </div>
+          </InputWrapper>
+          <el-divider />
           <div class="d-flex flex-column gap-2 mb-6">
             <InfoSection heading="Patient"
               >{{ patientData?.title }} {{ patientData?.first_name }}
@@ -252,7 +223,7 @@
             </InfoSection>
           </div>
           <div
-            v-for="section in templateData?.sections"
+            v-for="section in reportSections"
             class="d-flex flex-column gap-2"
             :key="section.id"
           >
@@ -330,17 +301,24 @@
 </style>
 
 <script lang="ts">
-import { defineComponent, watchEffect, ref, onMounted, computed } from "vue";
+import {
+  defineComponent,
+  watchEffect,
+  ref,
+  onMounted,
+  computed,
+  watch,
+} from "vue";
 import { setCurrentPageBreadcrumbs } from "@/core/helpers/breadcrumb";
 import { StoreReportActions } from "@/store/enums/StoreReportEnums";
 import { useStore } from "vuex";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import moment from "moment";
 import { DocumentMutations } from "@/store/enums/StoreDocumentEnums";
 import InfoSection from "@/components/presets/GeneralElements/InfoSection.vue";
 import InputWrapper from "../../components/presets/FormElements/InputWrapper.vue";
 import { Actions } from "@/store/enums/StoreEnums";
-import { ElMessage } from "element-plus";
+import { IScheduleItem } from "@/store/modules/ScheduleItemModule";
 
 export default defineComponent({
   name: "patient-report",
@@ -349,35 +327,42 @@ export default defineComponent({
     const store = useStore();
     const router = useRouter();
     const formRef = ref(null);
-    const templateData = computed(
-      () => store.getters.getReportTemplateSelected
+    const route = useRoute();
+    const patientId = route.params.patientId;
+    const appointmentId = route.params.appointmentId;
+
+    const reportTemplatesData = computed(
+      () => store.getters.getReportTemplateList
     );
-    const patientList = computed(() => store.getters.selectedPatient);
+    const patientData = computed(() => store.getters.selectedPatient);
+
+    const templateData = ref();
+    const reportSections = ref([]);
     const headerFooterList = computed(
       () => store.getters.getHeaderFooterTemplateList
     );
-    const appointmentData = computed(
-      () => store.getters.getReportAppointmentSelected
-    );
-    const proceduresUndertakenData = ref<Array<string>>([]);
-    const proceduresUndertakenDataFiltered = ref<Array<string>>([]);
-    const extraItemsUsedData = ref<Array<string>>([]);
-    const extraItemsUsedDataFiltered = ref<Array<string>>([]);
-    const proceduresUndertakenSearch = ref({
-      item_number: null,
-      description: null,
-    });
-    const extraItemsUsedSearch = ref({
-      item_number: null,
-      description: null,
-    });
-    const patientData = ref();
+
+    const appointmentData = ref();
+    const scheduleItems = computed(() => store.getters.scheduleItemList);
+    const proceduresUndertakenDataFiltered = ref<Array<IScheduleItem>>([]);
+    const extraItemsUsedDataFiltered = ref<Array<IScheduleItem>>([]);
+    const adminItemsUsedDataFiltered = ref<Array<IScheduleItem>>([]);
+
     const formData = ref({
       title: "",
       section: {},
       headerFooter: null,
-      procedures_undertaken: [] as Array<string>,
-      extra_items_used: [] as Array<string>,
+      procedures_undertaken: [] as Array<IScheduleItem>,
+      extra_items_used: [] as Array<IScheduleItem>,
+      admin_items_used: [] as Array<IScheduleItem>,
+    });
+
+    const mbsItems = computed(() => {
+      return scheduleItems.value.filter((item) => item.mbs_item_code);
+    });
+
+    const nonMbsItems = computed(() => {
+      return scheduleItems.value.filter((item) => !item.mbs_item_code);
     });
 
     const rules = ref({
@@ -390,7 +375,7 @@ export default defineComponent({
       ],
       headerFooter: [
         {
-          required: true,
+          required: false,
           message: "Header/Footer Template cannot be blank",
           trigger: "change",
         },
@@ -405,13 +390,20 @@ export default defineComponent({
         loading.value = true;
         setTimeout(() => {
           loading.value = false;
-          proceduresUndertakenDataFiltered.value =
-            proceduresUndertakenData.value.filter((item) => {
-              return item.toLowerCase().includes(query.toLowerCase());
-            });
+          proceduresUndertakenDataFiltered.value = mbsItems.value.filter(
+            (item) => {
+              return (
+                item.description.toLowerCase().includes(query.toLowerCase()) ||
+                item.mbs_item_code
+                  .toString()
+                  .toLowerCase()
+                  .includes(query.toLowerCase())
+              );
+            }
+          );
         }, 200);
       } else {
-        proceduresUndertakenDataFiltered.value = [];
+        proceduresUndertakenDataFiltered.value = mbsItems.value;
       }
     };
 
@@ -420,54 +412,41 @@ export default defineComponent({
         loading.value = true;
         setTimeout(() => {
           loading.value = false;
-          extraItemsUsedDataFiltered.value = extraItemsUsedData.value.filter(
+          extraItemsUsedDataFiltered.value = mbsItems.value.filter((item) => {
+            return (
+              item.description.toLowerCase().includes(query.toLowerCase()) ||
+              item.mbs_item_code
+                .toString()
+                .toLowerCase()
+                .includes(query.toLowerCase())
+            );
+          });
+        }, 200);
+      } else {
+        extraItemsUsedDataFiltered.value = mbsItems.value;
+      }
+    };
+
+    const filterAdminHandle = (query: string) => {
+      if (query) {
+        loading.value = true;
+        setTimeout(() => {
+          loading.value = false;
+          adminItemsUsedDataFiltered.value = nonMbsItems.value.filter(
             (item) => {
-              return item.toLowerCase().includes(query.toLowerCase());
+              return (
+                item.description.toLowerCase().includes(query.toLowerCase()) ||
+                item.mbs_item_code
+                  .toString()
+                  .toLowerCase()
+                  .includes(query.toLowerCase())
+              );
             }
           );
         }, 200);
       } else {
-        extraItemsUsedDataFiltered.value = [];
+        extraItemsUsedDataFiltered.value = nonMbsItems.value;
       }
-    };
-
-    const handleProceduresUndertakenSearch = () => {
-      searchMbs(
-        proceduresUndertakenSearch,
-        proceduresUndertakenData,
-        proceduresUndertakenDataFiltered,
-        proceduresLoading
-      );
-    };
-
-    const handleExtraItemsSearch = () => {
-      searchMbs(
-        extraItemsUsedSearch,
-        extraItemsUsedData,
-        extraItemsUsedDataFiltered,
-        extraItemsLoading
-      );
-    };
-
-    const searchMbs = (search, destination, filter, loader) => {
-      loader.value = true;
-
-      store
-        .dispatch(Actions.MBS.LIST, search.value)
-        .then(() => {
-          const items = store.getters.mbsItems.items;
-          let itemList = [] as Array<string>;
-
-          items.forEach((item) => {
-            itemList.push(item.label_name);
-          });
-
-          destination.value = itemList;
-          filter.value = itemList;
-        })
-        .finally(() => {
-          loader.value = false;
-        });
     };
 
     const selectNewProceduresUndertaken = (event) => {
@@ -478,12 +457,20 @@ export default defineComponent({
       formData.value.extra_items_used.push(event);
     };
 
+    const selectNewAdminItems = (event) => {
+      formData.value.admin_items_used.push(event);
+    };
+
     const deleteProcedureUndertaken = (index) => {
       formData.value.procedures_undertaken.splice(index, 1);
     };
 
     const deleteExtraItems = (index) => {
       formData.value.extra_items_used.splice(index, 1);
+    };
+
+    const deleteAdminItems = (index) => {
+      formData.value.admin_items_used.splice(index, 1);
     };
 
     const submit = () => {
@@ -493,34 +480,55 @@ export default defineComponent({
         return;
       }
 
-      if (formData.value.headerFooter == null) {
-        ElMessage.error("Header/Footer Template cannot be blank");
-        loading.value = false;
-        return;
-      }
-
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (formRef.value as any).validate(async (valid) => {
         if (valid) {
-          const reportData: unknown[] = [];
-          const icd_10_code: string[] = [];
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (templateData.value.sections as any).forEach((data) => {
+          const reportData: any[] = [];
+          const icd_10_code: string[] = [];
+
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          reportSections.value.forEach((section: any) => {
             reportData.push({
-              sectionId: data.id,
-              free_text_default: data.free_text_default,
-              value: formData.value.section["section" + data.id],
+              sectionId: section.id,
+              free_text_default: section.free_text_default,
+              value: formData.value.section["section" + section.id],
             });
-            data.auto_texts.forEach((auto) => {
+            section.auto_texts.forEach((auto) => {
               icd_10_code.push(auto.icd_10_code);
             });
           });
+
+          const proceduresUndertaken = [] as Array<Record<string, unknown>>;
+          formData.value.procedures_undertaken.forEach((item) => {
+            proceduresUndertaken.push({
+              id: item.id,
+              price: item.amount,
+            });
+          });
+
+          const extraItems = [] as Array<Record<string, unknown>>;
+          formData.value.extra_items_used.forEach((item) => {
+            extraItems.push({
+              id: item.id,
+              price: item.amount,
+            });
+          });
+
+          const adminItems = [] as Array<Record<string, unknown>>;
+          formData.value.admin_items_used.forEach((item) => {
+            adminItems.push({
+              id: item.id,
+              price: item.amount,
+            });
+          });
+
           const data = {
             title: formData.value.title,
-            patient_id: patientList.value.id,
+            patient_id: patientId,
             reportData: reportData,
             doctorAddressBook:
-              appointmentData.value.referral.doctor_address_book_name,
+              appointmentData.value.referral?.doctor_address_book_name,
             patientName:
               patientData.value.first_name + " " + patientData.value.last_name,
             appointmentId: appointmentData.value.id,
@@ -530,8 +538,9 @@ export default defineComponent({
               formData.value.headerFooter != null
                 ? headerFooterList.value[formData.value.headerFooter].id
                 : null,
-            procedures_undertaken: formData.value.procedures_undertaken,
-            extra_items_used: formData.value.extra_items_used,
+            procedures_undertaken: proceduresUndertaken,
+            extra_items_used: extraItems,
+            admin_items_used: adminItems,
             icd_10_code: icd_10_code,
           };
           store
@@ -541,16 +550,49 @@ export default defineComponent({
                 id: data,
               });
               router.push({
-                path: "/patients/" + patientList.value.id + "/documents",
+                path: "/patients/" + patientId + "/documents",
               });
             });
         }
       });
     };
 
+    const getItemName = (item: IScheduleItem) => {
+      const isMbs = item.mbs_item_code ? true : false;
+
+      if (isMbs) {
+        return `${item.mbs_item_code} - ${item.name}`;
+      }
+
+      let name = [] as Array<string>;
+      if (item.internal_code) {
+        name.push(item.internal_code);
+      }
+
+      name.push(item.name);
+
+      return name.join(" - ");
+    };
+
+    watch(templateData, () => {
+      formData.value.title =
+        reportTemplatesData.value[templateData.value].title;
+      reportSections.value =
+        reportTemplatesData.value[templateData.value].sections;
+    });
+
+    watch(patientData, () => {
+      if (patientData.value)
+        appointmentData.value = patientData.value.appointments?.find(
+          (appointment) => appointment.id === Number(appointmentId)
+        );
+    });
+
     watchEffect(() => {
-      patientData.value = patientList.value;
-      formData.value.title = templateData.value.title;
+      if (patientData.value)
+        appointmentData.value = patientData.value.appointments?.find(
+          (appointment) => appointment.id === Number(appointmentId)
+        );
     });
 
     onMounted(() => {
@@ -559,13 +601,20 @@ export default defineComponent({
       store.dispatch(Actions.HEADER_FOOTER_TEMPLATE.LIST).then(() => {
         loading.value = false;
       });
+      store.dispatch(Actions.SCHEDULE_ITEM.LIST).then(() => {
+        proceduresUndertakenDataFiltered.value = mbsItems.value;
+        extraItemsUsedDataFiltered.value = mbsItems.value;
+        adminItemsUsedDataFiltered.value = nonMbsItems.value;
+      });
     });
 
     return {
       formRef,
       rules,
       templateData,
+      reportSections,
       patientData,
+      reportTemplatesData,
       appointmentData,
       formData,
       moment,
@@ -573,19 +622,20 @@ export default defineComponent({
       headerFooterList,
       proceduresUndertakenDataFiltered,
       extraItemsUsedDataFiltered,
-      proceduresUndertakenSearch,
-      extraItemsUsedSearch,
+      adminItemsUsedDataFiltered,
       loading,
       proceduresLoading,
       extraItemsLoading,
       filterProceduresHandle,
       filterExtraHandle,
-      handleProceduresUndertakenSearch,
-      handleExtraItemsSearch,
       selectNewProceduresUndertaken,
       selectNewExtraItems,
       deleteProcedureUndertaken,
       deleteExtraItems,
+      filterAdminHandle,
+      selectNewAdminItems,
+      deleteAdminItems,
+      getItemName,
     };
   },
 });

@@ -27,15 +27,17 @@
               <!--Input: Appointment Type -->
               <InputWrapper label="Type" prop="type">
                 <el-select v-model="formData.type" class="w-100">
-                  <el-option value="Consultation" label="Consultation" />
-                  <el-option value="Procedure" label="Procedure" />
+                  <el-option value="CONSULTATION" label="Consultation" />
+                  <el-option value="PROCEDURE" label="Procedure" />
                 </el-select>
               </InputWrapper>
             </div>
 
             <div class="col-sm-12 mb-5">
               <InputWrapper label="Appointment Color Preview" prop="type">
-                <span :style="{ 'background-color': formData.color }"
+                <span
+                  class="text-white p-5"
+                  :style="{ 'background-color': formData.color }"
                   >John Smith</span
                 >
               </InputWrapper>
@@ -56,8 +58,8 @@
               prop="invoice_by"
             >
               <el-select v-model="formData.invoice_by" class="w-100">
-                <el-option value="Clinic" label="Clinic" />
-                <el-option value="Specialist" label="Specialist" />
+                <el-option value="CLINIC" label="Clinic" />
+                <el-option value="SPECIALIST" label="Specialist" />
               </el-select>
             </InputWrapper>
 
@@ -90,116 +92,34 @@
               prop="appointment_time"
             >
               <el-select v-model="formData.appointment_time" class="w-100">
-                <el-option value="single" label="Single" />
-                <el-option value="double" label="Double" />
-                <el-option value="triple" label="Triple" />
+                <el-option value="SINGLE" label="Single" />
+                <el-option value="DOUBLE" label="Double" />
+                <el-option value="TRIPLE" label="Triple" />
               </el-select>
             </InputWrapper>
+          </div>
 
-            <!--Input: Payment Tier 1 -->
-            <InputWrapper
-              class="col-sm-6 mb-5"
-              label="Payment Tier 1 (Self-insured) $"
-              prop="payment_tier_1"
-            >
-              <el-input v-model="formData.payment_tier_1" type="number" />
-            </InputWrapper>
-
-            <!--Input: Payment Tier 2 -->
-            <InputWrapper
-              class="col-sm-6 mb-5"
-              label="Payment Tier 2 (Private health insurance with excess)"
-              prop="payment_tier_2"
-            >
-              <el-input v-model="formData.payment_tier_2" type="number" />
-            </InputWrapper>
-
-            <!--Input: Payment Tier 3 -->
-            <InputWrapper
-              class="col-sm-6 mb-5"
-              label="Payment Tier 3 (Private health insurance with $0 excess)"
-              prop="payment_tier_3"
-            >
-              <el-input v-model="formData.payment_tier_3" type="number" />
-            </InputWrapper>
-
-            <!--Input: Payment Tier 4 -->
-            <InputWrapper
-              class="col-sm-6 mb-5"
-              label="Payment Tier 4 (Private Health Insurance + Pension/Healthcare
-                Card)"
-              prop="payment_tier_4"
-            >
-              <el-input v-model="formData.payment_tier_4" type="number" />
-            </InputWrapper>
-
-            <!--Input: Payment Tier 5 -->
-            <InputWrapper
-              class="col-sm-6 mb-5"
-              label="Payment Tier 5 (Pension Card)"
-              prop="payment_tier_5"
-            >
-              <el-input v-model="formData.payment_tier_5" type="number" />
-            </InputWrapper>
-
-            <!--Input: Payment Tier 6 -->
-            <InputWrapper
-              class="col-sm-6 mb-5"
-              label="Payment Tier 6 (Healthcare Card)"
-              prop="payment_tier_6"
-            >
-              <el-input v-model="formData.payment_tier_6" type="number" />
-            </InputWrapper>
-
-            <!--Input: Payment Tier 7 -->
-            <InputWrapper
-              class="col-sm-6 mb-5"
-              label="Payment Tier 7 (Department of Veteran Affairs)"
-              prop="payment_tier_7"
-            >
-              <el-input v-model="formData.payment_tier_7" type="number" />
-            </InputWrapper>
-
-            <!--Input: Payment Tier 8 -->
-            <InputWrapper
-              class="col-sm-6 mb-5"
-              label="Payment Tier 8 (Department of Veteran Affairs)"
-              prop="payment_tier_8"
-            >
-              <el-input v-model="formData.payment_tier_8" type="number" />
-            </InputWrapper>
-
-            <!--Input: Payment Tier 9 -->
-            <InputWrapper
-              class="col-sm-6 mb-5"
-              label="Payment Tier 8 (Work Cover)"
-              prop="payment_tier_9"
-            >
-              <el-input v-model="formData.payment_tier_9" type="number" />
-            </InputWrapper>
-
-            <!--Input: Payment Tier 10 -->
-            <InputWrapper
-              class="col-sm-6 mb-5"
-              label="Payment Tier 10 (AMA)"
-              prop="payment_tier_10"
-            >
-              <el-input v-model="formData.payment_tier_10" type="number" />
-            </InputWrapper>
-            <InputWrapper
-              class="col-sm-6 mb-5"
-              label="Default Report Template"
-              prop="report_template"
-            >
-              <el-select v-model="formData.report_template" class="w-100">
-                <el-option
-                  v-for="reportTemplate in reportTemplates"
-                  :value="reportTemplate.id"
-                  :label="reportTemplate.title"
-                  :key="reportTemplate.id"
-                />
-              </el-select>
-            </InputWrapper>
+          <div class="row">
+            <div class="col-sm-12 px-0">
+              <InputWrapper label="Select Item" prop="default_items">
+                <el-select
+                  class="w-100"
+                  multiple
+                  filterable
+                  allow-create
+                  default-first-option
+                  :reserve-keyword="false"
+                  v-model="formData.default_items"
+                >
+                  <el-option
+                    v-for="item in scheduleItems"
+                    :value="item.id"
+                    :label="item.label_name"
+                    :key="item.id"
+                  />
+                </el-select>
+              </InputWrapper>
+            </div>
           </div>
         </div>
         <!--end::Scroll-->
@@ -280,6 +200,7 @@ export default defineComponent({
     const createAptTypeModalRef = ref(null);
     const aptTypes = computed(() => store.getters.getAptTypesList);
     const reportTemplates = computed(() => store.getters.getReportTemplateList);
+    const scheduleItems = computed(() => store.getters.scheduleItemList);
     const loading = ref(false);
 
     const formInfo = reactive({
@@ -291,25 +212,16 @@ export default defineComponent({
 
     const formData = ref({
       name: "",
-      type: "Consultation",
+      type: "CONSULTATION",
       anesthetist_required: 0,
       color: "#eeeeee",
       mbs_code: 0,
       clinical_code: 0,
-      invoice_by: "Clinic",
+      invoice_by: "CLINIC",
       arrival_time: 0,
-      appointment_time: "single",
-      payment_tier_1: 0,
-      payment_tier_2: 0,
-      payment_tier_3: 0,
-      payment_tier_4: 0,
-      payment_tier_5: 0,
-      payment_tier_6: 0,
-      payment_tier_7: 0,
-      payment_tier_8: 0,
-      payment_tier_9: 0,
-      payment_tier_10: 0,
+      appointment_time: "SINGLE",
       report_template: null,
+      default_items: [],
     });
 
     const rules = ref({
@@ -342,6 +254,7 @@ export default defineComponent({
     onMounted(() => {
       store.dispatch(AppointmentActions.APPOINTMENT_TYPES.LIST);
       store.dispatch(Actions.REPORT_TEMPLATES.LIST);
+      store.dispatch(Actions.SCHEDULE_ITEM.LIST);
     });
 
     const submit = () => {
@@ -389,6 +302,7 @@ export default defineComponent({
       createAptTypeModalRef,
       reportTemplates,
       submit,
+      scheduleItems,
     };
   },
 });

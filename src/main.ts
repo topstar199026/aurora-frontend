@@ -4,7 +4,6 @@ import App from "./App.vue";
 import router from "./router";
 import store from "./store";
 import ElementPlus from "element-plus";
-import i18n from "@/core/plugins/i18n";
 
 //imports for app initialization
 import ApiService from "@/core/services/ApiService";
@@ -14,7 +13,6 @@ import { initInlineSvg } from "@/core/plugins/inline-svg";
 import { initVeeValidate } from "@/core/plugins/vee-validate";
 import VueGoogleMaps from "@fawmi/vue-google-maps";
 import print from "vue3-print-nb";
-// import VuePdf from "vue3-pdfjs";
 
 import HeadingText from "./components/presets/GeneralElements/HeadingText.vue";
 import CardSection from "./components/presets/GeneralElements/CardSection.vue";
@@ -24,6 +22,7 @@ import InfoSection from "@/components/presets/GeneralElements/InfoSection.vue";
 import IconButton from "@/components/presets/GeneralElements/IconButton.vue";
 import InlineSVG from "@/components/presets/GeneralElements/InlineSVG.vue";
 import LargeIconButton from "@/components/presets/GeneralElements/LargeIconButton.vue";
+import CurrencyInput from "@/components/presets/GeneralElements/CurrencyInput.vue";
 import "@/core/plugins/prismjs";
 import "bootstrap";
 import VueSignaturePad from "vue-signature-pad";
@@ -56,8 +55,7 @@ app
   .component("InfoSection", InfoSection)
   .component("InlineSVG", InlineSVG)
   .component("IconButton", IconButton)
-  .component("LargeIconButton", LargeIconButton);
-
-app.use(i18n);
+  .component("LargeIconButton", LargeIconButton)
+  .component("CurrencyInput", CurrencyInput);
 
 app.mount("#app");

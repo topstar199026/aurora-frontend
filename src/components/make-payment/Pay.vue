@@ -77,7 +77,7 @@
                 </template>
 
                 <template v-slot:cell-price="{ row: item }">
-                  {{ convertToCurrency(item.price) }}
+                  {{ convertToCurrency(item.price / 100) }}
                 </template>
 
                 <template v-slot:cell-actions="{ row: item }">
@@ -121,7 +121,7 @@
                 </template>
 
                 <template v-slot:cell-price="{ row: item }">
-                  {{ convertToCurrency(item.price) }}
+                  {{ convertToCurrency(item.price / 100) }}
                 </template>
 
                 <template v-slot:cell-actions="{ row: item }">
@@ -165,7 +165,7 @@
                 </template>
 
                 <template v-slot:cell-price="{ row: item }">
-                  {{ convertToCurrency(item.price) }}
+                  {{ convertToCurrency(item.price / 100) }}
                 </template>
 
                 <template v-slot:cell-actions="{ row: item }">
@@ -220,31 +220,66 @@
             <div class="fv-row mb-8">
               <div class="fs-6 fw-bold mt-2 d-flex flex-column gap-2">
                 <InfoSection heading="Total Payable Amount">
-                  {{ convertToCurrency(procedurePrice) }}
+                  {{ convertToCurrency(procedurePrice / 100) }}
                 </InfoSection>
 
                 <InfoSection heading="Amount Paid">
-                  {{ convertToCurrency(amountPaid) }}
+                  {{ convertToCurrency(amountPaid / 100) }}
                 </InfoSection>
 
                 <InfoSection heading="Amount Outstanding">
-                  {{ convertToCurrency(amountOutstanding) }}
+                  {{ convertToCurrency(amountOutstanding / 100) }}
                 </InfoSection>
+
+                <button
+                  class="btn btn-light-primary w-100 mt-6"
+                  :disabled="sendingInvoice"
+                  :data-kt-indicator="sendingInvoice ? 'on' : null"
+                  @click="sendInvoice"
+                >
+                  <span v-if="!sendingInvoice" class="indicator-label">
+                    Send Appointment Invoice
+                  </span>
+
+                  <span v-if="sendingInvoice" class="indicator-progress">
+                    Sending...
+                    <span
+                      class="spinner-border spinner-border-sm align-middle ms-2"
+                    ></span>
+                  </span>
+                </button>
+
+                <button
+                  class="btn btn-light-primary w-100 mt-2"
+                  :disabled="viewingInvoice"
+                  :data-kt-indicator="viewingInvoice ? 'on' : null"
+                  @click="viewInvoice"
+                >
+                  <span v-if="!viewingInvoice" class="indicator-label">
+                    View Appointment Invoice
+                  </span>
+
+                  <span v-if="viewingInvoice" class="indicator-progress">
+                    Loading...
+                    <span
+                      class="spinner-border spinner-border-sm align-middle ms-2"
+                    ></span>
+                  </span>
+                </button>
               </div>
             </div>
 
             <el-divider />
 
-            <el-form @submit.prevent="submit()" ref="formRef">
+            <el-form @submit.prevent="handleSubmitPayment" ref="formRef">
               <div class="fv-row mb-4">
                 <label class="text-muted fs-6 fw-bold mb-2 d-block">
                   Amount to Pay
                 </label>
-                <el-input
-                  type="number"
+                <CurrencyInput
                   class="w-100"
-                  placeholder="Procedure Price"
                   v-model="formData.amount"
+                  placeholder="Procedure Price"
                 />
               </div>
 
@@ -273,9 +308,16 @@
                 <button
                   type="submit"
                   class="btn btn-primary w-100"
-                  :disabled="formData.amount === 0"
+                  :disabled="formData.amount === 0 || loading"
+                  :data-kt-indicator="loading ? 'on' : null"
                 >
-                  Confirm
+                  <span v-if="!loading" class="indicator-label">Confirm</span>
+                  <span v-if="loading" class="indicator-progress">
+                    Submitting...
+                    <span
+                      class="spinner-border spinner-border-sm align-middle ms-2"
+                    ></span>
+                  </span>
                 </button>
               </div>
             </el-form>
@@ -284,6 +326,12 @@
       </div>
     </div>
     <!--end::Card-->
+
+    <VerifyPinModal
+      customMessage="You are attempting to issue a refund. Please confirm your organization pin to continue."
+      v-on:verified="verifyRefund"
+      v-on:closeModal="closePinConfirmModal"
+    />
   </div>
 </template>
 
@@ -305,7 +353,9 @@ import CardSection from "../presets/GeneralElements/CardSection.vue";
 import Datatable from "@/components/kt-datatable/KTDatatable.vue";
 import IconButton from "@/components/presets/GeneralElements/IconButton.vue";
 import PaymentItemModal from "@/components/make-payment/PaymentItemModal.vue";
+import VerifyPinModal from "@/components/organisations/VerifyPinModal.vue";
 import { Modal } from "bootstrap";
+import { object } from "yup";
 
 export default defineComponent({
   name: "make-payment-pay",
@@ -315,6 +365,7 @@ export default defineComponent({
     Datatable,
     IconButton,
     PaymentItemModal,
+    VerifyPinModal,
   },
   setup() {
     const store = useStore();
@@ -323,6 +374,11 @@ export default defineComponent({
     const billingData = computed(() => store.getters.paymentSelected);
     const total_amount = ref(0);
     const paymentItemModal = ref();
+    const verifyPinModal = ref();
+    const loading = ref(false);
+    const sendingInvoice = ref(false);
+    const viewingInvoice = ref(false);
+    const refundVerified = ref(false);
     const formRef = ref<null | HTMLFormElement>(null);
     const formData = ref({
       appointment_id: 0,
@@ -330,11 +386,13 @@ export default defineComponent({
       amount: 0,
       is_deposit: false,
       is_send_receipt: true,
+      sent_to: null,
     });
     const paymentItemModalData = ref({
       mode: "",
       category: "",
       item: null,
+      key: 1,
     });
 
     const mbsTableHeader = ref([
@@ -384,13 +442,16 @@ export default defineComponent({
     ]);
 
     const proceduresUndertakenList = computed(() => {
-      let list = [] as Array<number>;
+      let list = [] as Array<Record<string, unknown>>;
 
       if (Object.prototype.hasOwnProperty.call(billingData.value, "charges")) {
         const charges = billingData.value.charges.procedures;
 
         charges.forEach((charge) => {
-          list.push(charge.id);
+          list.push({
+            id: charge.id,
+            price: charge.price,
+          });
         });
       }
 
@@ -398,13 +459,16 @@ export default defineComponent({
     });
 
     const extraItemsList = computed(() => {
-      let list = [] as Array<number>;
+      let list = [] as Array<Record<string, unknown>>;
 
       if (Object.prototype.hasOwnProperty.call(billingData.value, "charges")) {
         const charges = billingData.value.charges.extra_items;
 
         charges.forEach((charge) => {
-          list.push(charge.id);
+          list.push({
+            id: charge.id,
+            price: charge.price,
+          });
         });
       }
 
@@ -412,13 +476,16 @@ export default defineComponent({
     });
 
     const adminItemsList = computed(() => {
-      let list = [] as Array<number>;
+      let list = [] as Array<Record<string, unknown>>;
 
       if (Object.prototype.hasOwnProperty.call(billingData.value, "charges")) {
         const charges = billingData.value.charges.admin_items;
 
         charges.forEach((charge) => {
-          list.push(charge.id);
+          list.push({
+            id: charge.id,
+            price: charge.price,
+          });
         });
       }
 
@@ -474,6 +541,7 @@ export default defineComponent({
       paymentItemModalData.value.mode = "edit";
       paymentItemModalData.value.category = category;
       paymentItemModalData.value.item = item;
+      paymentItemModalData.value.key++;
 
       paymentItemModal.value.show();
     };
@@ -487,6 +555,8 @@ export default defineComponent({
 
       paymentItemModalData.value.mode = "add";
       paymentItemModalData.value.category = category;
+      paymentItemModalData.value.item = null;
+      paymentItemModalData.value.key++;
 
       paymentItemModal.value.show();
     };
@@ -505,10 +575,13 @@ export default defineComponent({
         (charge) => charge.id === item.id
       );
 
-      found.price = price;
+      found.price = price * 100;
+
+      updateAppointmentDetail();
     };
 
     const addPaymentItem = (item) => {
+      item.price = item.price * 100;
       billingData.value.charges[paymentItemModalData.value.category].push(item);
       updateAppointmentDetail();
     };
@@ -533,11 +606,85 @@ export default defineComponent({
       paymentItemModal.value.hide();
     };
 
+    const closePinConfirmModal = () => {
+      verifyPinModal.value.hide();
+    };
+
+    const verifyRefund = () => {
+      refundVerified.value = true;
+      closePinConfirmModal();
+    };
+
+    const sendInvoice = () => {
+      sendingInvoice.value = true;
+      store.dispatch(Actions.INVOICE.SEND, appointmentId).finally(() => {
+        sendingInvoice.value = false;
+      });
+    };
+
+    const viewInvoice = () => {
+      viewingInvoice.value = true;
+      store
+        .dispatch(Actions.INVOICE.VIEW, appointmentId)
+        .then((data) => {
+          let blob = new Blob([data], { type: "application/pdf" });
+          let objectUrl = URL.createObjectURL(blob);
+          window.open(objectUrl, "_blank");
+        })
+        .finally(() => {
+          viewingInvoice.value = false;
+        });
+    };
+
+    const handleSubmitPayment = () => {
+      if (formData.value.amount > amountOutstanding.value) {
+        Swal.fire({
+          text: "The payment amount is more than the amount owing. Are you sure you want to make this payment?",
+          icon: "question",
+          buttonsStyling: false,
+          confirmButtonText: "Yes",
+          showCancelButton: true,
+          cancelButtonText: "No",
+          customClass: {
+            confirmButton: "btn btn-primary",
+            cancelButton: "btn btn-secondary",
+          },
+        }).then((result) => {
+          if (result.isConfirmed) {
+            submit();
+          }
+        });
+
+        return true;
+      }
+
+      if (formData.value.amount < 0 && refundVerified.value === false) {
+        if (!verifyPinModal.value) {
+          verifyPinModal.value = new Modal(
+            document.getElementById("modal_verify_organization_pin")
+          );
+        }
+
+        verifyPinModal.value.show();
+        return false;
+      }
+
+      submit();
+    };
+
     const submit = () => {
       if (!formRef.value) {
         return;
       }
       formData.value.appointment_id = billingData.value.appointment.id;
+
+      if (formData.value.is_send_receipt) {
+        formData.value.sent_to =
+          billingData.value.appointment.patient_details.email;
+      }
+
+      loading.value = true;
+
       store
         .dispatch(Actions.MAKE_PAYMENT.CREATE, formData.value)
         .then(() => {
@@ -555,8 +702,20 @@ export default defineComponent({
             },
           });
         })
-        .catch(({ response }) => {
-          console.log(response.data.error);
+        .catch(() => {
+          Swal.fire({
+            text: "Error submitting payment",
+            icon: "error",
+            buttonsStyling: false,
+            confirmButtonText: "Ok, got it!",
+            customClass: {
+              confirmButton: "btn btn-primary",
+            },
+          });
+        })
+        .finally(() => {
+          loading.value = false;
+          refundVerified.value = false;
         });
     };
 
@@ -569,6 +728,7 @@ export default defineComponent({
       };
 
       store.dispatch(AppointmentActions.DETAIL.UPDATE, data);
+      store.dispatch(Actions.MAKE_PAYMENT.VIEW, formData.value.appointment_id);
     };
 
     onMounted(() => {
@@ -600,6 +760,14 @@ export default defineComponent({
       handlePaymentItemModalSubmit,
       handleCloseModal,
       handleAddItem,
+      loading,
+      handleSubmitPayment,
+      verifyRefund,
+      closePinConfirmModal,
+      sendingInvoice,
+      sendInvoice,
+      viewingInvoice,
+      viewInvoice,
     };
   },
 });

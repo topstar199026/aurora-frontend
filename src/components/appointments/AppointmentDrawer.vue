@@ -51,7 +51,7 @@
           />
 
           <AlertBadge
-            v-if="displayData.procedure_approval_status === 'NOT_ACCESSED'"
+            v-if="displayData.procedure_approval_status === 'NOT_ASSESSED'"
             :text="'This procedure has not yet been accessed'"
             :color="'warning'"
             :iconPath="'media/icons/duotune/arrows/arr015.svg'"
@@ -92,6 +92,16 @@
 
             <InfoSection :heading="'Specialist'">{{
               displayData.specialist_name
+            }}</InfoSection>
+
+            <InfoSection :heading="'Anaesthetist'">
+              <span v-if="displayData.anesthetist_name !== ''">
+                {{ displayData.anesthetist_name }}</span
+              ><span> No Anaesthetist Assigned </span>
+            </InfoSection>
+
+            <InfoSection :heading="'Estimated Price'">{{
+              convertToCurrency(displayData.estimated_price / 100)
             }}</InfoSection>
           </div>
           <!--end::Appointment Info-->
@@ -229,12 +239,11 @@
       </div>
     </div>
   </div>
-  <EditModal modalId="modal_edit_apt" />
-  <CheckInModal></CheckInModal>
+  <CheckInModal :appointment="aptData" :patient="patientData" />
 </template>
 
 <script lang="ts">
-import { defineComponent, reactive, computed, watchEffect } from "vue";
+import { defineComponent, reactive, watch, computed, watchEffect } from "vue";
 import {
   AppointmentActions,
   AppointmentMutations,
@@ -244,17 +253,16 @@ import { useStore } from "vuex";
 import { useRouter } from "vue-router";
 import Swal from "sweetalert2/dist/sweetalert2.min.js";
 import { DrawerComponent } from "@/assets/ts/components/_DrawerComponent";
-import EditModal from "@/components/appointments/ModalApt.vue";
 import CheckInModal from "@/components/appointments/CheckInModal.vue";
 import { Modal } from "bootstrap";
 import LargeIconButton from "@/components/presets/GeneralElements/LargeIconButton.vue";
 import AlertBadge from "@/components/presets/GeneralElements/AlertBadge.vue";
 import InfoSection from "@/components/presets/GeneralElements/InfoSection.vue";
+import { convertToCurrency } from "@/core/data/billing";
 
 export default defineComponent({
   name: "booing-drawer",
   components: {
-    EditModal,
     CheckInModal,
     LargeIconButton,
     AlertBadge,
@@ -264,6 +272,7 @@ export default defineComponent({
     const store = useStore();
     const router = useRouter();
     const aptData = computed(() => store.getters.getAptSelected);
+    const patientData = computed(() => store.getters.selectedPatient);
     const searchVal = computed(() => store.getters.getSearchVariable);
     const userRole = computed(() => store.getters.userRole);
 
@@ -278,6 +287,12 @@ export default defineComponent({
       patient_name: "",
       patient_number: "",
       procedure_approval_status: "",
+      anesthetist_name: "",
+      estimated_price: 0,
+    });
+
+    watch(aptData, () => {
+      store.dispatch(PatientActions.VIEW, aptData.value.patient_id);
     });
 
     const handleView = () => {
@@ -404,6 +419,11 @@ export default defineComponent({
       displayData.notes = aptData.value.note;
       displayData.procedure_approval_status =
         aptData.value.procedure_approval_status;
+      displayData.anesthetist_name = aptData.value.anesthetist
+        ? aptData.value.anesthetist.name
+        : "";
+      displayData.estimated_price =
+        aptData.value.appointment_type?.default_items_quote;
     });
 
     return {
@@ -417,6 +437,8 @@ export default defineComponent({
       handleMove,
       handleCopy,
       userRole,
+      convertToCurrency,
+      patientData,
     };
   },
 });

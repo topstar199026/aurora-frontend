@@ -40,6 +40,11 @@ const Actions = {
     DELETE: "deleteOrg",
     UPDATE: "updateOrg",
     SELECT: "selectOrg",
+    PIN: {
+      SET: "setOrganizationPin",
+      VERIFY: "verifyOrganizationPin",
+      SHOW: "showOrganizationPin",
+    }
   },
 
   ORG_ADMIN: {
@@ -56,7 +61,7 @@ const Actions = {
       PRE_ADMISSION_SECTION: {
         LIST: "listPreAdmissionSections",
         UPDATE: "updatePreAdmissionSections",
-      }
+      },
     }
   },
 
@@ -72,15 +77,6 @@ const Actions = {
       UPDATE: "updateClinicsRooms",
     },
     MINOR_ID: "createClinicMinorId",
-  },
-
-
-
-  BIRTH_CODE: {
-    LIST: "listBirthCode",
-    CREATE: "createBirthCode",
-    DELETE: "deleteBirthCode",
-    UPDATE: "updateBirthCode",
   },
 
   HEALTH_FUND: {
@@ -202,6 +198,11 @@ const Actions = {
   OUTGOING: {
     LIST: "getOutgoingLogs",
   },
+
+  INVOICE: {
+    SEND: "sendInvoiceWithoutPayment",
+    VIEW: "viewInvoiceWithoutPayment",
+  },
 };
 
 const Mutations = {
@@ -258,11 +259,6 @@ const Mutations = {
     LISTROOMS: "setClinicsRoomsList",
     SELECTROOMS: "setSelectClinicsRooms",
     MINOR_ID: "setClinicMinorId",
-  },
-
-  SET_BIRTH_CODE: {
-    LIST: "setClinicsList",
-    SELECT: "setSelectClinics",
   },
 
   SET_HEALTH_FUND: {
@@ -335,10 +331,12 @@ const Mutations = {
 
   SET_SCHEDULE_FEE: {
     LIST: "setScheduleFeeList",
+    SELECT: "selectScheduleFee",
   },
 
   SET_SCHEDULE_ITEM: {
     LIST: "setScheduleItemList",
+    SELECT: "selectScheduleItem",
   },
 
   SET_OUTGOING: {

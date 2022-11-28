@@ -1,6 +1,9 @@
 <template>
   <CardSection class="mt-2">
     <template v-if="calendarOptions">
+      <div id="appointment_table_right_buttons">
+        <AppointmentKey />
+      </div>
       <FullCalendar
         ref="appointmentCalendarRef"
         class="demo-app-calendar"
@@ -23,7 +26,7 @@
 </template>
 <style>
 .fc-non-business {
-  background-color: #7d7d7d !important;
+  background-color: #f4f4f4 !important;
 }
 
 .fc .fc-timegrid-slot {
@@ -38,6 +41,7 @@ import {
   watchEffect,
   watch,
   onMounted,
+  onUnmounted,
 } from "vue";
 import { useStore } from "vuex";
 import { DrawerComponent } from "@/assets/ts/components/_DrawerComponent";
@@ -54,9 +58,12 @@ import {
 } from "@/store/enums/StoreAppointmentEnums";
 import AppointmentTableData from "./partials/AppointmentTableData.vue";
 import { Modal } from "bootstrap";
+import AppointmentKey from "@/components/appointments/partials/AppointmentKey";
 import MoveModal from "@/components/appointments/AppointmentMoveModal.vue";
+import $ from "jquery";
 export default defineComponent({
   components: {
+    AppointmentKey,
     FullCalendar,
     AppointmentTableData,
     MoveModal,
@@ -73,10 +80,11 @@ export default defineComponent({
     const appointmentsRaw = computed(() => store.getters.getAptList);
     const appointments = ref([]);
     const allSpecialists = computed(() => store.getters.getSpecialistList);
+    const aptTypeList = computed(() => store.getters.getAptTypesList);
 
     onMounted(() => {
-      var check = moment(props.visibleDate.date, "YYYY/MM/DD");
-      var day = check.format("ddd").toUpperCase();
+      let check = moment(props.visibleDate.date, "YYYY/MM/DD");
+      let day = check.format("ddd").toUpperCase();
       allSpecialists.value.forEach((specialist) => {
         specialist.hrm_weekly_schedule.forEach((timeslot) => {
           if (timeslot.week_day == day) {
@@ -151,6 +159,8 @@ export default defineComponent({
         eventClick: handleShowAppointmentDrawer,
         select: handleCreateAppointment,
       };
+
+      //  .append(buttons);
     });
 
     watch(appointments, () => {
@@ -163,6 +173,10 @@ export default defineComponent({
             .addEvent(appointments.value[index]);
         }
       }
+
+      let buttons = $("#appointment_table_right_buttons");
+      let toolbar = $(".fc-toolbar-chunk").last();
+      toolbar.append(buttons);
     });
 
     watch(props.visibleDate, () => {
@@ -171,6 +185,10 @@ export default defineComponent({
           .getApi()
           .gotoDate(moment(props.visibleDate.date).format("YYYY-MM-DD"));
       }
+    });
+
+    watch(props, () => {
+      calendarOptions.value.resources = props.visibleSpecialists;
     });
 
     watch(appointmentsRaw, () => {
@@ -229,6 +247,8 @@ export default defineComponent({
 
     const handleShowAppointmentDrawer = (info) => {
       info.jsEvent.preventDefault();
+      // check if it is just a draft to block time period
+      if (info.event.extendedProps.appointment.draft_status) return;
       let appointment = info.event.extendedProps.appointment;
       store.commit(AppointmentMutations.SET_APT.SELECT, appointment);
       DrawerComponent?.getInstance("appointment-drawer")?.toggle();
@@ -267,16 +287,40 @@ export default defineComponent({
         selected_specialist: specialists,
         restriction: restriction,
       };
+      const aptInfoData = {
+        clinic_id: 1,
+        send_forms: true,
+        date: date,
+        start_time: time,
+        arrival_time: time,
+        time_slot: [],
+        appointment_type_id: aptTypeList.value.at(0).id,
+        specialist_id: specialists.id,
+      };
+
       store.commit(AppointmentMutations.SET_BOOKING.SELECT, item);
       store.commit(AppointmentMutations.SET_APT.SELECT_SPECIALIST, specialists);
-      const modal = new Modal(document.getElementById("modal_create_apt"));
-      modal.show();
+      store
+        .dispatch(AppointmentActions.APT.DRAFT.CREATE, aptInfoData)
+        .then(() => {
+          const modal = new Modal(document.getElementById("modal_create_apt"));
+          modal.show();
+        });
     };
 
     //Check specialist clinic is selected one in filter or not
     const filterClinics = (id) => {
       return props.filteredClinics.includes(id, 0);
     };
+
+    onUnmounted(() => {
+      const draftAptId = store.getters.getDraftAptId;
+      if (draftAptId) {
+        store.dispatch(AppointmentActions.APT.DRAFT.DELETE, draftAptId);
+        store.commit(AppointmentMutations.DRAFT.SET, null);
+      }
+    });
+
     return {
       handleShowAppointmentDrawer,
       filterClinics,

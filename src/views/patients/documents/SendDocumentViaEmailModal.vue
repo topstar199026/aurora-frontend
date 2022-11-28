@@ -2,29 +2,30 @@
   <ModalWrapper
     title="Send Via Email"
     modalId="send_email"
-    modalRef="letterModalRef"
+    :updateRef="updateRef"
   >
     <el-form @submit.prevent="submit()" :model="formData" ref="formRef">
-      <InputWrapper prop="email">
+      <InputWrapper prop="practice_email">
         <el-select
           class="w-100"
           placeholder="Enter emails"
-          v-model="formData.to_user_ids"
+          v-model="formData.to_user_emails"
           filterable
+          allow-create
           multiple
         >
           <el-option
             v-for="doctorAddressBook in doctorAddressBooks"
-            :value="doctorAddressBook.id"
+            :value="doctorAddressBook.practice_email"
             :label="
               doctorAddressBook.first_name +
               ' ' +
               doctorAddressBook.last_name +
               ' <' +
-              doctorAddressBook.email +
+              doctorAddressBook.practice_email +
               '>'
             "
-            :key="doctorAddressBook.id"
+            :key="doctorAddressBook.practice_email"
           />
         </el-select>
       </InputWrapper>
@@ -50,11 +51,12 @@
 import { defineComponent, ref, computed, onMounted } from "vue";
 import { useStore } from "vuex";
 import { Actions } from "@/store/enums/StoreEnums";
+import { PatientActions } from "@/store/enums/StorePatientEnums";
 import { hideModal } from "@/core/helpers/dom";
 import Swal from "sweetalert2/dist/sweetalert2.js";
 
 export default defineComponent({
-  name: "create-letter-template-modal",
+  name: "send-email-modal",
   components: {},
   props: {
     document: { type: String, required: true },
@@ -74,7 +76,7 @@ export default defineComponent({
 
     const formData = ref({
       document_id: documentId,
-      to_user_ids: [],
+      to_user_emails: [],
     });
 
     const rules = ref({
@@ -101,18 +103,23 @@ export default defineComponent({
       ],
     });
 
+    const updateRef = (_ref) => {
+      sendEmailModalRef.value = _ref;
+    };
+
     const submit = () => {
       if (!formRef.value) {
         return;
       }
-
       formRef.value.validate((valid) => {
         if (valid) {
           loading.value = true;
           store
-            .dispatch(Actions.DOCUMENT.SEND_VIA_EMAIL, formData.value)
+            .dispatch(PatientActions.DOCUMENTS.SEND_VIA_EMAIL, formData.value)
             .then(() => {
               loading.value = false;
+              formRef.value.resetFields();
+              hideModal(sendEmailModalRef.value);
               Swal.fire({
                 text: "Successfully Sent!",
                 icon: "success",
@@ -121,14 +128,11 @@ export default defineComponent({
                 customClass: {
                   confirmButton: "btn btn-primary",
                 },
-              }).then(() => {
-                hideModal(sendEmailModalRef.value);
               });
             })
             .catch(() => {
               loading.value = false;
             });
-          formRef.value.resetFields();
         } else {
           // this.context.commit(Mutations.PURGE_AUTH);
         }
@@ -145,11 +149,11 @@ export default defineComponent({
       rules,
       formRef,
       loading,
-      // sendableUsers,
       doctorAddressBooks,
       sendEmailModalRef,
       letter_template,
       submit,
+      updateRef,
     };
   },
 });

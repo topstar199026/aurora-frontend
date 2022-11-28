@@ -103,7 +103,7 @@
                   :rules="rules"
                   :model="aptInfoData"
                   ref="formRef_1"
-                  @submit.prevent="handleStep_1"
+                  @submit.prevent="aptOverlapCheck"
                 >
                   <div class="row scroll h-520px">
                     <InputWrapper
@@ -257,7 +257,7 @@
                     <button
                       type="button"
                       class="btn btn-lg btn-primary align-self-end"
-                      @click="handleStep_1"
+                      @click="aptOverlapCheck"
                     >
                       Continue
                       <span class="svg-icon svg-icon-4 ms-1 me-0">
@@ -273,7 +273,15 @@
                       class="btn btn-lg btn-light-primary me-3"
                       @click="handleSave"
                     >
-                      Save
+                      <span v-if="!loading" class="indicator-label">
+                        Save
+                      </span>
+                      <span v-if="loading" class="indicator-label">
+                        Please wait...
+                        <span
+                          class="spinner-border spinner-border-sm align-middle ms-2"
+                        ></span>
+                      </span>
                     </button>
                     <button
                       type="submit"
@@ -359,10 +367,19 @@
                           class="btn btn-lg btn-light-primary me-3"
                           @click="handleSave"
                         >
-                          Save
+                          <span v-if="!loading" class="indicator-label">
+                            Save
+                          </span>
+                          <span v-if="loading" class="indicator-label">
+                            Please wait...
+                            <span
+                              class="spinner-border spinner-border-sm align-middle ms-2"
+                            ></span>
+                          </span>
                         </button>
                         <button
                           type="submit"
+                          :data-kt-indicator="loading ? 'on' : null"
                           class="btn btn-lg btn-primary align-self-end"
                         >
                           Continue
@@ -658,7 +675,15 @@
                           v-if="modalId == 'modal_edit_apt'"
                           @click="handleSave"
                         >
-                          Save
+                          <span v-if="!loading" class="indicator-label">
+                            Save
+                          </span>
+                          <span v-if="loading" class="indicator-label">
+                            Please wait...
+                            <span
+                              class="spinner-border spinner-border-sm align-middle ms-2"
+                            ></span>
+                          </span>
                         </button>
                         <button
                           type="button"
@@ -691,18 +716,7 @@
                   >
                     <div class="row">
                       <InputWrapper
-                        class="col-6"
-                        label="Appointment Price"
-                        prop="procedure_price"
-                      >
-                        <el-input
-                          type="text"
-                          v-model.number="billingInfoData.procedure_price"
-                          disabled
-                        />
-                      </InputWrapper>
-                      <InputWrapper
-                        class="col-6"
+                        class="col-12"
                         label="Charge Type"
                         prop="charge_type"
                       >
@@ -719,6 +733,12 @@
                           />
                         </el-select>
                       </InputWrapper>
+
+                      <div class="mb-4">
+                        <InfoSection :heading="'Estimated Appointment Price'">
+                          {{ convertToCurrency(appointment_type_quote / 100) }}
+                        </InfoSection>
+                      </div>
 
                       <el-divider />
 
@@ -783,6 +803,7 @@
 
                         <AddClaimSourceModal
                           :patient="patientInfoData"
+                          :modalId="addClaimSourceModalId"
                           v-on:addClaimSource="addNewClaimSource"
                           v-on:closeModal="closeAddClaimSourceModal"
                           v-on:updateDetails="updatePatientDetails"
@@ -875,7 +896,15 @@
                           v-if="modalId == 'modal_edit_apt'"
                           @click="handleSave"
                         >
-                          Save
+                          <span v-if="!loading" class="indicator-label">
+                            Save
+                          </span>
+                          <span v-if="loading" class="indicator-label">
+                            Please wait...
+                            <span
+                              class="spinner-border spinner-border-sm align-middle ms-2"
+                            ></span>
+                          </span>
                         </button>
                         <button
                           type="button"
@@ -1093,7 +1122,15 @@
                         v-if="modalId == 'modal_edit_apt'"
                         @click="handleSave"
                       >
-                        Save
+                        <span v-if="!loading" class="indicator-label">
+                          Save
+                        </span>
+                        <span v-if="loading" class="indicator-label">
+                          Please wait...
+                          <span
+                            class="spinner-border spinner-border-sm align-middle ms-2"
+                          ></span>
+                        </span>
                       </button>
                       <button
                         type="button"
@@ -1101,11 +1138,19 @@
                         @click="submit"
                         v-else
                       >
-                        Create Appointment
-                        <span class="svg-icon svg-icon-4 ms-1 me-0">
-                          <inline-svg
-                            src="media/icons/duotune/arrows/arr064.svg"
-                          />
+                        <span v-if="!loading" class="indicator-label">
+                          Create Appointment
+                          <span class="svg-icon svg-icon-4 ms-1 me-0">
+                            <inline-svg
+                              src="media/icons/duotune/arrows/arr064.svg"
+                            />
+                          </span>
+                        </span>
+                        <span v-if="loading" class="indicator-label">
+                          Please wait...
+                          <span
+                            class="spinner-border spinner-border-sm align-middle ms-2"
+                          ></span>
                         </span>
                       </button>
                     </div>
@@ -1152,8 +1197,12 @@ import { useStore } from "vuex";
 import Swal from "sweetalert2/dist/sweetalert2.min.js";
 import { Actions } from "@/store/enums/StoreEnums";
 import { PatientActions } from "@/store/enums/StorePatientEnums";
-import { AppointmentActions } from "@/store/enums/StoreAppointmentEnums";
+import {
+  AppointmentActions,
+  AppointmentMutations,
+} from "@/store/enums/StoreAppointmentEnums";
 import { StepperComponent } from "@/assets/ts/components";
+import StepperNavItem from "@/components/presets/StepperElements/StepperNavItem.vue";
 import { countryList, timeZoneList } from "@/core/data/country";
 import ApiService from "@/core/services/ApiService";
 import JwtService from "@/core/services/JwtService";
@@ -1164,15 +1213,18 @@ import Datatable from "@/components/kt-datatable/KTDatatable.vue";
 import { useRouter } from "vue-router";
 import AptOverview from "@/components/appointments/partials/AppointmentOverview";
 import { mask } from "vue-the-mask";
-import { validatePhone } from "@/helpers/helpers.js";
+import { validatePhone } from "@/helpers/helpers";
 import AppointmentHistory from "@/components/presets/PatientElements/AppointmentHistory.vue";
-import StepperNavItem from "@/components/presets/StepperElements/StepperNavItem.vue";
+
 import InputWrapper from "@/components/presets/FormElements/InputWrapper.vue";
 import AlertBadge from "@/components/presets/GeneralElements/AlertBadge.vue";
 import PatientAlert from "@/components/presets/PatientElements/PatientAlert.vue";
 import ViewPatientAlertModal from "@/views/patients/modals/ViewPatientAlertModal.vue";
 import PatientBillingTypes from "@/core/data/patient-billing-types";
 import AddClaimSourceModal from "@/views/patients/modals/AddClaimSourceModal.vue";
+import InfoSection from "@/components/presets/GeneralElements/InfoSection.vue";
+import { convertToCurrency } from "@/core/data/billing";
+import { ElMessage } from "element-plus";
 import { Modal } from "bootstrap";
 
 export default defineComponent({
@@ -1194,6 +1246,7 @@ export default defineComponent({
     PatientAlert,
     ViewPatientAlertModal,
     AddClaimSourceModal,
+    InfoSection,
   },
 
   setup(props) {
@@ -1204,6 +1257,7 @@ export default defineComponent({
     const formRef_4 = ref(null);
     const loading = ref(false);
     const tableKey = ref(0);
+    const addClaimSourceModalId = `add_claim_source_modal_${props.modalId}`;
 
     const doctorAddressBooks = computed(
       () => store.getters.getDoctorAddressBookList
@@ -1367,6 +1421,7 @@ export default defineComponent({
     const start_time = ref("");
     const end_time = ref("");
     const appointment_name = ref("");
+    const appointment_type_quote = ref(0);
     const specialist_name = ref("");
     const _appointment_time = ref(30);
     const arrival_time = ref(30);
@@ -1422,6 +1477,7 @@ export default defineComponent({
     const patientList = computed(() => store.getters.patientsList);
     const patientAptData = computed(() => store.getters.getPatientAppointments);
     const aptData = computed(() => store.getters.getAptSelected);
+    const aptList = computed(() => store.getters.getAptList);
     const bookingData = computed(() => store.getters.bookingDatas);
 
     // Setting modal Heading and Ids
@@ -1458,7 +1514,7 @@ export default defineComponent({
     const showAddClaimSourceModal = () => {
       if (!claimSourceModal.value) {
         claimSourceModal.value = new Modal(
-          document.getElementById("modal_add_claim_source")
+          document.getElementById(`modal_${addClaimSourceModalId}`)
         );
       }
 
@@ -1547,6 +1603,7 @@ export default defineComponent({
 
         if (typeof _selected === "undefined") {
           appointment_name.value = "";
+          appointment_type_quote.value = 0;
           _appointment_time.value = Number(appointment_time.value);
           arrival_time.value = 30;
 
@@ -1556,6 +1613,7 @@ export default defineComponent({
         } else {
           appointment_name.value = _selected.name;
           appointmentType.value = _selected.type;
+          appointment_type_quote.value = _selected?.default_items_quote ?? 0;
           _appointment_time.value = Number(
             appointment_length[_selected.appointment_time] *
               appointment_time.value
@@ -1761,18 +1819,30 @@ export default defineComponent({
       store.dispatch(PatientActions.ALLERGIES_LIST).then((data) => {
         allergiesList.value = data;
       });
+      const myModalEl = document.getElementById("modal_create_apt");
+      myModalEl.addEventListener("hide.bs.modal", () => {
+        const draftAptId = store.getters.getDraftAptId;
+        if (draftAptId && aptInfoData.value.date) {
+          store
+            .dispatch(AppointmentActions.APT.DRAFT.DELETE, draftAptId)
+            .then(() => {
+              store.dispatch(AppointmentActions.LIST, {
+                date: aptInfoData.value.date,
+              });
+            });
+          store.commit(AppointmentMutations.DRAFT.SET, null);
+        }
+      });
     });
 
     const getAvailableRooms = () => {
-      if (JwtService.getToken()) {
+      if (JwtService.getToken() && aptInfoData.value.clinic_id) {
         ApiService.setHeader();
-        ApiService.get("clinics/" + aptInfoData.value.clinic_id + "/rooms")
-          .then(({ data }) => {
-            rooms.value = data.data;
-          })
-          .catch(({ response }) => {
-            console.log(response.data.errors);
-          });
+        ApiService.get(
+          "clinics/" + aptInfoData.value.clinic_id + "/rooms"
+        ).then(({ data }) => {
+          rooms.value = data.data;
+        });
       } else {
         // this.context.commit(Mutations.PURGE_AUTH);
       }
@@ -1862,14 +1932,13 @@ export default defineComponent({
           ...otherInfoData.value,
         })
         .then(() => {
-          loading.value = false;
           store.dispatch(AppointmentActions.LIST);
           hideModal(createAptModalRef.value);
           resetCreateModal();
+          ElMessage.success("Appointment Saved");
         })
-        .catch(({ response }) => {
+        .finally(() => {
           loading.value = false;
-          console.log(response.data.errors);
         });
     };
 
@@ -1894,14 +1963,8 @@ export default defineComponent({
         patientStatus.value = "new";
         patientStep.value = 3;
       } else {
-        // Edit modal
         store.dispatch(PatientActions.LIST);
       }
-      //
-      // cur_appointment_type_id.value = "";
-      // patientStatus.value = "new";
-      // patientStep.value = 1;
-      // patientTableData.value = patientList.value;
     };
 
     const handleCancel = () => {
@@ -1930,8 +1993,6 @@ export default defineComponent({
           loading.value = true;
           props.modalId === "modal_create_apt" ? createApt() : updateApt();
           resetCreateModal();
-        } else {
-          // this.context.commit(Mutations.PURGE_AUTH);
         }
       });
     };
@@ -1940,13 +2001,17 @@ export default defineComponent({
       const billingInfo = billingInfoData.value;
       const patientInfo = patientInfoData.value;
 
-      billingInfo.claim_sources = billingInfo.claim_sources.filter((source) => {
-        return !Object.prototype.hasOwnProperty.call(source, "id");
-      });
+      billingInfo.claim_sources = billingInfo.claim_sources?.filter(
+        (source) => {
+          return !Object.prototype.hasOwnProperty.call(source, "id");
+        }
+      );
 
-      patientInfo.also_known_as = patientInfo.also_known_as.filter((source) => {
-        return !Object.prototype.hasOwnProperty.call(source, "id");
-      });
+      patientInfo.also_known_as = patientInfo.also_known_as?.filter(
+        (source) => {
+          return !Object.prototype.hasOwnProperty.call(source, "id");
+        }
+      );
 
       store
         .dispatch(AppointmentActions.APT.CREATE, {
@@ -1980,9 +2045,8 @@ export default defineComponent({
             }
           });
         })
-        .catch((response) => {
+        .finally(() => {
           loading.value = false;
-          console.log(response);
         });
     };
 
@@ -2012,9 +2076,8 @@ export default defineComponent({
           store.dispatch(Actions.APT.LIST);
           hideModal(editAptModalRef.value);
         })
-        .catch(({ response }) => {
+        .finally(() => {
           loading.value = false;
-          console.log(response.data.error);
         });
     };
 
@@ -2032,7 +2095,6 @@ export default defineComponent({
     const selectPatient = (item) => {
       store.dispatch(PatientActions.APPOINTMENTS, item.id);
       store.dispatch(PatientActions.VIEW, item.id);
-      //patientInfoData.value = item;
       for (let key in patientInfoData.value)
         patientInfoData.value[key] = item[key];
       patientInfoData.value.alerts = item.alerts;
@@ -2050,7 +2112,7 @@ export default defineComponent({
         billingInfoData.value[key] = item[key];
       }
 
-      billingInfoData.value.claim_sources = item.billing;
+      billingInfoData.value.claim_sources = item.billings;
 
       patientInfoData.value.also_known_as = item.also_known_as;
 
@@ -2067,6 +2129,7 @@ export default defineComponent({
     };
 
     const gotoPage = (page) => {
+      aptOverlapCheck();
       if (props.modalId === "modal_edit_apt") {
         currentStepIndex.value = Number(page - 1);
         _stepperObj.value.goto(page);
@@ -2130,6 +2193,43 @@ export default defineComponent({
       patientInfoData.value.also_known_as.push(previousData);
     };
 
+    const aptOverlapCheck = () => {
+      if (props.modalId == "model_edit_apt") {
+        handleStep_1();
+        return;
+      }
+      const startTime = aptInfoData.value.time_slot[0] + ":00";
+      const endTime = aptInfoData.value.time_slot[1] + ":00";
+      const filter = aptList.value.filter((apt) => {
+        if (
+          aptInfoData.value.specialist_id === apt.specialist_id &&
+          aptInfoData.value.clinic_id === apt.clinic_id
+        ) {
+          if (startTime < apt.end_time && apt.start_time <= endTime) {
+            return apt;
+          }
+        }
+      });
+
+      if (filter.length > 0) {
+        Swal.fire({
+          title: "Are you sure?",
+          text:
+            "You already have an appointment at " +
+            filter[0].start_time +
+            " - " +
+            filter[0].end_time +
+            ", This action will overlap with existing appointment!",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#3085d6",
+          cancelButtonColor: "#d33",
+          confirmButtonText: "Yes, do it!",
+        }).then((result) => {
+          if (result.isConfirmed) handleStep_1();
+        });
+      } else handleStep_1();
+    };
     return {
       chargeTypes,
       rules,
@@ -2149,6 +2249,7 @@ export default defineComponent({
       start_time,
       end_time,
       appointment_name,
+      appointment_type_quote,
       appointmentType,
       specialist_name,
       submit,
@@ -2208,6 +2309,9 @@ export default defineComponent({
       getHealthFund,
       updatePatientDetails,
       allergiesList,
+      convertToCurrency,
+      aptOverlapCheck,
+      addClaimSourceModalId,
     };
   },
 });

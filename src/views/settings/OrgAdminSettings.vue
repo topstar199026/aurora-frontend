@@ -69,6 +69,12 @@
         Doctor Address Books
       </router-link>
       <router-link
+        to="/settings/patient-print-label-setting"
+        class="btn btn-light-primary m-2"
+      >
+        Patient Label Printing Settings
+      </router-link>
+      <router-link
         to="/settings/header-footer-templates"
         class="btn btn-light-primary m-2"
       >
@@ -81,6 +87,9 @@
       </div>
       <router-link to="/setting/schedule-fee" class="btn btn-light-primary m-2">
         Schedule Fees
+      </router-link>
+      <router-link to="/setting/billing-pin" class="btn btn-light-primary m-2">
+        Billing Pin
       </router-link>
     </div>
   </div>

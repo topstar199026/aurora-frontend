@@ -24,14 +24,14 @@ const SettingsRoutes = [
       import("@/views/settings/report-templates/ReportTemplates.vue"),
   },
   {
+    path: "/settings/patient-print-label-setting",
+    name: "patientPrintLabelSettings",
+    component: () => import("@/views/settings/PatientLabelPrintSettings.vue"),
+  },
+  {
     path: "/settings/health-fund",
     name: "healthFund",
     component: () => import("@/views/settings/health-fund/HealthFund.vue"),
-  },
-  {
-    path: "/settings/birthCode",
-    name: "birthCode",
-    component: () => import("@/views/settings/birth-code/BirthCode.vue"),
   },
   {
     path: "/settings",
@@ -97,12 +97,17 @@ const SettingsRoutes = [
         "@/views/settings/header-footer-templates/HeaderFooterTemplates.vue"
       ),
   },
-  //
   {
     path: "/setting/schedule-fee",
     name: "setting-schedule-fee",
     component: () =>
-      import("@/views/organisation-admin/billing-setting/ScheduleFeeView.vue"),
+      import("@/views/organisation-admin/billing-setting/ScheduleItemView.vue"),
+  },
+  {
+    path: "/setting/billing-pin",
+    name: "setting-billing-pin",
+    component: () =>
+      import("@/views/organisation-admin/billing-setting/BillingPin.vue"),
   },
 ];
 
