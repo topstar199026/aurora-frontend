@@ -5,7 +5,16 @@
         class="btn btn-icon btn-active-light-primary position-relative w-30px h-30px w-md-40px h-md-40px"
         href="#/mailbox/list"
       >
-        <span class="svg-icon svg-icon-2x">
+        <el-badge
+          v-if="profileData?.unread_mails?.length"
+          :value="profileData?.unread_mails?.length"
+          class="item"
+        >
+          <span class="svg-icon svg-icon-2x">
+            <inline-svg src="media/icons/duotune/communication/com002.svg" />
+          </span>
+        </el-badge>
+        <span v-else class="svg-icon svg-icon-2x">
           <inline-svg src="media/icons/duotune/communication/com002.svg" />
         </span>
       </a>
@@ -26,12 +35,12 @@
           :src="
             profileData.photo == undefined
               ? 'media/avatars/blank.png'
-              : profileData.photo
+              : userPhoto
           "
           :alt="profileData.full_name"
         />
       </div>
-      <UserMenu :profile-data="profileData"></UserMenu>
+      <UserMenu :profile-data="profileData" :user-photo="userPhoto"></UserMenu>
     </div>
 
     <div
@@ -51,7 +60,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, onMounted, watch, PropType } from "vue";
+import { defineComponent, computed, onMounted, watch, ref } from "vue";
 import { useStore } from "vuex";
 import UserMenu from "@/layout/header/partials/UserMenu.vue";
 import { Actions } from "@/store/enums/StoreEnums";
@@ -65,6 +74,27 @@ export default defineComponent({
   setup() {
     const store = useStore();
     const profileData = computed<IUserProfile>(() => store.getters.userProfile);
+    const userPhoto = ref("");
+    userPhoto.value = "media/avatars/blank.png";
+
+    watch(profileData, () => {
+      if (profileData.value)
+        if (
+          profileData.value.photo !== null &&
+          profileData.value.photo !== ""
+        ) {
+          store
+            .dispatch(Actions.FILE.VIEW, {
+              type: "USER_PHOTO",
+              path: profileData.value.photo,
+            })
+            .then((data) => {
+              const blob = new Blob([data], { type: "application/image" });
+              const objectUrl = URL.createObjectURL(blob);
+              userPhoto.value = objectUrl;
+            });
+        }
+    });
 
     onMounted(() => {
       store.dispatch(Actions.PROFILE.VIEW);
@@ -72,6 +102,7 @@ export default defineComponent({
 
     return {
       profileData,
+      userPhoto,
     };
   },
 });

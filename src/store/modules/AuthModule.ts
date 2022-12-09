@@ -86,9 +86,23 @@ export default class AuthModule extends VuexModule implements UserAuthInfo {
     return ApiService.post("login", credentials)
       .then(({ data }) => {
         this.context.commit(Mutations.SET_AUTH, data);
+        return data;
       })
       .catch(({ response }) => {
         this.context.commit(Mutations.SET_ERROR, response.data);
+        return Promise.reject();
+      });
+  }
+
+  @Action
+  [Actions.RESEND_TWO_FACTOR_CODE](credentials) {
+    return ApiService.post("two-factor/resend", credentials)
+      .then(({ data }) => {
+        return Promise.resolve();
+      })
+      .catch(({ response }) => {
+        this.context.commit(Mutations.SET_ERROR, response.data);
+        return Promise.reject();
       });
   }
 
@@ -101,7 +115,7 @@ export default class AuthModule extends VuexModule implements UserAuthInfo {
   [Actions.VERIFY_AUTH](payload) {
     if (JwtService.getToken()) {
       ApiService.setHeader();
-      ApiService.post("verify_token", payload)
+      return ApiService.post("verify_token", payload)
         .then(({ data }) => {
           this.context.commit(Mutations.SET_AUTH, data);
         })

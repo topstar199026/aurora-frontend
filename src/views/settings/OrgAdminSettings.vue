@@ -47,7 +47,7 @@
         to="/settings/pre-admission-consent"
         class="btn btn-light-primary m-2"
       >
-        Pre-admission Consent
+        Pre-Admission Consent
       </router-link>
       <router-link
         to="/settings/letter-templates"
@@ -88,26 +88,6 @@
       <router-link to="/setting/schedule-fee" class="btn btn-light-primary m-2">
         Schedule Fees
       </router-link>
-      <router-link to="/setting/billing-pin" class="btn btn-light-primary m-2">
-        Billing Pin
-      </router-link>
     </div>
   </div>
 </template>
-
-<script>
-import { defineComponent, onMounted } from "vue";
-import { setCurrentPageBreadcrumbs } from "@/core/helpers/breadcrumb";
-
-export default defineComponent({
-  name: "org-admin-settings",
-
-  components: {},
-
-  setup() {
-    onMounted(() => {
-      setCurrentPageBreadcrumbs("All Settings", ["Settings"]);
-    });
-  },
-});
-</script>

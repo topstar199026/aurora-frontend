@@ -107,8 +107,30 @@
                 />
               </el-select>
             </InputWrapper>
+
+            <el-form-item
+              class="col-6 d-flex flex-direction-row align-items-center"
+              label="Allow login outside of hours"
+              prop="outside_hours"
+            >
+              <el-radio-group
+                v-model="formData.outside_hours"
+                class="mb-0 ml-2 d-flex align-center"
+              >
+                <el-radio :label="1">Yes</el-radio>
+                <el-radio :label="0">No</el-radio>
+              </el-radio-group>
+            </el-form-item>
           </div>
           <div v-if="formData.role_id == 5">
+            <el-divider />
+            <InputWrapper class="col-sm-6 mb-5" label="ABN/ACN" prop="abn_acn">
+              <el-input
+                v-model="formData.abn_acn"
+                type="text"
+                placeholder="Enter ABN/ACN"
+              />
+            </InputWrapper>
             <el-divider />
             <HeadingText text="Provider Number" />
             <div
@@ -230,6 +252,7 @@ import restrictionsTypes from "@/core/data/apt-restriction";
 import InputWrapper from "@/components/presets/FormElements/InputWrapper.vue";
 import { mask } from "vue-the-mask";
 import HRMTimeScheduleTable from "@/components/HRM/HRMTimeScheduleTable.vue";
+import { validateAbnAcn } from "@/helpers/helpers";
 
 export default defineComponent({
   name: "create-employee",
@@ -266,9 +289,10 @@ export default defineComponent({
       mobile_number: "0",
       first_name: "",
       last_name: "",
-      address: "address",
+      address: "",
       role_id: 4,
       type: "full-time",
+      outside_hours: 1,
       schedule_timeslots: [],
       specialist_clinic_relations: [
         {
@@ -277,6 +301,7 @@ export default defineComponent({
           provider_number: null,
         },
       ],
+      abn_acn: "",
     });
 
     const commonRoles = {
@@ -320,6 +345,15 @@ export default defineComponent({
           trigger: ["blur", "change"],
         },
       ],
+      outside_hours: [
+        {
+          required: true,
+          message:
+            "Please select allow/disallow user to access outside office hours",
+          trigger: "change",
+        },
+      ],
+
       specialist_clinic_relations: {
         clinic_id: [
           {
@@ -336,6 +370,12 @@ export default defineComponent({
           },
         ],
       },
+      abn_acn: [
+        {
+          validator: validateAbnAcn,
+          trigger: ["blur"],
+        },
+      ],
     };
 
     const rules = ref(commonRoles);
@@ -359,6 +399,7 @@ export default defineComponent({
           formData.value.address = employee.address;
           formData.value.role_id = employee.role_id;
           formData.value.type = employee.type;
+          formData.value.outside_hours = employee.outside_hours;
           if (employee.hrm_weekly_schedule?.length) {
             // formData.value.schedule_timeslots = employee.schedule_timeslots;
           }
@@ -426,8 +467,6 @@ export default defineComponent({
               loading.value = false;
               console.log(response.data.error);
             });
-        } else {
-          // this.context.commit(Mutations.PURGE_AUTH);
         }
       });
     };

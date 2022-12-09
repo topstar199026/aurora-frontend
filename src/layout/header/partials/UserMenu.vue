@@ -9,14 +9,7 @@
       <div class="menu-content d-flex align-items-center px-3">
         <!--begin::Avatar-->
         <div class="symbol symbol-50px me-5">
-          <img
-            alt="Logo"
-            :src="
-              profileData.photo == undefined
-                ? 'media/avatars/blank.png'
-                : profileData.photo
-            "
-          />
+          <img alt="User Avatar" :src="userPhoto" />
         </div>
         <!--end::Avatar-->
 
@@ -45,6 +38,13 @@
       <a @click="handleProfile" class="menu-link px-5"> Profile </a>
     </div>
     <!--end::Menu item-->
+    <!--begin::Menu item-->
+    <div v-if="userRole == 'organizationManager'" class="menu-item px-5">
+      <a @click="handleSettings" class="menu-link px-5">
+        Organisation Settings
+      </a>
+    </div>
+    <!--end::Menu item-->
 
     <!--begin::Menu item-->
     <div class="menu-item px-5">
@@ -56,7 +56,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType } from "vue";
+import { defineComponent, PropType, computed } from "vue";
 import { useStore } from "vuex";
 import { useRouter } from "vue-router";
 import { Actions } from "@/store/enums/StoreEnums";
@@ -67,13 +67,17 @@ export default defineComponent({
   components: {},
   props: {
     profileData: { type: Object as PropType<IUserProfile>, required: true },
+    userPhoto: { type: String as PropType<string>, required: true },
   },
-  setup() {
+  setup(props) {
     const router = useRouter();
     const store = useStore();
-
+    const userRole = computed(() => store.getters.userRole);
     const handleProfile = () => {
       router.push({ name: "profile" });
+    };
+    const handleSettings = () => {
+      router.push({ name: "org-admin-settings" });
     };
 
     const signOut = () => {
@@ -84,7 +88,9 @@ export default defineComponent({
 
     return {
       handleProfile,
+      handleSettings,
       signOut,
+      userRole,
     };
   },
 });
