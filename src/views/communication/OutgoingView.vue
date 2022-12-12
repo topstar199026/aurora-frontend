@@ -184,6 +184,12 @@ export default defineComponent({
     });
 
     watch(outgoingLogs, () => {
+      outgoingLogs.value.sort(
+        (a: IOutgoingMessageLog, b: IOutgoingMessageLog): number => {
+          let diff = moment(a.created_at).diff(moment(b.created_at), "seconds");
+          return diff < 0 ? 1 : diff == 0 ? 0 : -1;
+        }
+      );
       renderTable();
     });
 
