@@ -18,7 +18,7 @@
       </el-select>
       <!-- SEND STATUS FILTER SELECT-->
       <el-select
-        class="w-25"
+        class="w-25 select-send-status"
         placeholder="Select Send Status"
         v-model="sendStatusFilter"
       >
@@ -36,6 +36,7 @@
       :table-header="tableHeader"
       :table-data="outgoingLogs"
       :loading="loading"
+      :key="tableKey"
       :rows-per-page="10"
       :enable-items-per-page-dropdown="true"
     >
@@ -74,6 +75,12 @@
   </CardSection>
   <OutgoingModal />
 </template>
+
+<style lang="scss">
+.select-send-status {
+  margin-left: 15px !important;
+}
+</style>
 
 <script lang="ts">
 import { defineComponent, onMounted, computed, ref, watch } from "vue";
@@ -144,6 +151,9 @@ export default defineComponent({
     ]);
     const sendMethodFilter = ref("ALL");
     const sendStatusFilter = ref("ALL");
+    const tableKey = ref(0);
+
+    const renderTable = () => tableKey.value++;
 
     onMounted(() => {
       setCurrentPageBreadcrumbs("Outgoing logs", ["Communication"]);
@@ -173,6 +183,10 @@ export default defineComponent({
       }
     });
 
+    watch(outgoingLogs, () => {
+      renderTable();
+    });
+
     const handleView = (item) => {
       store.commit(Mutations.SET_OUTGOING.SELECT, item);
       const modal = new Modal(document.getElementById("modal_outgoing"));
@@ -189,6 +203,7 @@ export default defineComponent({
       messageSendStatus,
       sendMethodFilter,
       sendStatusFilter,
+      tableKey,
     };
   },
 });

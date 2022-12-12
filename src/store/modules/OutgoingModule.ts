@@ -50,12 +50,9 @@ export default class OutgoingModule
   [Actions.OUTGOING.LIST](params) {
     if (JwtService.getToken()) {
       ApiService.setHeader();
-      console.log(params);
       return ApiService.get("communication/outgoing-log", "", params)
         .then(({ data }) => {
           this.context.commit(Mutations.SET_OUTGOING.LIST, data.data);
-          console.log(data.data);
-          console.log("-----", data.param);
           return data.data;
         })
         .catch(({ response }) => {
