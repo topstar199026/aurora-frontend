@@ -68,6 +68,11 @@
               </span>
             </div>
             <article v-html="outgoingData.message_contents"></article>
+            <div id="OutgoingModalDocumentField">
+              <div class="fv-row pdf_viewer_wrapper">
+                <div id="outgoing-modal-document-view" class="pdf_viewer"></div>
+              </div>
+            </div>
             <p class="pt-10">
               <IconText iconSRC="media/icons/duotune/files/fil002.svg">
                 <span class="ms-1">
@@ -92,10 +97,20 @@
 </template>
 
 <script>
-import { defineComponent, ref, onMounted, computed } from "vue";
+import {
+  defineComponent,
+  ref,
+  onMounted,
+  computed,
+  watchEffect,
+  watch,
+} from "vue";
 import { useStore } from "vuex";
 import moment from "moment";
 import IconText from "@/components/presets/GeneralElements/IconText.vue";
+import { DocumentActions } from "@/store/enums/StoreDocumentEnums";
+import { Actions } from "@/store/enums/StoreEnums";
+import pdf from "pdfobject";
 
 export default defineComponent({
   name: "communication-outgoing-content-modal",
@@ -106,9 +121,53 @@ export default defineComponent({
     const store = useStore();
     const loading = ref(false);
     const outgoingData = computed(() => store.getters.getOutgoingSelectedList);
+    const tempFile = ref();
 
     onMounted(() => {
       //
+    });
+
+    watch(outgoingData, () => {
+      if (outgoingData.value.document_id != undefined) {
+        store
+          .dispatch(DocumentActions.SHOW, outgoingData.value.document_id)
+          .then((selectedDocument) => {
+            if (selectedDocument) {
+              if (selectedDocument.file_type === "HTML") {
+                document.getElementById(
+                  "outgoing-modal-document-view"
+                ).innerHTML = selectedDocument.document_body;
+              } else {
+                store
+                  .dispatch(Actions.FILE.VIEW, {
+                    path: selectedDocument.file_path,
+                    type: "PATIENT_DOCUMENT",
+                  })
+                  .then((data) => {
+                    tempFile.value = data;
+                    if (selectedDocument.file_type === "PDF") {
+                      document.getElementById(
+                        "outgoing-modal-document-view"
+                      ).innerHTML = "";
+                      let blob = new Blob([data], { type: "application/pdf" });
+                      let objectUrl = URL.createObjectURL(blob);
+                      pdf.embed(
+                        objectUrl + "#toolbar=0",
+                        "#outgoing-modal-document-view"
+                      );
+                    } else if (selectedDocument.file_type === "PNG") {
+                      document.getElementById(
+                        "outgoing-modal-document-view"
+                      ).innerHTML = "<img src='" + data + "' />";
+                    }
+                  })
+                  .catch(() => {
+                    console.log("Document Load Error");
+                  });
+              }
+            }
+          });
+      }
     });
 
     return {

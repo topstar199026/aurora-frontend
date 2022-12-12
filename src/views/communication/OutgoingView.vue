@@ -53,6 +53,7 @@ import Datatable from "@/components/kt-datatable/KTDatatable.vue";
 import OutgoingModal from "@/views/communication/OutgoingModal.vue";
 import { Modal } from "bootstrap";
 import IOutgoingMessageLog from "@/store/interfaces/IOutgoingMessageLog";
+import { DocumentActions } from "@/store/enums/StoreDocumentEnums";
 
 export default defineComponent({
   name: "communication-outgoing",
