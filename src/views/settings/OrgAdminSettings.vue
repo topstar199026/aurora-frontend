@@ -20,10 +20,10 @@
         Notification Settings
       </router-link>
       <router-link
-        to="/settings/report-templates"
+        to="/settings/document-templates"
         class="btn btn-light-primary m-2"
       >
-        Patient Report Templates
+        Patient Document Templates
       </router-link>
     </div>
 
@@ -49,12 +49,6 @@
       >
         Pre-Admission Consent
       </router-link>
-      <router-link
-        to="/settings/letter-templates"
-        class="btn btn-light-primary m-2"
-      >
-        Letter Templates
-      </router-link>
     </div>
   </div>
   <div class="d-flex flex-sm-row gap-3 mt-6">
@@ -62,6 +56,15 @@
       <div class="card-header">
         <h3 class="card-title">General Settings</h3>
       </div>
+      <router-link
+        to="/settings/organization"
+        class="btn btn-light-primary m-2"
+      >
+        Organisation Settings
+      </router-link>
+      <router-link to="/clinics" class="btn btn-light-primary m-2">
+        Manage Clinics
+      </router-link>
       <router-link
         to="/settings/doctor-address-books"
         class="btn btn-light-primary m-2"

@@ -8,7 +8,6 @@ import ConfigModule from "@/store/modules/ConfigModule";
 import AdminModule from "@/store/modules/AdminModule";
 import UserModule from "@/store/modules/UserModule";
 import OrganisationModule from "@/store/modules/OrganisationModule";
-import OrgAdminModule from "@/store/modules/OrgAdminModule";
 import ClinicsModule from "@/store/modules/ClinicsModule";
 import HealthFundModule from "@/store/modules/HealthFundModule";
 import PatientsModule from "@/store/modules/PatientsModule";
@@ -19,7 +18,7 @@ import AnesthetistModule from "@/store/modules/AnesthetistModule";
 import AppointmentModule from "@/store/modules/AppointmentModule";
 import AptTypesModule from "@/store/modules/AptTypesModule";
 import AptTimeRequireModule from "@/store/modules/AptTimeRequireModule";
-import ReportTemplatesModule from "@/store/modules/ReportTemplatesModule";
+import DocumentTemplateModule from "@/store/modules/DocumentTemplateModule";
 import MailsModule from "@/store/modules/MailsModule";
 import SpecialistsModule from "@/store/modules/SpecialistsModule";
 import NotificationTemplatesModule from "@/store/modules/NotificationTemplatesModule";
@@ -27,9 +26,7 @@ import MakePaymentModule from "@/store/modules/MakePaymentModule";
 import ProfileModule from "@/store/modules/ProfileModule";
 import DoctorAddressBookModule from "@/store/modules/DoctorAddressBookModule";
 import ProcedureApprovalsModule from "@/store/modules/ProcedureApprovalsModule";
-import LetterModule from "@/store/modules/LetterModule";
 import DocumentModule from "@/store/modules/DocumentModule";
-import ReportModule from "@/store/modules/ReportModule";
 import HRMModule from "@/store/modules/HRMModule";
 import PatientsAlertModule from "@/store/modules/PatientsAlertModule";
 import HeaderFooterModule from "@/store/modules/HeaderFooterModule";
@@ -55,7 +52,6 @@ const store = createStore({
     AdminModule,
     UserModule,
     OrganisationModule,
-    OrgAdminModule,
     ClinicsModule,
     HealthFundModule,
     PatientsModule,
@@ -67,16 +63,14 @@ const store = createStore({
     AppointmentModule,
     AptTypesModule,
     AptTimeRequireModule,
-    ReportTemplatesModule,
+    DocumentTemplateModule,
     MailsModule,
     SpecialistsModule,
     MakePaymentModule,
     ProfileModule,
     DoctorAddressBookModule,
     ProcedureApprovalsModule,
-    LetterModule,
     DocumentModule,
-    ReportModule,
     HRMModule,
     PatientsAlertModule,
     HeaderFooterModule,

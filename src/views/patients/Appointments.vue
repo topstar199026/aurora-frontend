@@ -85,7 +85,11 @@
         </template>
         <template v-slot:cell-report="{ row: item }">
           <div class="d-flex flex-column">
-            <PatientAppointmentActions :appointment="item" :patient="patient" />
+            <PatientAppointmentActions
+              :appointment="item"
+              :patient="patient"
+              :templates="documentTemplates"
+            />
             <a
               v-if="item.procedure_approval_status !== 'NOT_RELEVANT'"
               @click="handlePreAdmissionTest(item)"
@@ -125,6 +129,7 @@ import PatientAppointmentActions from "@/components/patients/PatientAppointmentA
 import ViewReferralButton from "@/components/patients/patientAppointmentActions/ViewReferralButton.vue";
 import CollectingPersonButton from "@/components/patients/patientAppointmentActions/CollectingPersonButton.vue";
 import AppointmentReferralModal from "@/views/patients/modals/AppointmentReferralModal.vue";
+import { Actions } from "@/store/enums/StoreEnums";
 
 export default defineComponent({
   name: "patient-appointments",
@@ -141,6 +146,10 @@ export default defineComponent({
     const route = useRoute();
     const patient = computed(() => store.getters.selectedPatient);
     const referralAppointment = ref(null);
+    const documentTemplates = computed(
+      () => store.getters.getDocumentTemplateList
+    );
+
 
     const userRole = computed(() => store.getters.userRole);
     const tableHeader = ref([
@@ -192,6 +201,7 @@ export default defineComponent({
 
       const id = route.params.id;
       store.dispatch(PatientActions.VIEW, id);
+      store.dispatch(Actions.DOCUMENT_TEMPLATES.LIST);
     });
 
     return {
@@ -202,6 +212,7 @@ export default defineComponent({
       handlePreAdmissionTest,
       handleReferralClick,
       patient,
+      documentTemplates,
     };
   },
 });

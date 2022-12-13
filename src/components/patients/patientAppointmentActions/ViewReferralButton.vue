@@ -4,12 +4,16 @@
 
 <script lang="ts">
 import { Modal } from "bootstrap";
+import AppointmentReferralModal from "@/views/patients/modals/AppointmentReferralModal.vue";
+import { PropType } from "vue";
+import IAppointment from "@/store/interfaces/IAppointment";
+
 
 export default {
   props: {
     appointment: {
       required: true,
-      type: Object,
+      type: Object as PropType<IAppointment>,
     },
   },
   setup() {

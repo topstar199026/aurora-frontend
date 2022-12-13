@@ -49,10 +49,6 @@ const Actions = {
   },
 
   ORG_ADMIN: {
-    LIST: "listOrgAdmin",
-    CREATE: "createOrgAdmin",
-    DELETE: "deleteOrgAdmin",
-    UPDATE: "updateOrgAdmin",
     UPLOAD_IMAGE: "uploadImage",
     LOAD_ORGANIZATION_DATA: "loadOrganizationData",
     ORGANIZATION: {
@@ -115,11 +111,11 @@ const Actions = {
     UPDATE: "updateNtfyTemplates",
   },
 
-  REPORT_TEMPLATES: {
-    LIST: "listReportTemplate",
-    CREATE: "createReportTemplate",
-    UPDATE: "updateReportTemplate",
-    DELETE: "deleteReportTemplate",
+  DOCUMENT_TEMPLATES: {
+    LIST: "listDocumentTemplate",
+    CREATE: "createDocumentTemplate",
+    UPDATE: "updateDocumentTemplate",
+    DELETE: "deleteDocumentTemplate",
   },
 
   MAILS: {
@@ -148,13 +144,6 @@ const Actions = {
     CREATE: "createDoctorAddressBook",
     DELETE: "deleteDoctorAddressBook",
     UPDATE: "updateDoctorAddressBook",
-  },
-
-  LETTER_TEMPLATE: {
-    LIST: "listLetterTemplate",
-    CREATE: "createLetterTemplate",
-    UPDATE: "updateLetterTemplate",
-    DELETE: "deleteLetterTemplate",
   },
 
   LETTER: {
@@ -282,19 +271,14 @@ const Mutations = {
     LIST: "setDoctorAddressBook",
   },
 
-  SET_LETTER_TEMPLATE: {
-    LIST: "setLetterTemplate",
-    SELECT: "setLetterTemplateSelect",
+  SET_DOCUMENT_TEMPLATES: {
+    LIST: "setDocumentTemplates",
+    SELECT: "setSelectDocumentTemplate",
   },
 
-  SET_REPORT_TEMPLATES: {
-    LIST: "setReportTemplates",
-    SELECT: "setSelectReportTemplate",
-  },
-
-  SET_REPORT_APPOINTMENTS: {
-    LIST: "setReportAppointments",
-    SELECT: "setSelectReportAppointment",
+  SET_DOCUMENT_APPOINTMENTS: {
+    LIST: "setDocumentAppointments",
+    SELECT: "setSelectDocumentAppointment",
   },
 
   SET_MAILS: {
