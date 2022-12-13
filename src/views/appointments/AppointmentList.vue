@@ -63,7 +63,14 @@
 </template>
 
 <script>
-import { defineComponent, onMounted, ref, computed, watchEffect } from "vue";
+import {
+  defineComponent,
+  onMounted,
+  ref,
+  computed,
+  watchEffect,
+  watch,
+} from "vue";
 import { useStore } from "vuex";
 import Datatable from "@/components/kt-datatable/KTDatatable.vue";
 import { AppointmentActions } from "@/store/enums/StoreAppointmentEnums";
@@ -112,7 +119,8 @@ export default defineComponent({
     const dateRangeFilter = ref("Week");
 
     onMounted(() => {
-      store.dispatch(AppointmentActions.LIST, props.params).then(() => {
+      let data = { ...props.params, date_range: dateRangeFilter.value };
+      store.dispatch(AppointmentActions.LIST, data).then(() => {
         tableData.value = appointments;
         loading.value = false;
       });
@@ -124,6 +132,14 @@ export default defineComponent({
           sortable: true,
         });
       }
+    });
+
+    watch(dateRangeFilter, () => {
+      let data = { ...props.params, date_range: dateRangeFilter.value };
+      store.dispatch(AppointmentActions.LIST, data).then(() => {
+        tableData.value = appointments;
+        loading.value = false;
+      });
     });
 
     watchEffect(() => {
