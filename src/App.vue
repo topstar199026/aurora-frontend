@@ -51,7 +51,6 @@ export default defineComponent({
 @import "~sweetalert2/dist/sweetalert2.css";
 @import "~@fortawesome/fontawesome-free/css/all.min.css";
 @import "~@vueform/multiselect/themes/default.css";
-@import "~prism-themes/themes/prism-shades-of-purple.css";
 @import "~element-plus/dist/index.css";
 @import "assets/sass/plugins";
 @import "assets/sass/style";
