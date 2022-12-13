@@ -47,7 +47,6 @@ export default defineComponent({
 
 <style lang="scss">
 @import "~bootstrap-icons/font/bootstrap-icons.css";
-@import "~apexcharts/dist/apexcharts.css";
 @import "~animate.css";
 @import "~sweetalert2/dist/sweetalert2.css";
 @import "~@fortawesome/fontawesome-free/css/all.min.css";

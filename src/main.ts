@@ -8,7 +8,6 @@ import ElementPlus from "element-plus";
 //imports for app initialization
 import ApiService from "@/core/services/ApiService";
 import BillingApiService from "./core/services/BillingApiService";
-import { initApexCharts } from "@/core/plugins/apexcharts";
 import { initInlineSvg } from "@/core/plugins/inline-svg";
 import { initVeeValidate } from "@/core/plugins/vee-validate";
 import VueGoogleMaps from "@fawmi/vue-google-maps";
@@ -43,7 +42,6 @@ app.use(VueSignaturePad);
 
 ApiService.init(app);
 BillingApiService.init();
-initApexCharts(app);
 initInlineSvg(app);
 initVeeValidate();
 
