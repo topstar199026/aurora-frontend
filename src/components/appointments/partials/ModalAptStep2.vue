@@ -164,9 +164,9 @@
         </div>
       </el-form>
       <!--      END SELECT A EXISTING PATIENT-->
-      <!--      START CREATE A NEW PATIENT-->
+      <!--      START CREATE A NEW PATIENT ||  edit existing patient-->
       <el-form
-        v-if="isNewPatient"
+        v-if="isNewPatient || patientStep === 5"
         class="w-100"
         :model="patientInfoData"
         :rules="rules"
@@ -344,7 +344,7 @@
             <button
               type="button"
               class="btn btn-lg btn-light-primary me-3"
-              v-if="modalId == 'modal_edit_apt'"
+              v-if="modalId == 'update'"
               @click="handleSave"
             >
               <span v-if="!loading" class="indicator-label"> Save </span>
@@ -374,7 +374,7 @@
 </template>
 
 <script lang="ts">
-import { computed, reactive, ref, watch, watchEffect } from "vue";
+import { computed, PropType, reactive, ref, watch, watchEffect } from "vue";
 import InputWrapper from "@/components/presets/FormElements/InputWrapper.vue";
 import { useStore } from "vuex";
 import { FormRulesMap } from "element-plus/es/components/form/src/form.type";
@@ -386,6 +386,10 @@ import PatientAlert from "@/components/presets/PatientElements/PatientAlert.vue"
 import ViewPatientAlertModal from "@/views/patients/modals/ViewPatientAlertModal.vue";
 import { mask } from "vue-the-mask";
 import chargeTypes from "@/core/data/charge-types";
+import {
+  IBillingInfoData,
+  IPatientInfoData,
+} from "@/assets/ts/components/_CreateAppointmentComponent";
 
 export default {
   components: {
@@ -400,10 +404,6 @@ export default {
   },
 
   props: {
-    // patientInfoData: {
-    //   required: true,
-    //   type: Object,
-    // },
     modalId: {
       type: String,
       required: true,
@@ -420,11 +420,16 @@ export default {
       type: String,
       required: true,
     },
+    patientDataE: {
+      type: Object as PropType<IPatientInfoData>,
+      required: true,
+    },
   },
-  emits: ["save", "process"],
+  emits: ["save", "process", "goBack"],
 
   setup(props, { emit }) {
     const store = useStore();
+
     const rules = ref<FormRulesMap>({
       first_name: [
         {
@@ -487,26 +492,12 @@ export default {
       is_ok: false,
     });
 
-    interface IPatientInfoData {
-      first_name: string;
-      last_name: string;
-      date_of_birth: string;
-      email: string;
-      address: string;
-      contact_number: string;
-      appointment_confirm_method: string;
-      allergies: string;
-      clinical_alerts: string;
-      also_known_as: [];
-      is_exist: boolean;
-      is_ok: boolean;
-      alerts: Array<IAlerts>;
-    }
-
-    interface IAlerts {
-      alert_level: string;
-      is_dismissed: boolean;
-    }
+    const billingInfoData = ref<IBillingInfoData>({
+      charge_type: chargeTypes[0].value,
+      claim_sources: [],
+      procedure_price: "",
+      add_other_account_holder: false,
+    });
 
     const patientTableHeader = ref([
       {
@@ -534,41 +525,15 @@ export default {
     ]);
 
     const patientStep = ref(3);
-
-    const overlappingCnt = ref(0);
     const formRef = ref();
-    const aptTypeListWithRestriction = ref();
-    const appointmentType = ref<string>("");
-
     const patientTableData = ref<unknown>([]);
     const allergiesList = ref<unknown>([]);
-
-    const billingInfoData = ref({
-      charge_type: chargeTypes[0].value,
-      claim_sources: [],
-      procedure_price: "",
-      add_other_account_holder: false,
-    });
-
-    const healthFundsList = computed(() => store.getters.healthFundsList);
-    const aneQuestions = computed(() => store.getters.getAneQuestionActiveList);
-    const aptTypeList = computed(() => store.getters.getAptTypesList);
-    const searchVal = computed(() => store.getters.getSearchVariable);
     const patientList = computed(() => store.getters.patientsList);
-    const patientAptData = computed(() => store.getters.getPatientAppointments);
-    const aptData = computed(() => store.getters.getAptSelected);
-    const aptList = computed(() => store.getters.getAptList);
-    const bookingData = computed(() => store.getters.bookingDatas);
-    const orgData = computed(() => store.getters.userOrganization);
 
     watchEffect(() => {
-      let specialistRestriction = bookingData.value.restriction;
-      if (specialistRestriction === "NONE" || props.modalId === "edit") {
-        aptTypeListWithRestriction.value = aptTypeList.value;
-      } else {
-        aptTypeListWithRestriction.value = aptTypeList.value.filter(
-          (item) => item.type === specialistRestriction
-        );
+      if (props.patientDataE) {
+        for (let key in props.patientDataE)
+          patientInfoData.value[key] = props.patientDataE[key];
       }
     });
 
@@ -585,10 +550,12 @@ export default {
     };
 
     const handleSave = () => {
+      console.log("Save existing appointment");
       //emit("save", aptInfoData);
     };
 
     const previousStep = () => {
+      emit("goBack");
       console.log("here we go to previous step");
     };
 
@@ -618,6 +585,7 @@ export default {
       patientStep.value++;
     };
 
+    // Search existing patients base on given params
     const patientStep_1 = () => {
       patientTableData.value = [];
       for (let key in patientInfoData.value) patientInfoData.value[key] = "";
@@ -652,7 +620,14 @@ export default {
     };
 
     const handleStep_2 = () => {
-      console.log("emit your results here");
+      if (!formRef.value) {
+        return;
+      }
+      formRef.value.validate((valid) => {
+        if (valid) {
+          emit("process", patientInfoData.value, billingInfoData.value);
+        }
+      });
     };
 
     const selectPatient = (item) => {
@@ -687,6 +662,7 @@ export default {
       );
       if (blocklist.length) patientInfoData.value.is_ok = false;
       // patientStep.value++;
+      console.log(patientInfoData.value);
     };
 
     return {
