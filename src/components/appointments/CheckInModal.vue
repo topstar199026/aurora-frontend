@@ -140,7 +140,18 @@
                 >
                   <div class="d-flex flex-column gap-4">
                     <HeadingText text="Appointment Actions" />
-
+                    <InputWrapper
+                      required
+                      class="w-100"
+                      label="Print Count"
+                      prop="print_count"
+                    >
+                      <el-input
+                        type="text"
+                        v-model="print_count"
+                        placeholder="Enter Print Count Number"
+                      />
+                    </InputWrapper>
                     <PrintLabelButton
                       :appointment="appointment"
                       :patient="patient"
