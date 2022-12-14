@@ -140,18 +140,11 @@
                 >
                   <div class="d-flex flex-column gap-4">
                     <HeadingText text="Appointment Actions" />
-                    <InputWrapper
-                      required
-                      class="w-100"
-                      label="Print Count"
-                      prop="print_count"
-                    >
-                      <el-input
-                        type="text"
-                        v-model="print_count"
-                        placeholder="Enter Print Count Number"
-                      />
-                    </InputWrapper>
+                    <el-input
+                      type="text"
+                      v-model="label_count"
+                      placeholder="Enter label print count"
+                    />
                     <PrintLabelButton
                       :appointment="appointment"
                       :patient="patient"
@@ -252,6 +245,7 @@ export default defineComponent({
     const router = useRouter();
     const currentPage = ref<number>(1);
     const loading = ref<boolean>(false);
+    const label_count = ref(null);
 
     const gotoPage = (page) => {
       currentPage.value = page;
@@ -321,6 +315,7 @@ export default defineComponent({
       createAptModalRef,
       loading,
       handleCancel,
+      label_count,
     };
   },
 });
