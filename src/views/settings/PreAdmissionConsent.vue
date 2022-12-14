@@ -67,15 +67,15 @@ export default defineComponent({
     const getAutoCompleteItems = (queryText) => {
       let testItems = [
         {
-          id: "7The mention feature expects that the mention attribute value",
+          id: "@The mention feature expects that the mention attribute value",
         },
         {
-          id: "7in the model is a plain object with a set of additional attributes",
+          id: "@in the model is a plain object with a set of additional attributes",
         },
         {
-          id: "7In order to create a proper object use the toMentionAttribute() helper method",
+          id: "@In order to create a proper object use the toMentionAttribute() helper method",
         },
-        { id: "7Add any other properties that you need" },
+        { id: "@Add any other properties that you need" },
       ];
 
       return testItems.filter(isItemMatching);
@@ -101,7 +101,7 @@ export default defineComponent({
         mention: {
           feeds: [
             {
-              marker: "7",
+              marker: "@",
               feed: getAutoCompleteItems,
               minimumCharacters: 2,
             },
