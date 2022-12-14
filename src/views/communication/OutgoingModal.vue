@@ -108,7 +108,6 @@ import {
 import { useStore } from "vuex";
 import moment from "moment";
 import IconText from "@/components/presets/GeneralElements/IconText.vue";
-import { DocumentActions } from "@/store/enums/StoreDocumentEnums";
 import { Actions } from "@/store/enums/StoreEnums";
 import pdf from "pdfobject";
 
@@ -129,44 +128,40 @@ export default defineComponent({
 
     watch(outgoingData, () => {
       if (outgoingData.value.document_id != undefined) {
-        store
-          .dispatch(DocumentActions.SHOW, outgoingData.value.document_id)
-          .then((selectedDocument) => {
-            if (selectedDocument) {
-              if (selectedDocument.file_type === "HTML") {
-                document.getElementById(
-                  "outgoing-modal-document-view"
-                ).innerHTML = selectedDocument.document_body;
-              } else {
-                store
-                  .dispatch(Actions.FILE.VIEW, {
-                    path: selectedDocument.file_path,
-                    type: "PATIENT_DOCUMENT",
-                  })
-                  .then((data) => {
-                    tempFile.value = data;
-                    if (selectedDocument.file_type === "PDF") {
-                      document.getElementById(
-                        "outgoing-modal-document-view"
-                      ).innerHTML = "";
-                      let blob = new Blob([data], { type: "application/pdf" });
-                      let objectUrl = URL.createObjectURL(blob);
-                      pdf.embed(
-                        objectUrl + "#toolbar=0",
-                        "#outgoing-modal-document-view"
-                      );
-                    } else if (selectedDocument.file_type === "PNG") {
-                      document.getElementById(
-                        "outgoing-modal-document-view"
-                      ).innerHTML = "<img src='" + data + "' />";
-                    }
-                  })
-                  .catch(() => {
-                    console.log("Document Load Error");
-                  });
-              }
-            }
-          });
+        let selectedDocument = outgoingData.value.document;
+        if (selectedDocument) {
+          if (selectedDocument.file_type === "HTML") {
+            document.getElementById("outgoing-modal-document-view").innerHTML =
+              selectedDocument.document_body;
+          } else {
+            store
+              .dispatch(Actions.FILE.VIEW, {
+                path: selectedDocument.file_path,
+                type: "PATIENT_DOCUMENT",
+              })
+              .then((data) => {
+                tempFile.value = data;
+                if (selectedDocument.file_type === "PDF") {
+                  document.getElementById(
+                    "outgoing-modal-document-view"
+                  ).innerHTML = "";
+                  let blob = new Blob([data], { type: "application/pdf" });
+                  let objectUrl = URL.createObjectURL(blob);
+                  pdf.embed(
+                    objectUrl + "#toolbar=0",
+                    "#outgoing-modal-document-view"
+                  );
+                } else if (selectedDocument.file_type === "PNG") {
+                  document.getElementById(
+                    "outgoing-modal-document-view"
+                  ).innerHTML = "<img src='" + data + "' />";
+                }
+              })
+              .catch(() => {
+                console.log("Document Load Error");
+              });
+          }
+        }
       }
     });
 

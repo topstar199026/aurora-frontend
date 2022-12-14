@@ -89,25 +89,12 @@ export default class DocumentModule extends VuexModule implements Documents {
   }
 
   @Action
-<<<<<<< HEAD
   [DocumentActions.SAVE](data) {
     if (JwtService.getToken()) {
       ApiService.setHeader();
       return ApiService.post("patients/documents/save/" + data.patient_id, data)
         .then(({ data }) => {
           return data;
-=======
-  [DocumentActions.SHOW](id) {
-    if (JwtService.getToken()) {
-      ApiService.setHeader();
-      return ApiService.get("documents/" + id)
-        .then(({ data }) => {
-          this.context.commit(
-            DocumentMutations.SET_SELECTED_DOCUMENT,
-            data.data
-          );
-          return data.data;
->>>>>>> 2b29302c (COM-33: Show the associated patient document)
         })
         .catch(({ response }) => {
           console.log(response.data.error);
@@ -116,7 +103,6 @@ export default class DocumentModule extends VuexModule implements Documents {
       this.context.commit(Mutations.PURGE_AUTH);
     }
   }
-<<<<<<< HEAD
 
   @Action
   [DocumentActions.PATIENT_PREVIEW](data) {
@@ -135,6 +121,4 @@ export default class DocumentModule extends VuexModule implements Documents {
         });
     }
   }
-=======
->>>>>>> 2b29302c (COM-33: Show the associated patient document)
 }
