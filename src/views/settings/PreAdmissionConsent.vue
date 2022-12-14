@@ -146,7 +146,7 @@ export default defineComponent({
         let text = formData.value.text;
 
         // eslint-disable-next-line prettier/prettier
-        text = text.replace('The mention feature', "");
+        text = text.replace('@', "");
         text = text.replace(' class="mention"', "");
         console.log(text);
         // console.log(text);
