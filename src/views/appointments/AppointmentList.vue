@@ -75,6 +75,7 @@ import { useStore } from "vuex";
 import Datatable from "@/components/kt-datatable/KTDatatable.vue";
 import { AppointmentActions } from "@/store/enums/StoreAppointmentEnums";
 import dateRangeFilterTypes from "@/core/data/date-range-filter-types";
+import moment from "moment";
 
 export default defineComponent({
   name: "admin-main",
@@ -119,7 +120,12 @@ export default defineComponent({
     const dateRangeFilter = ref("Week");
 
     onMounted(() => {
-      let data = { ...props.params, date_range: dateRangeFilter.value };
+      let now = moment();
+      let data = {
+        ...props.params,
+        after_date: now.format(),
+        before_date: now.endOf("week").format(),
+      };
       store.dispatch(AppointmentActions.LIST, data).then(() => {
         tableData.value = appointments;
         loading.value = false;
@@ -135,7 +141,48 @@ export default defineComponent({
     });
 
     watch(dateRangeFilter, () => {
-      let data = { ...props.params, date_range: dateRangeFilter.value };
+      let now = moment();
+      let data = {};
+      console.log(props.params);
+      switch (dateRangeFilter.value) {
+        case "Today": {
+          data = { ...props.params, date: now.format() };
+          break;
+        }
+        case "All": {
+          data = {
+            ...props.params,
+            after_date: now.format(),
+          };
+          break;
+        }
+        case "Week": {
+          data = {
+            ...props.params,
+            after_date: now.format(),
+            before_date: now.endOf("week").format(),
+          };
+          break;
+        }
+        case "Month": {
+          data = {
+            ...props.params,
+            after_date: now.format(),
+            before_date: now.endOf("month").format(),
+          };
+          break;
+        }
+        case "Fortnight": {
+          data = {
+            ...props.params,
+            after_date: now.format(),
+            before_date: now.add(1, "week").endOf("week").format(),
+          };
+          break;
+        }
+        default:
+          break;
+      }
       store.dispatch(AppointmentActions.LIST, data).then(() => {
         tableData.value = appointments;
         loading.value = false;
