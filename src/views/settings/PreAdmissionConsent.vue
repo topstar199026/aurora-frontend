@@ -32,6 +32,12 @@
     </div>
   </el-form>
 </template>
+<style>
+:root {
+  --ck-color-mention-background: none;
+  --ck-color-mention-text: #000000;
+}
+</style>
 <script>
 import {
   defineComponent,
@@ -60,14 +66,16 @@ export default defineComponent({
 
     const getAutoCompleteItems = (queryText) => {
       let testItems = [
-        { id: "@The mention feature expects that the mention attribute value" },
         {
-          id: "@in the model is a plain object with a set of additional attributes",
+          id: "7The mention feature expects that the mention attribute value",
         },
         {
-          id: "@In order to create a proper object use the toMentionAttribute() helper method",
+          id: "7in the model is a plain object with a set of additional attributes",
         },
-        { id: "@Add any other properties that you need" },
+        {
+          id: "7In order to create a proper object use the toMentionAttribute() helper method",
+        },
+        { id: "7Add any other properties that you need" },
       ];
 
       return testItems.filter(isItemMatching);
@@ -93,7 +101,7 @@ export default defineComponent({
         mention: {
           feeds: [
             {
-              marker: "@",
+              marker: "7",
               feed: getAutoCompleteItems,
               minimumCharacters: 2,
             },
@@ -135,11 +143,13 @@ export default defineComponent({
 
     const formatAutoTexts = () => {
       if (formData.value.text.includes('class="mention"')) {
-        formData.value.text = formData.value.text
-          .replace(' class="mention"', "")
-          .replace("@", "");
+        let text = formData.value.text;
 
-        console.log(formData.value.text);
+        // eslint-disable-next-line prettier/prettier
+        text = text.replace('The mention feature', "");
+        text = text.replace(' class="mention"', "");
+        console.log(text);
+        // console.log(text);
       }
     };
 
