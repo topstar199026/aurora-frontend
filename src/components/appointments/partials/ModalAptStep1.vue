@@ -70,14 +70,15 @@
                 type="radio"
                 class="btn-check"
                 name="patientType"
-                value="new"
+                value="true"
                 checked="checked"
                 id="create-new-patient"
-                v-model="patientStatus"
+                v-model="aptInfoData.isNewPatient"
               />
               <label
                 class="btn btn-outline btn-outline-dashed btn-outline-default p-7 d-flex align-items-center mb-10"
                 for="create-new-patient"
+                @click="aptInfoData.isNewPatient = true"
               >
                 <span class="svg-icon svg-icon-3x me-5">
                   <InlineSVG
@@ -107,13 +108,14 @@
                 type="radio"
                 class="btn-check"
                 name="patientType"
-                value="exist"
+                value="false"
                 id="select-existing-patient"
-                v-model="patientStatus"
+                v-model="aptInfoData.isNewPatient"
               />
               <label
                 class="btn btn-outline btn-outline-dashed btn-outline-default p-7 d-flex align-items-center"
                 for="select-existing-patient"
+                @click="aptInfoData.isNewPatient = false"
               >
                 <span class="svg-icon svg-icon-3x me-5">
                   <InlineSVG src="media/icons/duotune/finance/fin006.svg" />
@@ -177,7 +179,7 @@
 </template>
 
 <script lang="ts">
-import { computed, PropType, ref, watch, watchEffect } from "vue";
+import { computed, PropType, ref, watchEffect } from "vue";
 import { ISpecialist } from "@/store/modules/SpecialistsModule";
 import InputWrapper from "@/components/presets/FormElements/InputWrapper.vue";
 import { useStore } from "vuex";
@@ -236,7 +238,7 @@ export default {
       appointment_type_id: "",
       room_id: "",
       note: "",
-      patientStatus: "new",
+      isNewPatient: true,
     });
     const overlappingCnt = ref(0);
     const formRef = ref();
@@ -269,7 +271,7 @@ export default {
       room_id: number | string;
       note: string;
       send_forms: boolean;
-      patientStatus: string;
+      isNewPatient: boolean;
     }
     //end Interfaces
 
@@ -284,8 +286,6 @@ export default {
       }
     });
 
-    const patientStatus = ref<string>("new");
-
     const handleSubmit = async () => {
       if (!formRef.value) {
         return;
@@ -293,23 +293,14 @@ export default {
 
       formRef.value.validate((valid) => {
         if (valid) {
-          aptInfoData.value.patientStatus = patientStatus.value;
           emit("process", aptInfoData.value);
         }
       });
     };
 
     const handleSave = () => {
-      emit("save", aptInfoData);
+      emit("save", aptInfoData.value);
     };
-
-    const updatePatientStatus = (data) => {
-      aptInfoData.value.patientStatus = data;
-    };
-
-    watch(patientStatus, () => {
-      aptInfoData.value.patientStatus = patientStatus.value;
-    });
 
     const updateTypeId = () => {
       emit("changeAptType", aptInfoData.value.appointment_type_id);
@@ -324,8 +315,6 @@ export default {
       aptTypeListWithRestriction,
       appointmentType,
       handleSave,
-      updatePatientStatus,
-      patientStatus,
       updateTypeId,
     };
   },
