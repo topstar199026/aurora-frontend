@@ -13,6 +13,22 @@
         <div class="py-10 px-lg-17">
           <!--begin::Scroll-->
           <div class="row">
+            <InputWrapper
+              class="col-6"
+              required
+              label="Provider No"
+              prop="providerno"
+            >
+              <el-input
+                v-model="formData.provider_no"
+                type="text"
+                placeholder="Enter the Provider No"
+                v-mask="'#######A'"
+              />
+            </InputWrapper>
+          </div>
+
+          <div class="row" v-if="isVisible">
             <InputWrapper class="col-2" label="Title" prop="title">
               <el-select
                 class="w-100"
@@ -51,19 +67,6 @@
                 v-model="formData.last_name"
                 type="text"
                 placeholder="Enter the last name"
-              />
-            </InputWrapper>
-            <InputWrapper
-              class="col-6"
-              required
-              label="Provider No"
-              prop="providerno"
-            >
-              <el-input
-                v-model="formData.provider_no"
-                type="text"
-                placeholder="Enter the Provider No"
-                v-mask="'#######A'"
               />
             </InputWrapper>
             <InputWrapper
@@ -172,7 +175,7 @@
         <!--end::Modal body-->
 
         <!--begin::Modal footer-->
-        <div class="modal-footer flex-center">
+        <div class="modal-footer flex-center" v-if="isVisible">
           <!--begin::Button-->
           <router-link
             type="reset"
@@ -253,6 +256,7 @@ export default defineComponent({
     const router = useRouter();
     const route = useRoute();
     const formRef = ref(null);
+    const isVisible = ref(false);
     const doctorAddressBooks = computed(
       () => store.getters.getDoctorAddressBookList
     );
@@ -363,11 +367,11 @@ export default defineComponent({
       setCurrentPageBreadcrumbs(formInfo.title, ["Settings"]);
     });
 
-    const handleChange = (file) => {
-      formData.value.upload_file = [];
-      formData.value.upload_file.push(file);
-      formData.value.upload_file_name = file.name;
-    };
+    // const handleChange = (file) => {
+    //   formData.value.upload_file = [];
+    //   formData.value.upload_file.push(file);
+    //   formData.value.upload_file_name = file.name;
+    // };
 
     onMounted(() => {
       store.dispatch(Actions.DOCTOR_ADDRESS_BOOK.LIST);
@@ -419,9 +423,10 @@ export default defineComponent({
       formRef,
       loading,
       submit,
-      handleChange,
+      // handleChange,
       titles,
       updateAddress,
+      isVisible,
     };
   },
 });
