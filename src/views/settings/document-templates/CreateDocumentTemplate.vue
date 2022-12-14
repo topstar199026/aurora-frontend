@@ -107,16 +107,6 @@
                     />
                   </el-form-item>
 
-                  <div class="fv-row col-12">
-                    <el-form-item>
-                      <el-checkbox
-                        type="checkbox"
-                        v-model="documentSection.use_autotext"
-                        label="Use autotexts?"
-                      />
-                    </el-form-item>
-                  </div>
-
                   <el-divider class="my-3" />
 
                   <el-form-item>
@@ -125,61 +115,6 @@
                     </label>
                     <ckeditor :editor="ClassicEditor" v-model="formData.body" />
                   </el-form-item>
-
-                  <template v-if="documentSection.use_autotext">
-                    <h3 class="mb-4" style="font-size: 1.5rem">Auto Texts</h3>
-
-                    <div
-                      class="document-template-auto-text-wrapper text-nowrap mb-5"
-                      v-for="(
-                        autoText, autoTextIndex
-                      ) in documentSection.auto_texts"
-                      :key="autoTextIndex"
-                    >
-                      <div class="d-flex flex-row col-11">
-                        <el-input
-                          v-model="autoText.text"
-                          class="flex-grow-1 me-2"
-                          type="text"
-                          placeholder="Enter Auto Text"
-                        />
-                        <el-select
-                          class="w-100"
-                          remote
-                          filterable
-                          v-model="autoText.icd_10_code"
-                          :remote-method="searchCodes"
-                          :loading="loadingICD"
-                        >
-                          <el-option
-                            v-for="item in codes"
-                            :key="item[0]"
-                            :label="item[0] + ' - ' + item[1]"
-                            :value="item[0]"
-                          />
-                        </el-select>
-                        <div class="ms-2">
-                          <button
-                            @click="
-                              handleDeleteAutoText(sectionIndex, autoTextIndex)
-                            "
-                            class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm"
-                          >
-                            <span class="svg-icon svg-icon-3">
-                              <InlineSVG icon="bin" />
-                            </span>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                    <LargeIconButton
-                      @click="handleAddAutoText(sectionIndex)"
-                      text="Add AutoText"
-                      iconPath="media/icons/duotune/arrows/arr024.svg"
-                      :color="'success'"
-                      iconSize="1"
-                    />
-                  </template>
 
                   <div class="d-flex mt-3 flex-row-reverse">
                     <LargeIconButton
@@ -292,8 +227,6 @@ export default defineComponent({
       let new_section = {
         title: "",
         free_text_default: "",
-        auto_texts: [] as Array<Record<string, string>>,
-        use_autotext: true,
       };
 
       formData.value.sections.push(new_section);
@@ -301,19 +234,6 @@ export default defineComponent({
 
     const handleDeleteSection = (sectionIndex) => {
       formData.value.sections.splice(sectionIndex, 1);
-    };
-
-    const handleAddAutoText = (sectionIndex) => {
-      let new_auto_text = {
-        text: "",
-        icd_10_code: "",
-      };
-
-      formData.value.sections[sectionIndex].auto_texts.push(new_auto_text);
-    };
-
-    const handleDeleteAutoText = (sectionIndex, autoTextIndex) => {
-      formData.value.sections[sectionIndex].auto_texts.splice(autoTextIndex, 1);
     };
 
     const submit = () => {
@@ -386,8 +306,6 @@ export default defineComponent({
       submit,
       handleAddSection,
       handleDeleteSection,
-      handleAddAutoText,
-      handleDeleteAutoText,
       searchCodes,
       codes,
       loadingICD,

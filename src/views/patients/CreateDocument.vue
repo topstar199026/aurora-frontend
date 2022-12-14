@@ -283,25 +283,6 @@
                 {{ section.title }}
               </label>
 
-              <el-form-item v-if="section.use_autotext">
-                <label class="text-muted fs-6 fw-bold mb-2 d-block">
-                  Autotexts
-                </label>
-
-                <el-select
-                  class="w-100"
-                  multiple
-                  v-model="formData.section['section' + section.id]"
-                >
-                  <el-option
-                    v-for="item in section.auto_texts"
-                    :key="item.id"
-                    :label="item.text"
-                    :value="item.id"
-                  />
-                </el-select>
-              </el-form-item>
-
               <el-form-item prop="note">
                 <label class="text-muted fs-6 fw-bold mb-2 d-block">
                   Free Text
@@ -541,16 +522,12 @@ export default defineComponent({
       formRef.value.validate((valid) => {
         if (valid) {
           const reportData: Array<Record<string, unknown>> = [];
-          const icd_10_code: Array<string> = [];
 
           reportSections.value.forEach((section) => {
             reportData.push({
               sectionId: section.id,
               free_text_default: section.free_text_default,
               value: formData.value.section["section" + section.id],
-            });
-            section.auto_texts.forEach((auto) => {
-              icd_10_code.push(auto.icd_10_code);
             });
           });
 
@@ -602,7 +579,6 @@ export default defineComponent({
             procedures_undertaken: proceduresUndertaken,
             extra_items_used: extraItems,
             admin_items_used: adminItems,
-            icd_10_code: icd_10_code,
             patient_demographic: formData.value.patient_demographic,
             current_medications: formData.value.current_medications,
             patient_allergies: formData.value.patient_allergies,
@@ -635,14 +611,6 @@ export default defineComponent({
 
         formRef.value.validate((valid) => {
           if (valid) {
-            const icd_10_code: Array<string> = [];
-
-            reportSections.value.forEach((section) => {
-              section.auto_texts.forEach((auto) => {
-                icd_10_code.push(auto.icd_10_code);
-              });
-            });
-
             const proceduresUndertaken = [] as Array<Record<string, unknown>>;
             formData.value.procedures_undertaken.forEach((item) => {
               const mbsItem = mbsItems.value.find((mbs) => mbs.id == item);
@@ -681,7 +649,6 @@ export default defineComponent({
               procedures_undertaken: proceduresUndertaken,
               extra_items_used: extraItems,
               admin_items_used: adminItems,
-              icd_10_code: icd_10_code,
               should_send: shouldSend ? 1 : 0,
               file_name: documentPreviewFileName.value,
               patient_demographic: formData.value.patient_demographic,
