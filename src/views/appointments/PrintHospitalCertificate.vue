@@ -2,7 +2,7 @@
   <div id="printForm">
     <h1>The Hospital Claim Form</h1>
   </div>
-  <button v-print="'#printForm'"></button>
+  <button></button>
 </template>
 <script>
 import { defineComponent } from "vue";

@@ -1,5 +1,4 @@
 import objectPath from "object-path";
-import merge from "deepmerge";
 import layoutConfig from "@/core/config/DefaultLayoutConfig";
 import { Mutations } from "@/store/enums/StoreEnums";
 import { Mutation, Module, VuexModule } from "vuex-module-decorators";
@@ -42,10 +41,5 @@ export default class ConfigModule extends VuexModule implements StoreInfo {
       this.initial,
       JSON.parse(window.localStorage.getItem("config") || "{}")
     );
-  }
-
-  @Mutation
-  [Mutations.OVERRIDE_PAGE_LAYOUT_CONFIG](payload): void {
-    this.config = merge(this.config, payload);
   }
 }
