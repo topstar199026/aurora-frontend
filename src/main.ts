@@ -23,11 +23,12 @@ import LargeIconButton from "@/components/presets/GeneralElements/LargeIconButto
 import CurrencyInput from "@/components/presets/GeneralElements/CurrencyInput.vue";
 import "bootstrap";
 import VueSignaturePad from "vue-signature-pad";
-
+import CKEditor from "@ckeditor/ckeditor5-vue";
 const app = createApp(App);
 
 app.use(store);
 app.use(router);
+app.use(CKEditor);
 app.use(ElementPlus);
 app.use(VueGoogleMaps, {
   load: {
