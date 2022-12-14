@@ -186,6 +186,10 @@ import { useStore } from "vuex";
 import AlertBadge from "@/components/presets/GeneralElements/AlertBadge.vue";
 import { FormRulesMap } from "element-plus/es/components/form/src/form.type";
 import { IRooms } from "@/store/modules/ClinicsModule";
+import {
+  IAptInfoData,
+  IAptInfoTypeData,
+} from "@/assets/ts/components/_CreateAppointmentComponent";
 export default {
   components: {
     InputWrapper,
@@ -203,13 +207,9 @@ export default {
       type: Object as PropType<IRooms>,
     },
     // fix this
-    aptInfoData1: {
+    aptInfoDataE: {
       required: true,
-      type: Object,
-    },
-    patientInfoData: {
-      required: true,
-      type: Object,
+      type: Object as PropType<IAptInfoData>,
     },
     modalId: {
       type: String,
@@ -233,7 +233,7 @@ export default {
         },
       ],
     });
-    const aptInfoData = ref<IAptInfoData>({
+    const aptInfoData = ref<IAptInfoTypeData>({
       send_forms: false,
       appointment_type_id: "",
       room_id: "",
@@ -248,33 +248,6 @@ export default {
     const aptTypeList = computed(() => store.getters.getAptTypesList);
     const bookingData = computed(() => store.getters.bookingDatas);
 
-    // Start Interfaces
-
-    // interface IAptInfoData {
-    //   clinic_name: string;
-    //   clinic_id: number;
-    //   send_forms: boolean;
-    //   date: string;
-    //   arrival_time: string;
-    //   time_slot: Array<unknown>;
-    //   appointment_type_id: number | string;
-    //   specialist_id: number;
-    //   room_id: number | string;
-    //   note: string;
-    //   patient_id: number;
-    //   start_time: string;
-    //   is_wait_listed: boolean;
-    // }
-
-    interface IAptInfoData {
-      appointment_type_id: number | string;
-      room_id: number | string;
-      note: string;
-      send_forms: boolean;
-      isNewPatient: boolean;
-    }
-    //end Interfaces
-
     watchEffect(() => {
       let specialistRestriction = bookingData.value.restriction;
       if (specialistRestriction === "NONE" || props.modalId === "edit") {
@@ -283,6 +256,11 @@ export default {
         aptTypeListWithRestriction.value = aptTypeList.value.filter(
           (item) => item.type === specialistRestriction
         );
+      }
+
+      if (props.aptInfoDataE) {
+        for (let key in props.aptInfoDataE)
+          aptInfoData.value[key] = props.aptInfoDataE[key];
       }
     });
 
