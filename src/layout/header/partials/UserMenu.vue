@@ -77,7 +77,7 @@ export default defineComponent({
       router.push({ name: "profile" });
     };
     const handleSettings = () => {
-      router.push({ name: "org-admin-settings" });
+      router.push({ name: "manager-settings" });
     };
 
     const signOut = () => {
