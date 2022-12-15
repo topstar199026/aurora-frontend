@@ -26,10 +26,6 @@ export default {
       required: true,
       type: Object as PropType<IPatient>,
     },
-    printCount: {
-      required: true,
-      type: Number,
-    },
   },
   setup(props) {
     const default_count = getLocalStorage(StorageKey.PrintLabelCount)
@@ -37,8 +33,9 @@ export default {
       : 1;
     const label_count = ref(default_count);
     const handlePrint = () => {
-      setLocalStorage(StorageKey.PrintLabelCount, props.printCount);
-      for (var i = 0; i < props.printCount; i++) {
+      const printCount = label_count.value;
+      setLocalStorage(StorageKey.PrintLabelCount, printCount);
+      for (var i = 0; i < printCount; i++) {
         handlePrintLabel();
       }
     };
