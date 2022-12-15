@@ -104,7 +104,7 @@ export default defineComponent({
       const allEmployees = store.getters.hrmWeeklyTemplatesData;
       const user = store.getters.currentUser;
       let filteredList = [];
-      allEmployees.filter((employee) => {
+      allEmployees?.filter((employee) => {
         if (employee && employee.id === user.profile.id) {
           filteredList.push(employee);
           return employee;

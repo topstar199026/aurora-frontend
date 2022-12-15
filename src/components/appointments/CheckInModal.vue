@@ -140,7 +140,6 @@
                 >
                   <div class="d-flex flex-column gap-4">
                     <HeadingText text="Appointment Actions" />
-
                     <PrintLabelButton
                       :appointment="appointment"
                       :patient="patient"
