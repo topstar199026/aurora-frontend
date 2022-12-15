@@ -8,7 +8,6 @@ import AppointmentReferralModal from "@/views/patients/modals/AppointmentReferra
 import { PropType } from "vue";
 import IAppointment from "@/store/interfaces/IAppointment";
 
-
 export default {
   props: {
     appointment: {

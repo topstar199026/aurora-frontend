@@ -149,8 +149,6 @@ export default defineComponent({
     const documentTemplates = computed(
       () => store.getters.getDocumentTemplateList
     );
-
-
     const userRole = computed(() => store.getters.userRole);
     const tableHeader = ref([
       {
