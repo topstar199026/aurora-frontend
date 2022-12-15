@@ -300,7 +300,7 @@ export default defineComponent({
     const handleEdit = () => {
       store.dispatch(PatientActions.APPOINTMENTS, aptData.value.patient_id);
       store.commit(AppointmentMutations.SET_APT.SELECT, aptData.value);
-      const modal = new Modal(document.getElementById("modal_edit_apt"));
+      const modal = new Modal(document.getElementById("modal_update_apt"));
       modal.show();
       DrawerComponent?.getInstance("appointment-drawer")?.hide();
     };

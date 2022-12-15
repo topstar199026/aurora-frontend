@@ -2,7 +2,7 @@
   <!--begin::Modal - Create App-->
   <div
     class="modal fade"
-    :id="modalId"
+    :id="'modal_' + modalId + '_apt'"
     ref="createAptModalRef"
     tabindex="-1"
     aria-hidden="true"
@@ -110,9 +110,9 @@
                 <!--begin::Step 1-->
                 <StepOne
                   :loading="loading"
-                  modal-id="new"
+                  :modal-id="modalId"
                   :patient-info-data="patientInfoData"
-                  :apt-info-data1="aptInfoData"
+                  :aptInfoDataE="aptInfoData"
                   :specialist="cur_specialist"
                   :allRooms="rooms"
                   @save="processSave"
@@ -124,9 +124,10 @@
                 <!--begin::Step 2-->
                 <StepTwo
                   :loading="loading"
-                  modal-id="new"
+                  :modal-id="modalId"
                   :isNewPatient="isNewPatient"
                   :patientStatus="patientStatus"
+                  :patientDataE="patientInfoData"
                   @save="processSave"
                   @process="processStepTwo"
                   @go-back="previousStep"
@@ -920,10 +921,10 @@ export default defineComponent({
 
     // Setting modal Heading and Ids
     const setTitle = () => {
-      if (props.modalId === "modal_create_apt") {
+      if (props.modalId === "new") {
         title.value = "Create Appointment";
         refName.value = "createAptModalRef";
-      } else if (props.modalId === "modal_edit_apt") {
+      } else if (props.modalId === "update") {
         title.value = "Update Appointment";
         refName.value = "editAptModalRef";
         refCode.value = "editAptRef";
@@ -1001,7 +1002,7 @@ export default defineComponent({
     };
     // Get Selected APT data when user edit appointments
     watch(aptData, () => {
-      if (props.modalId == "modal_edit_apt") {
+      if (props.modalId == "update") {
         for (let key in aptInfoData.value)
           aptInfoData.value[key] = aptData.value[key];
         cur_appointment_type_id.value = aptData.value.appointment_type_id;
@@ -1058,7 +1059,7 @@ export default defineComponent({
         apt_type.value = _selected.type;
       }
 
-      if (props.modalId == "modal_edit_apt") {
+      if (props.modalId == "update") {
         updateAptTime(aptData.value.start_time, aptData.value.end_time);
       }
 
@@ -1072,7 +1073,7 @@ export default defineComponent({
         .format("HH:mm")
         .toString();
 
-      if (props.modalId == "modal_create_apt") {
+      if (props.modalId == "new") {
         const specialist = store.getters.getSelectedSpecialist;
         if (apt_type.value === "Consultation") {
           otherInfoData.value.anesthetic_questions = false;
@@ -1115,7 +1116,7 @@ export default defineComponent({
         .add(_appointment_time.value, "minutes")
         .format("HH:mm")
         .toString();
-      if (props.modalId == "modal_create_apt") {
+      if (props.modalId == "new") {
         updateAptTime(start_time.value, end_time.value);
       }
     });
@@ -1182,10 +1183,7 @@ export default defineComponent({
       ava_specialist.value = bookingData.ava_specialist;
       let specialistRestriction = bookingData.restriction;
       // Setting appointment types base on apt create or edit
-      if (
-        specialistRestriction === "NONE" ||
-        props.modalId === "modal_edit_apt"
-      ) {
+      if (specialistRestriction === "NONE" || props.modalId === "update") {
         aptTypeListWithRestriction.value = aptTypeList.value;
       } else {
         aptInfoData.value.date = bookingData.date;
@@ -1202,10 +1200,7 @@ export default defineComponent({
       if (cur_appointment_type_id.value == "") {
         overlapping_cnt.value = bookingData.overlapping_cnt;
       }
-      if (
-        bookingData.selected_specialist &&
-        props.modalId === "modal_create_apt"
-      ) {
+      if (bookingData.selected_specialist && props.modalId === "new") {
         cur_specialist.value = bookingData.selected_specialist;
         if (bookingData.selected_specialist.anesthetist) {
           anesthetist.value = bookingData.selected_specialist.anesthetist;
@@ -1214,11 +1209,11 @@ export default defineComponent({
         if (bookingData.selected_specialist) {
           clinic.value =
             bookingData.selected_specialist.hrm_work_schedule[0].clinic;
-          if (props.modalId !== "modal_edit_apt") {
+          if (props.modalId !== "update") {
             aptInfoData.value.clinic_name = clinic.value.name;
             aptInfoData.value.clinic_id = clinic.value.id;
           }
-          if (props.modalId === "modal_create_apt") {
+          if (props.modalId === "new") {
             aptInfoData.value.date = bookingData.date;
           }
           if (bookingData.appointment_type) {
@@ -1242,13 +1237,13 @@ export default defineComponent({
     onMounted(() => {
       setTitle();
       _stepperObj.value = StepperComponent.createInstance(createAptRef.value);
-      if (props.modalId === "modal_create_apt") {
+      if (props.modalId === "new") {
         store.dispatch(Actions.DOCTOR_ADDRESS_BOOK.LIST);
       }
       store.dispatch(Actions.HEALTH_FUND.LIST);
       store.dispatch(Actions.ANESTHETIST_QUES.ACTIVE_LIST);
       store.dispatch(AppointmentActions.APPOINTMENT_TYPES.LIST);
-      const myModalEl = document.getElementById("modal_create_apt");
+      const myModalEl = document.getElementById("modal_new_apt");
       myModalEl.addEventListener("hide.bs.modal", () => {
         const draftAptId = store.getters.getDraftAptId;
         if (draftAptId && aptInfoData.value.date) {
@@ -1290,7 +1285,7 @@ export default defineComponent({
         patientStep.value = 1;
       }
 
-      if (props.modalId == "modal_create_apt") {
+      if (props.modalId == "new") {
         patientInfoData.value = {
           first_name: "",
           last_name: "",
@@ -1377,7 +1372,7 @@ export default defineComponent({
       currentStepIndex.value = 0;
       _stepperObj.value.goFirst();
 
-      if (props.modalId == "modal_create_apt") {
+      if (props.modalId == "new") {
         // formRef_1.value.resetFields();
         // formRef_3.value.resetFields();
         // formRef_4.value.resetFields();
@@ -1422,7 +1417,7 @@ export default defineComponent({
       formRef_4.value.validate((valid) => {
         if (valid) {
           loading.value = true;
-          props.modalId === "modal_create_apt" ? createApt() : updateApt();
+          props.modalId === "new" ? createApt() : updateApt();
           resetCreateModal();
         }
       });
@@ -1565,7 +1560,7 @@ export default defineComponent({
 
     const gotoPage = async (page) => {
       await checkAptOverlap();
-      if (props.modalId === "modal_edit_apt") {
+      if (props.modalId === "update") {
         currentStepIndex.value = Number(page - 1);
         _stepperObj.value.goto(page);
       }
@@ -1643,7 +1638,7 @@ export default defineComponent({
         }
       });
 
-      if (props.modalId === "modal_edit_apt") {
+      if (props.modalId === "update") {
         filteredAptList = filteredAptList.filter(
           (apt) => apt.id !== aptData.value.id
         );
@@ -1673,25 +1668,21 @@ export default defineComponent({
       }
     };
 
-    const isNewPatient = ref(true);
+    const isNewPatient = ref(false);
 
-    const processStepOne = async (data) => {
+    // Handle appointment data that are coming from step one component
+    const processStepOne = async (aptNewData) => {
       await checkAptOverlap();
       console.log("Process step one to step 2");
-      console.log(data);
+      console.log(aptNewData);
 
-      aptInfoData.value.appointment_type_id = data.appointment_type_id;
-      aptInfoData.value.note = data.note;
-      aptInfoData.value.room_id = data.room_id;
-      aptInfoData.value.send_forms = data.send_forms;
-      isNewPatient.value = data.isNewPatient;
+      for (let key in aptNewData) aptInfoData.value[key] = aptNewData[key];
+      isNewPatient.value = aptNewData.isNewPatient;
 
-      // remove this later on once fixed
-      patientStatus.value = data.isNewPatient ? "new" : "existing";
+      // TODO remove this later on once fixed
+      patientStatus.value = aptNewData.isNewPatient ? "new" : "existing";
 
-      //write a loop later on
-
-      if (data.patientStatus === "new") {
+      if (aptNewData.patientStatus === "new") {
         patientStep.value = 3;
       } else {
         patientStep.value = 1;
@@ -1704,16 +1695,37 @@ export default defineComponent({
       _stepperObj.value.goNext();
     };
 
-    const processSave = (data) => {
-      console.log("process save exsisting apt");
-      console.log(data);
-      //Update Data here:
+    const processSave = (data, step) => {
+      if (step === 1) {
+        for (let key in data) aptInfoData.value[key] = data[key];
+      } else if (step === 2) {
+        for (let key in data) patientInfoData.value[key] = data[key];
+      }
+      handleSave();
     };
 
     const changeAptType = (data) => {
       aptInfoData.value.appointment_type_id = data;
       cur_appointment_type_id.value = data;
     };
+
+    // Handle Patient data that are coming from step two component
+    const processStepTwo = async (patientData, billingData) => {
+      console.log("patient data received");
+      for (let key in patientData)
+        patientInfoData.value[key] = patientData[key];
+      for (let key in billingData)
+        billingInfoData.value[key] = billingData[key];
+
+      console.log(patientData, billingData);
+      // TODO refactor this later on
+      currentStepIndex.value++;
+      if (!_stepperObj.value) {
+        return;
+      }
+      _stepperObj.value.goNext();
+    };
+
     return {
       chargeTypes,
       rules,
@@ -1797,6 +1809,7 @@ export default defineComponent({
       processSave,
       changeAptType,
       isNewPatient,
+      processStepTwo,
     };
   },
 });

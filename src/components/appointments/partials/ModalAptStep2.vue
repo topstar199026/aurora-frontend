@@ -5,7 +5,7 @@
       <el-form
         class="w-100"
         :model="filterPatient"
-        v-if="!isNewPatient && patientStep === 3"
+        v-if="!isNewPatient && modalId === 'new' && patientStep === 3"
         @submit.prevent=""
       >
         <div class="d-flex flex-column">
@@ -87,7 +87,11 @@
         <!--begin::Separator-->
       </el-form>
       <!--      START SELECT A EXISTING PATIENT-->
-      <el-form v-if="patientStep === 4" class="w-100" @submit.prevent="">
+      <el-form
+        v-if="patientStep === 4 && modalId === 'new'"
+        class="w-100"
+        @submit.prevent=""
+      >
         <div class="row scroll h-300px">
           <Datatable
             :table-header="patientTableHeader"
@@ -166,7 +170,7 @@
       <!--      END SELECT A EXISTING PATIENT-->
       <!--      START CREATE A NEW PATIENT ||  edit existing patient-->
       <el-form
-        v-if="isNewPatient || patientStep === 5"
+        v-if="isNewPatient || modalId === 'update'"
         class="w-100"
         :model="patientInfoData"
         :rules="rules"
@@ -374,7 +378,15 @@
 </template>
 
 <script lang="ts">
-import { computed, PropType, reactive, ref, watch, watchEffect } from "vue";
+import {
+  computed,
+  defineComponent,
+  PropType,
+  reactive,
+  ref,
+  watch,
+  watchEffect,
+} from "vue";
 import InputWrapper from "@/components/presets/FormElements/InputWrapper.vue";
 import { useStore } from "vuex";
 import { FormRulesMap } from "element-plus/es/components/form/src/form.type";
@@ -391,7 +403,7 @@ import {
   IPatientInfoData,
 } from "@/assets/ts/components/_CreateAppointmentComponent";
 
-export default {
+export default defineComponent({
   components: {
     InputWrapper,
     Datatable,
@@ -551,12 +563,11 @@ export default {
 
     const handleSave = () => {
       console.log("Save existing appointment");
-      //emit("save", aptInfoData);
+      emit("save", patientInfoData.value, 2);
     };
 
     const previousStep = () => {
       emit("goBack");
-      console.log("here we go to previous step");
     };
 
     const showMatchPatientsHandle = () => {
@@ -616,6 +627,7 @@ export default {
 
     const patientPrevStep = () => {
       if (props.patientStatus === "new") previousStep();
+      else if (props.modalId === "update") previousStep();
       else patientStep.value--;
     };
 
@@ -688,5 +700,5 @@ export default {
       selectPatient,
     };
   },
-};
+});
 </script>

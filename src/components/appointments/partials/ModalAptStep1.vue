@@ -179,7 +179,7 @@
 </template>
 
 <script lang="ts">
-import { computed, PropType, ref, watchEffect } from "vue";
+import { computed, defineComponent, PropType, ref, watchEffect } from "vue";
 import { ISpecialist } from "@/store/modules/SpecialistsModule";
 import InputWrapper from "@/components/presets/FormElements/InputWrapper.vue";
 import { useStore } from "vuex";
@@ -190,7 +190,7 @@ import {
   IAptInfoData,
   IAptInfoTypeData,
 } from "@/assets/ts/components/_CreateAppointmentComponent";
-export default {
+export default defineComponent({
   components: {
     InputWrapper,
     AlertBadge,
@@ -250,7 +250,7 @@ export default {
 
     watchEffect(() => {
       let specialistRestriction = bookingData.value.restriction;
-      if (specialistRestriction === "NONE" || props.modalId === "edit") {
+      if (specialistRestriction === "NONE" || props.modalId === "update") {
         aptTypeListWithRestriction.value = aptTypeList.value;
       } else {
         aptTypeListWithRestriction.value = aptTypeList.value.filter(
@@ -277,7 +277,7 @@ export default {
     };
 
     const handleSave = () => {
-      emit("save", aptInfoData.value);
+      emit("save", aptInfoData.value, 1);
     };
 
     const updateTypeId = () => {
@@ -296,5 +296,5 @@ export default {
       updateTypeId,
     };
   },
-};
+});
 </script>
