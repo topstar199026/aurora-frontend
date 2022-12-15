@@ -5,7 +5,7 @@
       <el-form
         class="w-100"
         :model="filterPatient"
-        v-if="!isNewPatient && modalId === 'new' && patientStep === 3"
+        v-if="!isNewPatient && modalId === 'new' && patientStep === 1"
         @submit.prevent=""
       >
         <div class="d-flex flex-column">
@@ -88,7 +88,7 @@
       </el-form>
       <!--      START SELECT A EXISTING PATIENT-->
       <el-form
-        v-if="patientStep === 4 && modalId === 'new'"
+        v-if="patientStep === 2 && modalId === 'new'"
         class="w-100"
         @submit.prevent=""
       >
@@ -170,7 +170,7 @@
       <!--      END SELECT A EXISTING PATIENT-->
       <!--      START CREATE A NEW PATIENT ||  edit existing patient-->
       <el-form
-        v-if="isNewPatient || modalId === 'update'"
+        v-if="isNewPatient || modalId === 'update' || patientStep === 3"
         class="w-100"
         :model="patientInfoData"
         :rules="rules"
@@ -301,18 +301,6 @@
               placeholder="Enter Clinical Alerts"
             />
           </InputWrapper>
-
-          <!-- <InputWrapper
-          class="col-6"
-          label="Allergies"
-          prop="allergies"
-        >
-          <el-input
-            type="textarea"
-            v-model="patientInfoData.allergies"
-            placeholder="Enter Allergies"
-          />
-        </InputWrapper> -->
           <InputWrapper class="col-12" label="Allergies" prop="allergies">
             <el-select
               class="w-100"
@@ -479,6 +467,13 @@ export default defineComponent({
         },
         { validator: validatePhone, trigger: "blur" },
       ],
+      appointment_confirm_method: [
+        {
+          required: true,
+          message: "Appointment confirm cannot be blank.",
+          trigger: "blur",
+        },
+      ],
     });
 
     const filterPatient = reactive({
@@ -536,8 +531,8 @@ export default defineComponent({
       },
     ]);
 
-    const patientStep = ref(3);
-    const formRef = ref();
+    const patientStep = ref(1);
+    const formRef = ref<null | HTMLFormElement>(null);
     const patientTableData = ref<unknown>([]);
     const allergiesList = ref<unknown>([]);
     const patientList = computed(() => store.getters.patientsList);
@@ -642,6 +637,7 @@ export default defineComponent({
       });
     };
 
+    // SELECT PATIENT FROM KTD TABLE
     const selectPatient = (item) => {
       store.dispatch(PatientActions.APPOINTMENTS, item.id);
       store.dispatch(PatientActions.VIEW, item.id);

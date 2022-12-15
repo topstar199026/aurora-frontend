@@ -241,7 +241,7 @@ export default defineComponent({
       isNewPatient: true,
     });
     const overlappingCnt = ref(0);
-    const formRef = ref();
+    const formRef = ref<null | HTMLFormElement>(null);
     const aptTypeListWithRestriction = ref();
     const appointmentType = ref<string>("");
 
