@@ -22,7 +22,7 @@ export const helpTexts = {
         "These instructions will be sent to the patient upon procedure approval",
       consent:
         "This section can be used to set the consent for this specific appointment type."+
-        "<br /> If left blank, the concent will be the organization default",
+        "<br /> If left blank, the consent will be the organization default",
     },
   },
 };
