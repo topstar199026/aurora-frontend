@@ -1,5 +1,3 @@
-import {ref} from "vue";
-import chargeTypes from "@/core/data/charge-types";
 
 interface IAlerts {
   alert_level: string;
@@ -53,4 +51,22 @@ interface  IBillingInfoData{
   add_other_account_holder: boolean,
 }
 
-export {IAptInfoData,IAptInfoTypeData, IAlerts, IPatientInfoData, IBillingInfoData}
+interface  IOtherInfoData {
+    anesthetic_questions: boolean;
+    anesthetic_answers: Array<number>;
+    doctor_address_book_name: string;
+    doctor_address_book_id: number,
+    referral_duration: string,
+    referral_date: string,
+    no_referral: boolean,
+    no_referral_reason: string,
+}
+
+export {
+    IAptInfoData,
+    IAptInfoTypeData,
+    IAlerts,
+    IPatientInfoData,
+    IBillingInfoData,
+    IOtherInfoData
+}
