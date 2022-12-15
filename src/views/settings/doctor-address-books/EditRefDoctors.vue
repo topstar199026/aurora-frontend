@@ -393,7 +393,8 @@ export default defineComponent({
     const handleKeyUp = (e) => {
       if (e.keyCode === 13 && formData.value.provider_no.length === 8) {
         var isExist = false,
-          itemId = -1;
+          itemId = -1,
+          doctorName = "";
         doctorAddressBooks.value.forEach((item) => {
           if (
             item.provider_no.toLowerCase() ===
@@ -401,11 +402,12 @@ export default defineComponent({
           ) {
             isExist = true;
             itemId = item.id;
+            doctorName = item.full_name;
           }
         });
         if (isExist) {
           Swal.fire({
-            text: "This provider number is already in your address book for ",
+            text: `This provider number is already in your address book for ${doctorName}`,
             buttonsStyling: false,
             confirmButtonText: "VIEW",
             showCancelButton: true,
@@ -427,7 +429,7 @@ export default defineComponent({
             .then((data) => {
               if (data) {
                 Swal.fire({
-                  text: "We have preexisting information for this provider number as . Would you like to prefill the form?",
+                  text: `We have preexisting information for this provider number as ${data.full_name}. Would you like to prefill the form?`,
                   buttonsStyling: false,
                   confirmButtonText: "Yes",
                   showCancelButton: true,
@@ -438,6 +440,7 @@ export default defineComponent({
                   },
                 }).then((result) => {
                   if (result.isConfirmed) {
+                    isVisible.value = true;
                     formData.value = data;
                   } else {
                     isVisible.value = true;
