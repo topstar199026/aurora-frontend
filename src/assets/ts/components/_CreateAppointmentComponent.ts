@@ -16,7 +16,7 @@ interface IAlerts {
   appointment_confirm_method: string;
   allergies: string;
   clinical_alerts: string;
-  also_known_as: [];
+  also_known_as: Array<any>;
   is_exist: boolean;
   is_ok: boolean;
   alerts: Array<IAlerts>;
