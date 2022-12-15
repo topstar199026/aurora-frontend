@@ -191,7 +191,6 @@ import {
 } from "@/store/enums/StoreAppointmentEnums";
 import { StepperComponent } from "@/assets/ts/components";
 import StepperNavItem from "@/components/presets/StepperElements/StepperNavItem.vue";
-import { countryList, timeZoneList } from "@/core/data/country";
 import ApiService from "@/core/services/ApiService";
 import JwtService from "@/core/services/JwtService";
 import { hideModal } from "@/core/helpers/dom";
@@ -206,12 +205,6 @@ import StepFour from "@/components/appointments/partials/ModalAptStep4";
 import AptOverview from "@/components/appointments/partials/AppointmentOverview";
 
 import { mask } from "vue-the-mask";
-import { validatePhone } from "@/helpers/helpers";
-import AppointmentHistory from "@/components/presets/PatientElements/AppointmentHistory.vue";
-
-import InputWrapper from "@/components/presets/FormElements/InputWrapper.vue";
-import PatientBillingTypes from "@/core/data/patient-billing-types";
-import { convertToCurrency } from "@/core/data/billing";
 import { ElMessage } from "element-plus";
 import { Modal } from "bootstrap";
 import Swal from "sweetalert2";
@@ -236,21 +229,12 @@ export default defineComponent({
 
   setup(props) {
     const store = useStore();
-    const formRef_1 = ref(null);
     const formRef_2 = ref(null);
-    const formRef_3 = ref(null);
-    const formRef_4 = ref(null);
     const loading = ref(false);
     const tableKey = ref(0);
     const addClaimSourceModalId = `add_claim_source_modal_${props.modalId}`;
 
-    const doctorAddressBooks = computed(
-      () => store.getters.getDoctorAddressBookList
-    );
-
     const router = useRouter();
-    const claimSourceModal = ref(null);
-
     const aptInfoData = ref({
       clinic_name: "",
       clinic_id: "",
@@ -299,86 +283,6 @@ export default defineComponent({
       no_referral_reason: "",
     });
 
-    const rules = ref({
-      clinic_id: [
-        {
-          required: true,
-          message: "Clinic Name cannot be blank.",
-          trigger: "blur",
-        },
-      ],
-      arrival_time: [
-        {
-          required: true,
-          message: "Arrival time cannot be blank.",
-          trigger: "blur",
-        },
-      ],
-      appointment_type_id: [
-        {
-          required: true,
-          message: "Please select an appointment type.",
-          trigger: "blur",
-        },
-      ],
-      first_name: [
-        {
-          required: true,
-          message: "First name cannot be blank.",
-          trigger: "blur",
-        },
-      ],
-      last_name: [
-        {
-          required: true,
-          message: "Last name cannot be blank.",
-          trigger: "blur",
-        },
-      ],
-      date_of_birth: [
-        {
-          required: true,
-          message: "Date of birth cannot be blank.",
-          trigger: "blur",
-        },
-      ],
-      email: [
-        {
-          type: "email",
-          message: "Please input correct email address",
-          trigger: ["blur"],
-        },
-      ],
-      contact_number: [
-        {
-          required: true,
-          message: "Mobile Number cannot be blank.",
-          trigger: "blur",
-        },
-        { validator: validatePhone, trigger: "blur" },
-      ],
-      charge_type: [
-        {
-          required: true,
-          message: "Charge Type cannot be blank.",
-          trigger: "blur",
-        },
-      ],
-      procedure_price: [
-        {
-          type: "number",
-          message: "Procedure price must be a number",
-        },
-      ],
-      appointment_confirm_method: [
-        {
-          required: false,
-          message: "Appointment confirm cannot be blank.",
-          trigger: "blur",
-        },
-      ],
-    });
-
     const appointment_time = ref(30);
     const _stepperObj = ref(null);
     const createAptRef = ref(null);
@@ -390,9 +294,6 @@ export default defineComponent({
 
     const ava_specialist = ref([]);
     const apt_type = ref("");
-
-    const aneAnswers = ref([]);
-    const proAnswers = ref([]);
     const anesthetist = ref([]);
     const clinic = ref([]);
     const rooms = ref([]);
@@ -407,37 +308,11 @@ export default defineComponent({
     const _appointment_time = ref(30);
     const arrival_time = ref(30);
 
-    const addressRef = ref(null);
     const title = ref(null);
     const refName = ref(null);
     const refCode = ref(null);
-    const allergiesList = ref([]);
 
     const patientTableData = ref([]);
-    const patientTableHeader = ref([
-      {
-        name: "Full Name",
-        key: "full_name",
-        sortable: true,
-        searchable: true,
-      },
-      {
-        name: "Date of Birth",
-        key: "dob",
-        sortable: true,
-        searchable: true,
-      },
-      {
-        name: "Contact Number",
-        key: "contact_number",
-        sortable: true,
-        searchable: true,
-      },
-      {
-        name: "",
-        key: "action",
-      },
-    ]);
     const filterPatient = reactive({
       first_name: "",
       last_name: "",
@@ -449,13 +324,10 @@ export default defineComponent({
 
     const overlapping_cnt = ref(0);
 
-    const healthFundsList = computed(() => store.getters.healthFundsList);
-    const aneQuestions = computed(() => store.getters.getAneQuestionActiveList);
     const aptTypeList = computed(() => store.getters.getAptTypesList);
     const aptTypeListWithRestriction = ref();
     const searchVal = computed(() => store.getters.getSearchVariable);
     const patientList = computed(() => store.getters.patientsList);
-    const patientAptData = computed(() => store.getters.getPatientAppointments);
     const aptData = computed(() => store.getters.getAptSelected);
     const aptList = computed(() => store.getters.getAptList);
     const bookingData = computed(() => store.getters.bookingDatas);
@@ -476,48 +348,6 @@ export default defineComponent({
 
     const formatDate = (date) => {
       return moment(date).format("DD-MM-YYYY").toString();
-    };
-
-    const getBillingType = (type) => {
-      const foundType = PatientBillingTypes.find(
-        (billing) => billing.value == type
-      );
-
-      return foundType?.label ?? null;
-    };
-
-    const getHealthFund = (id) => {
-      const foundFund = healthFundsList.value.find((fund) => fund.code == id);
-
-      return foundFund?.name ?? null;
-    };
-
-    const showAddClaimSourceModal = () => {
-      if (!claimSourceModal.value) {
-        claimSourceModal.value = new Modal(
-          document.getElementById(`modal_${addClaimSourceModalId}`)
-        );
-      }
-
-      claimSourceModal.value.show();
-    };
-
-    const closeAddClaimSourceModal = () => {
-      claimSourceModal.value.hide();
-    };
-
-    const addNewClaimSource = (event) => {
-      billingInfoData.value.claim_sources.push(event);
-    };
-
-    const deleteClaimSource = (source) => {
-      const index = billingInfoData.value.claim_sources.indexOf(source);
-
-      billingInfoData.value.claim_sources.splice(index, 1);
-
-      if (Object.prototype.hasOwnProperty.call(source, "id")) {
-        store.dispatch(PatientActions.CLAIM_SOURCE.DELETE, source);
-      }
     };
 
     const updateAptTime = (startTime, endTime) => {
@@ -675,38 +505,6 @@ export default defineComponent({
 
     const renderTable = () => tableKey.value++;
 
-    const handleAneQuestions = () => {
-      let temp = [];
-      for (let i in aneAnswers.value) {
-        if (aneAnswers.value[i] === true) {
-          temp.push(aneQuestions.value[i].id);
-        }
-      }
-      otherInfoData.value.anesthetic_answers = temp;
-    };
-
-    const matchExistPatientHandle = () => {
-      let filtered_patients = patientList.value.filter(
-        (p) =>
-          p.first_name === patientInfoData.value.first_name &&
-          p.last_name === patientInfoData.value.last_name &&
-          moment(p.date_of_birth).format("DD/MM/YYYY") ===
-            moment(patientInfoData.value.date_of_birth).format("DD/MM/YYYY")
-      );
-      if (filtered_patients.length) {
-        patientInfoData.value.is_exist = true;
-      }
-    };
-
-    const showMatchPatientsHandle = () => {
-      patientStep.value = 1;
-      filterPatient.first_name = patientInfoData.value.first_name;
-      filterPatient.last_name = patientInfoData.value.last_name;
-      filterPatient.date_of_birth = patientInfoData.value.date_of_birth;
-      patientStep_1();
-      patientInfoData.value.is_exist = false;
-    };
-
     watch(patientList, () => {
       patientTableData.value = patientList;
       renderTable();
@@ -814,78 +612,6 @@ export default defineComponent({
       }
     };
 
-    const handleStep_1 = async () => {
-      if (!formRef_1.value) {
-        return;
-      }
-
-      await checkAptOverlap();
-      //custom
-      if (patientStatus.value === "new") {
-        patientStep.value = 3;
-      } else {
-        patientStep.value = 1;
-      }
-
-      if (props.modalId == "new") {
-        patientInfoData.value = {
-          first_name: "",
-          last_name: "",
-          date_of_birth: "",
-          email: "",
-          address: "",
-          contact_number: "",
-          appointment_confirm_method: "sms",
-          allergies: "",
-          clinical_alerts: "",
-          also_known_as: [],
-        };
-        if (formRef_2.value) formRef_2.value.resetFields();
-      }
-
-      formRef_1.value.validate((valid) => {
-        if (valid) {
-          currentStepIndex.value++;
-          if (!_stepperObj.value) {
-            return;
-          }
-          store.dispatch(PatientActions.LIST);
-          _stepperObj.value.goNext();
-        }
-      });
-    };
-
-    const handleStep_2 = () => {
-      if (!formRef_2.value) {
-        return;
-      }
-
-      formRef_2.value.validate((valid) => {
-        if (valid) {
-          currentStepIndex.value++;
-          if (!_stepperObj.value) {
-            return;
-          }
-          _stepperObj.value.goNext();
-        }
-      });
-    };
-
-    const handleStep_3 = () => {
-      if (!formRef_3.value) {
-        return;
-      }
-
-      formRef_3.value.validate((valid) => {
-        if (valid) {
-          currentStepIndex.value++;
-          if (!_stepperObj.value) {
-            return;
-          }
-          _stepperObj.value.goNext();
-        }
-      });
-    };
     // Send request to update exiting appointment
     const handleSave = async () => {
       await checkAptOverlap();
@@ -940,29 +666,12 @@ export default defineComponent({
       resetCreateModal();
     };
 
-    const handleAddressChange = (e) => {
-      patientInfoData.value.address = e.formatted_address;
-    };
-
     const previousStep = () => {
       if (!_stepperObj.value) {
         return;
       }
       currentStepIndex.value--;
       _stepperObj.value.goPrev();
-    };
-
-    const submit = () => {
-      if (!formRef_4.value) {
-        return;
-      }
-      formRef_4.value.validate((valid) => {
-        if (valid) {
-          loading.value = true;
-          props.modalId === "new" ? createApt() : updateApt();
-          resetCreateModal();
-        }
-      });
     };
 
     const createApt = () => {
@@ -1053,53 +762,6 @@ export default defineComponent({
         });
     };
 
-    const patientStep_1 = () => {
-      patientTableData.value = [];
-      for (let key in patientInfoData.value) patientInfoData.value[key] = "";
-      if (filterPatient.date_of_birth !== "")
-        filterPatient.date_of_birth = moment(
-          filterPatient.date_of_birth
-        ).format("YYYY-MM-DD");
-      store.dispatch(PatientActions.LIST, filterPatient);
-      patientStep.value++;
-    };
-
-    const selectPatient = (item) => {
-      store.dispatch(PatientActions.APPOINTMENTS, item.id);
-      store.dispatch(PatientActions.VIEW, item.id);
-      for (let key in patientInfoData.value)
-        patientInfoData.value[key] = item[key];
-      patientInfoData.value.alerts = item.alerts;
-      aptInfoData.value.patient_id = item.id;
-
-      for (let key in billingInfoData.value) {
-        if (
-          key === "charge_type" ||
-          key === "procedure_price" ||
-          key === "claim_sources"
-        ) {
-          continue;
-        }
-
-        billingInfoData.value[key] = item[key];
-      }
-
-      billingInfoData.value.claim_sources = item.billings;
-
-      patientInfoData.value.also_known_as = item.also_known_as;
-
-      patientInfoData.value.is_ok = true;
-      let blocklist = patientInfoData.value.alerts.filter(
-        (a) => a.alert_level == "BLACKLISTED" && !a.is_dismissed
-      );
-      if (blocklist.length) patientInfoData.value.is_ok = false;
-      // patientStep.value++;
-    };
-
-    const afterSelectPatient = () => {
-      patientStep.value++;
-    };
-
     const gotoPage = async (page) => {
       await checkAptOverlap();
       if (props.modalId === "update") {
@@ -1108,61 +770,8 @@ export default defineComponent({
       }
     };
 
-    const patientPrevStep = () => {
-      if (patientStatus.value === "new") previousStep();
-      else patientStep.value--;
-    };
-
-    const handleSelectDoctorAddressBook = (item) => {
-      otherInfoData.value.doctor_address_book_id = item.id;
-    };
-
-    let timeout;
-    const searchDoctorAddressBook = (term, cb) => {
-      const results = term
-        ? doctorAddressBooks.value.filter(createDoctorAddressBookFilter(term))
-        : doctorAddressBooks.value;
-
-      clearTimeout(timeout);
-      timeout = setTimeout(() => {
-        cb(results);
-      }, 1000);
-    };
-
-    const createDoctorAddressBookFilter = (term) => {
-      const keyword = term.toString();
-      return (doctorAddressBook) => {
-        const full_name =
-          doctorAddressBook.title +
-          " " +
-          doctorAddressBook.first_name +
-          " " +
-          doctorAddressBook.last_name;
-        const full_name_pos = full_name
-          .toLowerCase()
-          .indexOf(keyword.toLowerCase());
-        const address_pos = doctorAddressBook.practice_address
-          .toLowerCase()
-          .indexOf(keyword.toLowerCase());
-        return full_name_pos !== -1 || address_pos !== -1;
-      };
-    };
-
     const timeStr2Number = (time) => {
       return Number(time.split(":")[0] + time.split(":")[1]);
-    };
-
-    const updatePatientDetails = (details) => {
-      const previousData = {
-        first_name: patientInfoData.value.first_name,
-        last_name: patientInfoData.value.last_name,
-      };
-
-      for (const detailName in details) {
-        patientInfoData.value[detailName] = details[detailName];
-      }
-
-      patientInfoData.value.also_known_as.push(previousData);
     };
 
     const checkAptOverlap = () => {
@@ -1286,88 +895,27 @@ export default defineComponent({
     };
 
     return {
-      chargeTypes,
-      rules,
-      clinic,
-      rooms,
-      ava_specialist,
-      healthFundsList,
-      aneQuestions,
-      aneAnswers,
-      proAnswers,
-      aptTypeListWithRestriction,
-      anesthetist,
+      rooms, // TODO move this to step 1 component
       apt_type,
-      cur_appointment_type_id,
       cur_specialist,
-      start_time,
-      end_time,
       appointment_name,
       appointment_type_quote,
-      appointmentType,
-      specialist_name,
-      submit,
-      formRef_1,
-      formRef_2,
-      formRef_3,
-      formRef_4,
       loading,
-      previousStep,
-      handleStep_1,
-      handleStep_2,
-      handleStep_3,
-      handleCancel,
-      currentStepIndex,
       createAptRef,
       createAptModalRef,
-      countryList,
-      timeZoneList,
-      handleAneQuestions,
-      handleAddressChange,
-      addressRef,
       patientStatus,
-      patientStep,
-      patientStep_1,
-      filterPatient,
-      patientTableHeader,
-      patientTableData,
-      selectPatient,
-      afterSelectPatient,
-      patientPrevStep,
       aptInfoData,
       patientInfoData,
       billingInfoData,
       otherInfoData,
-      formatDate,
-      patientAptData,
-      overlapping_cnt,
-      searchDoctorAddressBook,
-      handleSelectDoctorAddressBook,
-      tableKey,
-      gotoPage,
-      editAptRef,
-      editAptModalRef,
-      handleSave,
-      aptTypeList,
       title,
-      refName,
-      matchExistPatientHandle,
-      showMatchPatientsHandle,
-      PatientBillingTypes,
-      showAddClaimSourceModal,
-      addNewClaimSource,
-      closeAddClaimSourceModal,
-      deleteClaimSource,
-      getBillingType,
-      getHealthFund,
-      updatePatientDetails,
-      allergiesList,
-      convertToCurrency,
-      addClaimSourceModalId,
+      isNewPatient,
+      previousStep,
+      handleCancel,
+      gotoPage,
       processStepOne,
       processSave,
       changeAptType,
-      isNewPatient,
       processStepTwo,
       processStepThree,
       processStepFour,
