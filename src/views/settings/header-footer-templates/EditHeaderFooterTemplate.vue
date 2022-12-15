@@ -210,7 +210,6 @@ import { useStore } from "vuex";
 import { hideModal } from "@/core/helpers/dom";
 import Swal from "sweetalert2/dist/sweetalert2.js";
 import { Actions } from "@/store/enums/StoreEnums";
-import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import { ElMessage } from "element-plus";
 
 export default defineComponent({
@@ -321,7 +320,6 @@ export default defineComponent({
       loading,
       editHeaderFooterTemplateModalRef,
       submit,
-      ClassicEditor,
       handleAvatarSuccess,
     };
   },

@@ -187,14 +187,10 @@ import { Actions } from "@/store/enums/StoreEnums";
 import { CodingActions } from "@/store/enums/StoreCodingEnums";
 import { ElForm } from "element-plus";
 import patientDocumentTemplateTypes from "@/core/data/patient-document-template-types";
-import CKEditor from "@ckeditor/ckeditor5-vue";
-import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
+import ClassicEditor from "ckeditor5-custom-build/build/ckeditor";
 
 export default defineComponent({
   name: "create-document-template-modal",
-  components: {
-    ckeditor: CKEditor.component,
-  },
   setup() {
     const store = useStore();
     const formRef = ref<typeof ElForm | null>(null);

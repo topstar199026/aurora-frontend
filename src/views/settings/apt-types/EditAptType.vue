@@ -218,8 +218,7 @@ import Swal from "sweetalert2/dist/sweetalert2.js";
 import { AppointmentActions } from "@/store/enums/StoreAppointmentEnums";
 import { Actions } from "@/store/enums/StoreEnums";
 import InputWrapper from "@/components/presets/FormElements/InputWrapper.vue";
-import CKEditor from "@ckeditor/ckeditor5-vue";
-import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
+import ClassicEditor from "ckeditor5-custom-build/build/ckeditor";
 import IAppointmentType from "@/store/interfaces/IAppointmentType";
 import CardSection from "@/components/presets/GeneralElements/CardSection.vue";
 import helpTexts from "@/core/data/help-texts";
@@ -228,7 +227,6 @@ export default defineComponent({
   name: "edit-apt-type",
   components: {
     InputWrapper,
-    ckeditor: CKEditor.component,
     CardSection,
   },
   setup() {

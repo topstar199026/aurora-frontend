@@ -95,14 +95,10 @@ import Swal from "sweetalert2/dist/sweetalert2.min.js";
 import { setCurrentPageBreadcrumbs } from "@/core/helpers/breadcrumb";
 import { Actions } from "@/store/enums/StoreEnums";
 import { useRouter } from "vue-router";
-import CKEditor from "@ckeditor/ckeditor5-vue";
-import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
+import ClassicEditor from "ckeditor5-custom-build/build/ckeditor";
 
 export default defineComponent({
   name: "email-compose",
-  components: {
-    ckeditor: CKEditor.component,
-  },
   setup() {
     const rules = ref({
       to_user_ids: [

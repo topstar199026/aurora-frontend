@@ -39,7 +39,6 @@ import Swal from "sweetalert2/dist/sweetalert2.min.js";
 import { useRouter } from "vue-router";
 import ApiService from "@/core/services/ApiService";
 import Editor from "ckeditor5-custom-build/build/ckeditor";
-import $ from "jquery";
 export default defineComponent({
   name: "pre-admission-consent",
   setup() {
