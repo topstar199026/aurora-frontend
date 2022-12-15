@@ -142,7 +142,7 @@
             userRole !== 'anesthetist'
           "
           @click="handleCheckIn"
-          :heading="'Check In'"
+          text="CHECK IN"
           :iconPath="'media/icons/duotune/arrows/arr024.svg'"
           :color="'primary'"
           justify="start"
@@ -157,7 +157,7 @@
             userRole !== 'anesthetist'
           "
           @click="handleCheckOut"
-          :heading="'Check Out'"
+          text="CHECK OUT"
           :iconPath="'media/icons/duotune/arrows/arr021.svg'"
           :color="'primary'"
           justify="start"
@@ -170,7 +170,7 @@
             userRole !== 'specialist' &&
             userRole !== 'anesthetist'
           "
-          :heading="'Checked Out'"
+          text="CHECKED OUT"
           :iconPath="'media/icons/duotune/arrows/arr021.svg'"
           :color="'grey'"
           justify="start"
@@ -180,7 +180,7 @@
         <!--View Patient-->
         <LargeIconButton
           @click="handleView"
-          :heading="'View'"
+          text="VIEW"
           :iconPath="'media/icons/duotune/medicine/med001.svg'"
           :color="'primary'"
           justify="start"
@@ -191,7 +191,7 @@
         <LargeIconButton
           v-if="userRole !== 'specialist' && userRole !== 'anesthetist'"
           @click="handleEdit"
-          :heading="'Edit'"
+          text="EDIT"
           :iconPath="'media/icons/duotune/general/gen055.svg'"
           :color="'success'"
           justify="start"
@@ -202,10 +202,10 @@
           <!--Move Appointment-->
           <div class="col-6">
             <LargeIconButton
-              class="me-1"
+              class="me-1 w-100"
               v-if="userRole !== 'specialist' && userRole !== 'anesthetist'"
               @click="handleMove"
-              :heading="'Move'"
+              text="MOVE"
               :iconPath="'media/icons/duotune/arrows/arr035.svg'"
               :color="'success'"
               justify="start"
@@ -215,10 +215,10 @@
           <div class="col-6">
             <!--Move Appointment-->
             <LargeIconButton
-              class="ms-1"
+              class="ms-1 w-100"
               v-if="userRole !== 'specialist' && userRole !== 'anesthetist'"
               @click="handleCopy"
-              :heading="'Copy'"
+              text="COPY"
               :iconPath="'media/icons/duotune/arrows/arr058.svg'"
               :color="'success'"
               justify="start"
@@ -231,7 +231,7 @@
         <LargeIconButton
           v-if="userRole !== 'specialist' && userRole !== 'anesthetist'"
           @click="handleCancel"
-          :heading="'Cancel'"
+          text="Cancel"
           :iconPath="'media/icons/duotune/arrows/arr011.svg'"
           :color="'danger'"
           justify="start"
