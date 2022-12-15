@@ -6,14 +6,7 @@
     ref="formRef"
   >
     <el-form-item prop="body">
-      <ckeditor
-        v-if="editorConfig"
-        :editor="editor"
-        id="editor"
-        v-model="formData.text"
-        :config="editorConfig"
-        @input="formatAutoTexts"
-      />
+      <ckeditor :editor="editor" id="editor" v-model="formData.text" />
     </el-form-item>
 
     <div class="d-flex flex-row-reverse">
@@ -32,12 +25,6 @@
     </div>
   </el-form>
 </template>
-<style>
-:root {
-  --ck-color-mention-background: none;
-  --ck-color-mention-text: #000000;
-}
-</style>
 <script>
 import {
   defineComponent,
@@ -64,27 +51,6 @@ export default defineComponent({
       text: "",
     });
 
-    const getAutoCompleteItems = (queryText) => {
-      let testItems = [
-        {
-          id: "@The mention feature expects that the mention attribute value",
-        },
-        {
-          id: "@in the model is a plain object with a set of additional attributes",
-        },
-        {
-          id: "@In order to create a proper object use the toMentionAttribute() helper method",
-        },
-        { id: "@Add any other properties that you need" },
-      ];
-
-      return testItems.filter(isItemMatching);
-
-      function isItemMatching(item) {
-        return item.id.toLowerCase().includes(queryText.toLowerCase());
-      }
-    };
-
     const rules = ref({
       text: [
         {
@@ -97,27 +63,13 @@ export default defineComponent({
 
     onMounted(() => {
       setCurrentPageBreadcrumbs("Pre-Admission Consent", ["Settings"]);
-      editorConfig.value = {
-        mention: {
-          feeds: [
-            {
-              marker: "@",
-              feed: getAutoCompleteItems,
-              minimumCharacters: 2,
-            },
-          ],
-        },
-      };
-
-      console.log(editor.value.conversion);
     });
 
     const submit = () => {
       if (!formRef.value) {
         return;
       }
-      console.log(formData.value.text);
-      /*
+
       formRef.value.validate((valid) => {
         if (valid) {
           ApiService.post("update-pre-admission-consent", formData.value)
@@ -138,19 +90,7 @@ export default defineComponent({
               console.log(response.data.error);
             });
         }
-      });*/
-    };
-
-    const formatAutoTexts = () => {
-      if (formData.value.text.includes('class="mention"')) {
-        let text = formData.value.text;
-
-        // eslint-disable-next-line prettier/prettier
-        text = text.replace('@', "");
-        text = text.replace(' class="mention"', "");
-        console.log(text);
-        // console.log(text);
-      }
+      });
     };
 
     return {
@@ -158,9 +98,7 @@ export default defineComponent({
       formData,
       submit,
       editor,
-      editorConfig,
       formRef,
-      formatAutoTexts,
     };
   },
 });
