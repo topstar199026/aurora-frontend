@@ -135,232 +135,15 @@
                 <!--end::Step 2-->
 
                 <!--begin::Step 3 -->
-                <div data-kt-stepper-element="content">
-                  <div class="w-100">
-                    <el-form
-                      class="w-100"
-                      :model="billingInfoData"
-                      :rules="rules"
-                      ref="formRef_3"
-                      @submit.prevent=""
-                    >
-                      <div class="row">
-                        <InputWrapper
-                          class="col-12"
-                          label="Charge Type"
-                          prop="charge_type"
-                        >
-                          <el-select
-                            class="w-100"
-                            v-model="billingInfoData.charge_type"
-                            placeholder="Select Charge Type"
-                          >
-                            <el-option
-                              v-for="type in chargeTypes"
-                              :key="type.value"
-                              :value="type.value"
-                              :label="type.label"
-                            />
-                          </el-select>
-                        </InputWrapper>
-
-                        <div class="mb-4">
-                          <InfoSection :heading="'Estimated Appointment Price'">
-                            {{
-                              convertToCurrency(appointment_type_quote / 100)
-                            }}
-                          </InfoSection>
-                        </div>
-
-                        <el-divider />
-
-                        <div>
-                          <button
-                            type="button"
-                            class="btn btn-light btn-icon-primary me-3 mb-3"
-                            @click="showAddClaimSourceModal"
-                          >
-                            Add Claim Source
-                          </button>
-
-                          <div
-                            v-for="(
-                              item, index
-                            ) in billingInfoData.claim_sources"
-                            :key="`new-claim-source-${index}`"
-                            class="d-flex flex-row align-items-center justify-content-between p-3 mb-3 card border border-dashed border-primary gap-4"
-                          >
-                            <div>
-                              <label class="fs-5 text-primary">
-                                {{ getBillingType(item.billing_type) }}:
-
-                                <span class="text-black fs-5">
-                                  {{ item.member_number }}
-                                </span>
-                              </label>
-
-                              <div
-                                v-if="item.billing_type != 3"
-                                class="d-flex gap-3"
-                              >
-                                <label class="text-primary">
-                                  Reference:
-
-                                  <span class="text-black">
-                                    {{ item.member_ref_number ?? "N/A" }}
-                                  </span>
-                                </label>
-
-                                <label
-                                  v-if="item.billing_type == 2"
-                                  class="text-primary"
-                                >
-                                  Fund:
-
-                                  <span class="text-black">
-                                    {{ getHealthFund(item.health_fund_id) }}
-                                  </span>
-                                </label>
-                              </div>
-                            </div>
-
-                            <button
-                              type="button"
-                              class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm"
-                              @click="deleteClaimSource(item)"
-                            >
-                              <span class="svg-icon svg-icon-3">
-                                <InlineSVG icon="bin" />
-                              </span>
-                            </button>
-                          </div>
-
-                          <AddClaimSourceModal
-                            :patient="patientInfoData"
-                            :modalId="addClaimSourceModalId"
-                            v-on:addClaimSource="addNewClaimSource"
-                            v-on:closeModal="closeAddClaimSourceModal"
-                            v-on:updateDetails="updatePatientDetails"
-                            shouldEmit
-                          />
-                        </div>
-
-                        <el-divider />
-
-                        <InputWrapper
-                          v-if="billingInfoData.charge_type === 'pension-card'"
-                          class="col-6"
-                          label="Pension Card Number"
-                          prop="pension_card_number"
-                        >
-                          <el-input
-                            class="w-100"
-                            v-model="billingInfoData.pension_card_number"
-                          />
-                        </InputWrapper>
-
-                        <InputWrapper
-                          v-if="
-                            billingInfoData.charge_type === 'healthcare-card'
-                          "
-                          class="col-6"
-                          label="Healthcare Card Number"
-                          prop="healthcare_card_number"
-                        >
-                          <el-input
-                            class="w-100"
-                            v-model="billingInfoData.healthcare_card_number"
-                          />
-                        </InputWrapper>
-                        <InputWrapper
-                          v-if="
-                            billingInfoData.charge_type === 'healthcare-card' ||
-                            billingInfoData.charge_type === 'pension-card'
-                          "
-                          class="col-6"
-                          label="Expiry Date"
-                          prop="expiry_date"
-                        >
-                          <el-input
-                            class="w-100"
-                            v-model="billingInfoData.healthcare_card_number"
-                          />
-                        </InputWrapper>
-
-                        <div
-                          class="col-sm-6 d-flex align-items-center justify-content-center"
-                        >
-                          <!--begin::Input group-->
-                          <div class="fv-row">
-                            <!--begin::Input-->
-                            <el-form-item
-                              class="m-0"
-                              prop="add_other_account_holder"
-                            >
-                              <el-checkbox
-                                type="checkbox"
-                                v-model="
-                                  billingInfoData.add_other_account_holder
-                                "
-                                label="Add other account holder"
-                              />
-                            </el-form-item>
-                            <!--end::Input-->
-                          </div>
-                          <!--end::Input group-->
-
-                          <!--end::Body-->
-                        </div>
-                        <el-divider />
-                      </div>
-                      <div class="d-flex justify-content-between">
-                        <button
-                          type="button"
-                          class="btn btn-lg btn-light-primary me-3"
-                          data-kt-stepper-action="previous"
-                          @click="previousStep"
-                        >
-                          <span class="svg-icon svg-icon-4 me-1">
-                            <inline-svg
-                              src="media/icons/duotune/arrows/arr063.svg"
-                            />
-                          </span>
-                          Back
-                        </button>
-                        <div>
-                          <button
-                            type="button"
-                            class="btn btn-lg btn-light-primary me-3"
-                            v-if="modalId == 'modal_edit_apt'"
-                            @click="handleSave"
-                          >
-                            <span v-if="!loading" class="indicator-label">
-                              Save
-                            </span>
-                            <span v-if="loading" class="indicator-label">
-                              Please wait...
-                              <span
-                                class="spinner-border spinner-border-sm align-middle ms-2"
-                              ></span>
-                            </span>
-                          </button>
-                          <button
-                            type="button"
-                            class="btn btn-lg btn-primary align-self-end"
-                            @click="handleStep_3"
-                          >
-                            Continue
-                            <span class="svg-icon svg-icon-4 ms-1 me-0">
-                              <inline-svg
-                                src="media/icons/duotune/arrows/arr064.svg"
-                              />
-                            </span>
-                          </button>
-                        </div>
-                      </div>
-                    </el-form>
-                  </div>
-                </div>
+                <StepThree
+                  :loading="loading"
+                  :modal-id="modalId"
+                  @save="processSave"
+                  @process="processStepThree"
+                  :patient-data-e="patientInfoData"
+                  :billing-data-e="billingInfoData"
+                  @go-back="previousStep"
+                />
                 <!--end::Step 3-->
 
                 <!--begin::Step 4 -->
@@ -562,7 +345,7 @@
                         <button
                           type="button"
                           class="btn btn-lg btn-light-primary me-3"
-                          v-if="modalId == 'modal_edit_apt'"
+                          v-if="modalId == 'update'"
                           @click="handleSave"
                         >
                           <span v-if="!loading" class="indicator-label">
@@ -616,18 +399,6 @@
   </div>
   <!--end::Modal - Create App-->
 </template>
-
-<style lang="scss">
-.special-patient-alerts .modal.patient-alert .modal-footer {
-  display: none;
-}
-
-.exist-message {
-  label {
-    color: grey;
-  }
-}
-</style>
 <script>
 import {
   defineComponent,
@@ -657,6 +428,7 @@ import { useRouter } from "vue-router";
 
 import StepOne from "@/components/appointments/partials/ModalAptStep1";
 import StepTwo from "@/components/appointments/partials/ModalAptStep2";
+import StepThree from "@/components/appointments/partials/ModalAptStep3";
 import AptOverview from "@/components/appointments/partials/AppointmentOverview";
 
 import { mask } from "vue-the-mask";
@@ -665,8 +437,6 @@ import AppointmentHistory from "@/components/presets/PatientElements/Appointment
 
 import InputWrapper from "@/components/presets/FormElements/InputWrapper.vue";
 import PatientBillingTypes from "@/core/data/patient-billing-types";
-import AddClaimSourceModal from "@/views/patients/modals/AddClaimSourceModal.vue";
-import InfoSection from "@/components/presets/GeneralElements/InfoSection.vue";
 import { convertToCurrency } from "@/core/data/billing";
 import { ElMessage } from "element-plus";
 import { Modal } from "bootstrap";
@@ -686,10 +456,9 @@ export default defineComponent({
     StepperNavItem,
     InputWrapper,
     AptOverview,
-    AddClaimSourceModal,
-    InfoSection,
     StepOne,
     StepTwo,
+    StepThree,
   },
 
   setup(props) {
@@ -1726,6 +1495,17 @@ export default defineComponent({
       _stepperObj.value.goNext();
     };
 
+    const processStepThree = (billingData) => {
+      console.log("here we are at step 3");
+      for (let key in billingData)
+        billingInfoData.value[key] = billingData[key];
+      currentStepIndex.value++;
+      if (!_stepperObj.value) {
+        return;
+      }
+      _stepperObj.value.goNext();
+    };
+
     return {
       chargeTypes,
       rules,
@@ -1810,7 +1590,20 @@ export default defineComponent({
       changeAptType,
       isNewPatient,
       processStepTwo,
+      processStepThree,
     };
   },
 });
 </script>
+
+<style lang="scss">
+.special-patient-alerts .modal.patient-alert .modal-footer {
+  display: none;
+}
+
+.exist-message {
+  label {
+    color: grey;
+  }
+}
+</style>
