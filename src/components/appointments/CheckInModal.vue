@@ -140,13 +140,6 @@
                 >
                   <div class="d-flex flex-column gap-4">
                     <HeadingText text="Appointment Actions" />
-                    <el-input
-                      @change="handleLabelCountChange"
-                      type="number"
-                      min="1"
-                      v-model="label_count"
-                      placeholder="Enter label print count"
-                    />
                     <PrintLabelButton
                       :printCount="label_count"
                       :appointment="appointment"
@@ -225,8 +218,6 @@ import PatientDetailsForm from "../patients/PatientDetailsForm.vue";
 import PatientBillingForm from "../patients/billing/PatientBillingForm.vue";
 import AppointmentReferralForm from "./partials/AppointmentReferralForm.vue";
 import { Modal } from "bootstrap";
-import { StorageKey } from "@/core/enum/storage-key";
-import { getLocalStorage } from "@/utils/LocalStorage.Util";
 
 export default defineComponent({
   components: {
@@ -250,20 +241,12 @@ export default defineComponent({
     const router = useRouter();
     const currentPage = ref<number>(1);
     const loading = ref<boolean>(false);
-    const default_count = getLocalStorage(StorageKey.PrintLabelCount)
-      ? Number(getLocalStorage(StorageKey.PrintLabelCount))
-      : 1;
-    const label_count = ref(default_count);
 
     const gotoPage = (page) => {
       currentPage.value = page;
       if (_stepperObj.value) {
         _stepperObj.value.goto(page);
       }
-    };
-
-    const handleLabelCountChange = (e) => {
-      console.log(e);
     };
 
     watch(checkInAptStepperRef, () => {
@@ -327,8 +310,6 @@ export default defineComponent({
       createAptModalRef,
       loading,
       handleCancel,
-      label_count,
-      handleLabelCountChange,
     };
   },
 });

@@ -1,14 +1,20 @@
 <template>
+  <el-input
+    type="number"
+    min="1"
+    v-model="label_count"
+    placeholder="Enter label print count"
+  />
   <LargeIconButton text="Print Label" @click="handlePrint()" />
 </template>
 
 <script lang="ts">
 import IPatient from "@/store/interfaces/IPatient";
-import { PropType } from "vue";
+import { PropType, ref } from "vue";
 import { printPatientLabel } from "@/helpers/helpers";
 import IAppointment from "@/store/interfaces/IAppointment";
 import { StorageKey } from "@/core/enum/storage-key";
-import { setLocalStorage } from "@/utils/LocalStorage.Util";
+import { setLocalStorage, getLocalStorage } from "@/utils/LocalStorage.Util";
 
 export default {
   props: {
@@ -26,6 +32,10 @@ export default {
     },
   },
   setup(props) {
+    const default_count = getLocalStorage(StorageKey.PrintLabelCount)
+      ? Number(getLocalStorage(StorageKey.PrintLabelCount))
+      : 1;
+    const label_count = ref(default_count);
     const handlePrint = () => {
       setLocalStorage(StorageKey.PrintLabelCount, props.printCount);
       for (var i = 0; i < props.printCount; i++) {
@@ -36,7 +46,10 @@ export default {
       printPatientLabel(props.patient, props.appointment, "ZDesigner GK420d");
     };
 
-    return { handlePrint };
+    return {
+      handlePrint,
+      label_count,
+    };
   },
 };
 </script>
