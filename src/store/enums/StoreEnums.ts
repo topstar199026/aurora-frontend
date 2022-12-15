@@ -271,8 +271,6 @@ const Mutations = {
     LIST: "setDoctorAddressBook",
   },
 
-  SET_DOCTOR_ADDRESS_WITH_GIVEN_PROVIDER_NO: "setDoctorAddressWithGivenProviderNo",
-
   SET_DOCUMENT_TEMPLATES: {
     LIST: "setDocumentTemplates",
     SELECT: "setSelectDocumentTemplate",

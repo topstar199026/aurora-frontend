@@ -267,9 +267,6 @@ export default defineComponent({
     const doctorAddressBooks = computed(
       () => store.getters.getDoctorAddressBookList
     );
-    const doctorAddressWithGivenProviderNo = computed(
-      () => store.getters.doctorAddressWithGivenProviderNo
-    );
     const loading = ref(false);
 
     const formInfo = reactive({
@@ -428,7 +425,28 @@ export default defineComponent({
               formData.value.provider_no
             )
             .then((data) => {
-              console.log(data);
+              if (data) {
+                Swal.fire({
+                  text: "We have preexisting information for this provider number as . Would you like to prefill the form?",
+                  buttonsStyling: false,
+                  confirmButtonText: "Yes",
+                  showCancelButton: true,
+                  cancelButtonText: "No",
+                  customClass: {
+                    confirmButton: "btn btn-primary",
+                    cancelButton: "btn btn-light-primary",
+                  },
+                }).then((result) => {
+                  if (result.isConfirmed) {
+                    formData.value = data;
+                  } else {
+                    isVisible.value = true;
+                    formRef.value.resetFields();
+                  }
+                });
+              } else {
+                isVisible.value = true;
+              }
             });
         }
       }
