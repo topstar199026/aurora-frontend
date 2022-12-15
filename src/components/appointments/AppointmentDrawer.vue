@@ -231,7 +231,7 @@
         <LargeIconButton
           v-if="userRole !== 'specialist' && userRole !== 'anesthetist'"
           @click="handleCancel"
-          text="Cancel"
+          text="CANCEL"
           :iconPath="'media/icons/duotune/arrows/arr011.svg'"
           :color="'danger'"
           justify="start"
