@@ -699,7 +699,7 @@ export default defineComponent({
             {
               marker: "@",
               feed: getAutoCompleteItems,
-              minimumCharacters: 2,
+              minimumCharacters: 0,
             },
           ],
         },
