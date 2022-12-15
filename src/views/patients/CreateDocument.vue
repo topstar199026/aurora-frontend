@@ -6,7 +6,11 @@
       <!--begin::Card title-->
       <div class="card-title m-0">
         <h3 class="fw-bolder m-0">
-          Procedure {{ toSentenceCase(documentType.toString()) }}
+          Procedure {{ toSentenceCase(documentType.toString()) }} for
+          {{ appointmentData?.patient_name.full }}
+          ({{
+            moment(patientData?.date_of_birth).format("DD/MM/YYYY").toString()
+          }})
         </h3>
       </div>
       <!--end::Card title-->
@@ -16,18 +20,12 @@
     <div class="card-body">
       <div class="mb-8">
         <div class="d-flex flex-column flex-sm-row gap-4">
-          <div class="col-sm-6">
+          <div>
             <div class="d-flex flex-column gap-4">
-              <label class="text-muted fs-6 fw-bold mb-2 d-block">
-                Appointment
-              </label>
-
-              <InfoSection heading="Date">
+              <InfoSection heading="Appointment">
                 {{ appointmentData?.aus_formatted_date }},
-                {{ appointmentData?.start_time }}
-              </InfoSection>
-
-              <InfoSection heading="Clinic">
+                {{ appointmentData?.appointment_type.name }}
+                {{ appointmentData?.start_time }} @
                 {{ appointmentData?.clinic?.name }}
               </InfoSection>
 
@@ -36,26 +34,6 @@
                 heading="Referring Doctor"
               >
                 {{ appointmentData?.referral?.doctor_address_book_name }}
-              </InfoSection>
-            </div>
-          </div>
-
-          <div class="col-sm-6 mt-6 mt-sm-0">
-            <div class="d-flex flex-column gap-4">
-              <label class="text-muted fs-6 fw-bold mb-2 d-block">
-                Patient
-              </label>
-
-              <InfoSection heading="Name">
-                {{ appointmentData?.patient_name.full }}
-              </InfoSection>
-
-              <InfoSection heading="Date of Birth">
-                {{
-                  moment(patientData?.date_of_birth)
-                    .format("DD/MM/YYYY")
-                    .toString()
-                }}
               </InfoSection>
             </div>
           </div>
@@ -71,56 +49,49 @@
         ref="formRef"
       >
         <div class="report-template-wrapper">
-          <InputWrapper
-            class="fill-out"
-            :label="`${toSentenceCase(documentType.toString())} Template`"
-          >
-            <el-select
-              class="w-100"
-              v-model="templateData"
-              :placeholder="`Select ${toSentenceCase(
-                documentType.toString()
-              )} Template`"
+          <div class="d-flex flex-row gap-2">
+            <InputWrapper
+              class="fill-out col-6"
+              :label="`${toSentenceCase(documentType.toString())} Template`"
             >
-              <el-option
-                v-for="(option, idx) in reportTemplatesData"
-                :key="option.id"
-                :value="idx"
-                :label="option.title"
-              />
-            </el-select>
-          </InputWrapper>
+              <el-select
+                class="w-100"
+                v-model="templateData"
+                :placeholder="`Select ${toSentenceCase(
+                  documentType.toString()
+                )} Template`"
+              >
+                <el-option
+                  v-for="(option, idx) in reportTemplatesData"
+                  :key="option.id"
+                  :value="idx"
+                  :label="option.title"
+                />
+              </el-select>
+            </InputWrapper>
 
-          <InputWrapper class="title-input-wrapper fill-out" prop="title">
-            <el-input
-              v-model="formData.title"
-              type="text"
-              placeholder="Title"
-            />
-          </InputWrapper>
-
-          <InputWrapper
-            required
-            class="fill-out"
-            label="Header/Footer Template"
-            prop="header_footer_templates"
-          >
-            <el-select
-              class="col-12"
-              v-model="formData.headerFooter"
-              placeholder="Select Header/Footer Template"
-              props="header_footer_templates_select"
+            <InputWrapper
+              required
+              class="fill-out col-6"
+              label="Header/Footer Template"
+              prop="header_footer_templates"
             >
-              <el-option :value="0" label="Use Default" />
-              <el-option
-                v-for="(option, idx) in headerFooterList"
-                :key="option.id"
-                :value="idx"
-                :label="option.title"
-              />
-            </el-select>
-          </InputWrapper>
-
+              <el-select
+                class="col-12"
+                v-model="formData.headerFooter"
+                placeholder="Select Header/Footer Template"
+                props="header_footer_templates_select"
+              >
+                <el-option :value="0" label="Use Default" />
+                <el-option
+                  v-for="(option, idx) in headerFooterList"
+                  :key="option.id"
+                  :value="idx"
+                  :label="option.title"
+                />
+              </el-select>
+            </InputWrapper>
+          </div>
           <el-divider />
 
           <template v-if="documentType == 'report'">
@@ -227,40 +198,38 @@
             </InputWrapper>
           </template>
 
-          <InputWrapper class="fill-out" label="Include:" prop="include">
-            <div class="d-flex">
+          <InputWrapper
+            class="fill-out"
+            label="Include Patient Details:"
+            prop="include"
+          >
+            <div class="d-flex flex-row">
               <el-checkbox
                 size="large"
-                class="col-6"
                 v-model="formData.patient_demographic"
                 :checked="false"
               >
-                Patient Demographic
+                Demographic
               </el-checkbox>
 
               <el-checkbox
                 size="large"
-                class="col-6"
                 v-model="formData.current_medications"
                 :checked="false"
               >
                 Current Medications
               </el-checkbox>
-            </div>
 
-            <div class="d-flex">
               <el-checkbox
                 size="large"
-                class="col-6"
                 v-model="formData.patient_allergies"
                 :checked="false"
               >
-                Patient Allergies
+                Allergies
               </el-checkbox>
 
               <el-checkbox
                 size="large"
-                class="col-6"
                 v-model="formData.past_medical_history"
                 :checked="false"
               >
@@ -270,27 +239,35 @@
           </InputWrapper>
 
           <el-divider />
+          <InputWrapper
+            class="title-input-wrapper fill-out"
+            label="Document title"
+            prop="title"
+          >
+            <el-input
+              v-model="formData.title"
+              type="text"
+              placeholder="Title"
+            />
+          </InputWrapper>
 
           <div
             v-for="section in reportSections"
             class="d-flex flex-column gap-2"
             :key="section.id"
           >
-            <el-divider />
-
             <div class="fv-row">
               <label class="required fs-6 fw-bold mb-2">
                 {{ section.title }}
               </label>
 
               <el-form-item prop="note">
-                <label class="text-muted fs-6 fw-bold mb-2 d-block">
-                  Free Text
-                </label>
-
                 <ckeditor
-                  :editor="ClassicEditor"
+                  v-if="editorConfig"
+                  @input="formatAutoTexts"
+                  :editor="Editor"
                   v-model="section.free_text_default"
+                  :config="editorConfig"
                 />
               </el-form-item>
             </div>
@@ -362,8 +339,6 @@ import {
   DocumentActions,
   DocumentMutations,
 } from "@/store/enums/StoreDocumentEnums";
-import InfoSection from "@/components/presets/GeneralElements/InfoSection.vue";
-import InputWrapper from "../../components/presets/FormElements/InputWrapper.vue";
 import { Actions } from "@/store/enums/StoreEnums";
 import IScheduleItem from "@/store/interfaces/IScheduleItem";
 import { Modal } from "bootstrap";
@@ -374,14 +349,9 @@ import IAppointment from "@/store/interfaces/IAppointment";
 import { ElForm } from "element-plus";
 import { FormRulesMap } from "element-plus/es/components/form/src/form.type";
 import { PatientActions } from "@/store/enums/StorePatientEnums";
-import CKEditor from "@ckeditor/ckeditor5-vue";
-import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
+import Editor from "ckeditor5-custom-build/build/ckeditor";
 
 export default defineComponent({
-  components: {
-    ckeditor: CKEditor.component,
-    ReportPreviewModal,
-  },
   setup() {
     const store = useStore();
     const loading = ref<boolean>(false);
@@ -399,7 +369,7 @@ export default defineComponent({
     const documentPreviewFileName = ref(null);
     const reportSections = ref<Array<IDocumentSection>>([]);
     const timeout = ref<number | null>(null);
-
+    const editorConfig = ref();
     const formData = ref({
       title: "",
       section: [],
@@ -722,9 +692,53 @@ export default defineComponent({
       if (documentType == "report") {
         store.dispatch(Actions.SCHEDULE_ITEM.LIST);
       }
+
+      editorConfig.value = {
+        mention: {
+          feeds: [
+            {
+              marker: "@",
+              feed: getAutoCompleteItems,
+              minimumCharacters: 2,
+            },
+          ],
+        },
+      };
     });
+    const getAutoCompleteItems = (queryText) => {
+      let testItems = [
+        {
+          id: "@test one",
+        },
+        {
+          id: "@test two",
+        },
+        {
+          id: "@test three",
+        },
+        { id: "@test four" },
+      ];
+
+      return testItems.filter(isItemMatching);
+
+      function isItemMatching(item) {
+        return item.id.toLowerCase().includes(queryText.toLowerCase());
+      }
+    };
+
+    const formatAutoTexts = () => {
+      reportSections.value.forEach((section) => {
+        if (section.free_text_default.includes('class="mention"')) {
+          let text = section.free_text_default;
+          text = text.replaceAll("@", "");
+          text = text.replaceAll(' class="mention"', "");
+          section.free_text_default = text;
+        }
+      });
+    };
 
     return {
+      editorConfig,
       mbsItems,
       nonMbsItems,
       formData,
@@ -747,7 +761,8 @@ export default defineComponent({
       toSentenceCase,
       searchDoctorAddressBook,
       handleSelect,
-      ClassicEditor,
+      Editor,
+      formatAutoTexts,
     };
   },
 });
