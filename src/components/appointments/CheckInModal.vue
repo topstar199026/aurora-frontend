@@ -141,7 +141,6 @@
                   <div class="d-flex flex-column gap-4">
                     <HeadingText text="Appointment Actions" />
                     <PrintLabelButton
-                      :printCount="label_count"
                       :appointment="appointment"
                       :patient="patient"
                       class="w-100"
