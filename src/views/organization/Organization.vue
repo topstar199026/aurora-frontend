@@ -98,17 +98,13 @@
         <InputWrapper class="col-sm-6" required label="ABN/ACN" prop="abn_acn">
           <el-input
             v-model="formData.abn_acn"
+            maxlength="11"
             type="text"
             placeholder="Organization ABN/ACN"
           />
         </InputWrapper>
 
-        <InputWrapper
-          class="col-sm-6"
-          required
-          label="IP Whitelist"
-          prop="ip_whitelist"
-        >
+        <InputWrapper class="col-sm-6" label="IP Whitelist" prop="ip_whitelist">
           <el-select
             class="w-100"
             multiple
@@ -170,7 +166,14 @@
 }
 </style>
 <script lang="ts">
-import { defineComponent, ref, onMounted, computed, watch } from "vue";
+import {
+  defineComponent,
+  ref,
+  onMounted,
+  computed,
+  watch,
+  watchEffect,
+} from "vue";
 import { setCurrentPageBreadcrumbs } from "@/core/helpers/breadcrumb";
 import { useStore } from "vuex";
 import { Actions } from "@/store/enums/StoreEnums";
@@ -306,7 +309,7 @@ export default defineComponent({
         }
       });
     };
-    watch(currentUser, () => {
+    watchEffect(() => {
       if (currentUser.value) {
         formData.value.name = currentUser.value.organization.name;
         formData.value.abn_acn = currentUser.value.organization.abn_acn;

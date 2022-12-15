@@ -40,6 +40,7 @@ import OutgoingModule from "@/store/modules/OutgoingModule";
 import ScheduleFeeModule from "@/store/modules/ScheduleFeeModule";
 import ScheduleItemModule from "@/store/modules/ScheduleItemModule";
 import InvoiceModule from "@/store/modules/InvoiceModule";
+import OrgAdminModule from "./modules/OrgAdminModule";
 
 config.rawError = true;
 
@@ -68,6 +69,7 @@ const store = createStore({
     SpecialistsModule,
     MakePaymentModule,
     ProfileModule,
+    OrgAdminModule,
     DoctorAddressBookModule,
     ProcedureApprovalsModule,
     DocumentModule,
