@@ -19,6 +19,7 @@ export default class DoctorAddressBookModule
   implements DoctorAddressBookInfo
 {
   doctorAddressBookData = [] as Array<IDoctorAddressBook>;
+  doctorAddressWithGivenProviderNo = {} as IDoctorAddressBook;
 
   /**
    * Get current user object
@@ -28,9 +29,20 @@ export default class DoctorAddressBookModule
     return this.doctorAddressBookData;
   }
 
+  get getDoctorAddressWithGivenProviderNo(): IDoctorAddressBook {
+    return this.doctorAddressWithGivenProviderNo;
+  }
+
   @Mutation
   [Mutations.SET_DOCTOR_ADDRESS_BOOK.LIST](doctorAddressBookData) {
     this.doctorAddressBookData = doctorAddressBookData;
+  }
+
+  @Mutation
+  [Mutations.SET_DOCTOR_ADDRESS_WITH_GIVEN_PROVIDER_NO](
+    doctorAddressWithGivenProviderNo
+  ) {
+    this.doctorAddressWithGivenProviderNo = doctorAddressWithGivenProviderNo;
   }
 
   @Action
@@ -47,6 +59,31 @@ export default class DoctorAddressBookModule
         })
         .catch(({ response }) => {
           return displayServerError(response, "Listing doctor address book");
+        });
+    } else {
+      this.context.commit(Mutations.PURGE_AUTH);
+    }
+  }
+
+  @Action
+  [Actions.DOCTOR_ADDRESS_BOOK.FIND_BY_PROVIDER_NO](providerNo) {
+    if (JwtService.getToken()) {
+      ApiService.setHeader();
+      ApiService.post("doctor-address-book/find-by-provider-no", {
+        provider_no: providerNo,
+      })
+        .then(({ data }) => {
+          this.context.commit(
+            Mutations.SET_DOCTOR_ADDRESS_WITH_GIVEN_PROVIDER_NO,
+            data.data
+          );
+          return data;
+        })
+        .catch(({ response }) => {
+          return displayServerError(
+            response,
+            "Finding doctor address book by provider number"
+          );
         });
     } else {
       this.context.commit(Mutations.PURGE_AUTH);

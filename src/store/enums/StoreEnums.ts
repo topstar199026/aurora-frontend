@@ -144,6 +144,7 @@ const Actions = {
     CREATE: "createDoctorAddressBook",
     DELETE: "deleteDoctorAddressBook",
     UPDATE: "updateDoctorAddressBook",
+    FIND_BY_PROVIDER_NO: "findDoctorAddressByProviderNo",
   },
 
   LETTER: {
@@ -269,6 +270,8 @@ const Mutations = {
   SET_DOCTOR_ADDRESS_BOOK: {
     LIST: "setDoctorAddressBook",
   },
+
+  SET_DOCTOR_ADDRESS_WITH_GIVEN_PROVIDER_NO: "setDoctorAddressWithGivenProviderNo",
 
   SET_DOCUMENT_TEMPLATES: {
     LIST: "setDocumentTemplates",

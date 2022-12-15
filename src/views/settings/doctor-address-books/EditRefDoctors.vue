@@ -4,7 +4,9 @@
     <div class="card-body">
       <!--begin::Form-->
       <el-form
-        @submit.prevent="submit()"
+        @keydown="handleFormKeyEvent($event)"
+        @keypress="handleFormKeyEvent($event)"
+        @keyup="handleFormKeyEvent($event)"
         :model="formData"
         :rules="rules"
         ref="formRef"
@@ -24,11 +26,15 @@
                 type="text"
                 placeholder="Enter the Provider No"
                 v-mask="'#######A'"
+                @keyup="handleKeyUp($event)"
               />
             </InputWrapper>
           </div>
 
-          <div class="row" v-if="isVisible">
+          <div
+            class="row"
+            v-if="formInfo.submitButtonName === 'UPDATE' || isVisible"
+          >
             <InputWrapper class="col-2" label="Title" prop="title">
               <el-select
                 class="w-100"
@@ -175,7 +181,7 @@
         <!--end::Modal body-->
 
         <!--begin::Modal footer-->
-        <div class="modal-footer flex-center" v-if="isVisible">
+        <div class="modal-footer flex-center">
           <!--begin::Button-->
           <router-link
             type="reset"
@@ -188,9 +194,9 @@
 
           <!--begin::Button-->
           <button
+            @click.prevent="submit()"
             :data-kt-indicator="loading ? 'on' : null"
             class="btn btn-lg btn-primary"
-            type="submit"
           >
             <span v-if="!loading" class="indicator-label">
               {{ formInfo.submitButtonName }}
@@ -232,6 +238,7 @@ import {
   ref,
   reactive,
   watch,
+  watchEffect,
   computed,
 } from "vue";
 import { useStore } from "vuex";
@@ -259,6 +266,9 @@ export default defineComponent({
     const isVisible = ref(false);
     const doctorAddressBooks = computed(
       () => store.getters.getDoctorAddressBookList
+    );
+    const doctorAddressWithGivenProviderNo = computed(
+      () => store.getters.doctorAddressWithGivenProviderNo
     );
     const loading = ref(false);
 
@@ -350,7 +360,7 @@ export default defineComponent({
       ],
     });
 
-    watch(doctorAddressBooks, () => {
+    watchEffect(() => {
       const id = route.params.id;
 
       doctorAddressBooks.value.forEach((item) => {
@@ -376,6 +386,53 @@ export default defineComponent({
     onMounted(() => {
       store.dispatch(Actions.DOCTOR_ADDRESS_BOOK.LIST);
     });
+
+    const handleFormKeyEvent = (e) => {
+      if (e.keyCode === 13) {
+        e.preventDefault();
+      }
+    };
+
+    const handleKeyUp = (e) => {
+      if (e.keyCode === 13 && formData.value.provider_no.length === 8) {
+        var isExist = false,
+          itemId = -1;
+        doctorAddressBooks.value.forEach((item) => {
+          if (
+            item.provider_no.toLowerCase() ===
+            formData.value.provider_no.toLowerCase()
+          ) {
+            isExist = true;
+            itemId = item.id;
+          }
+        });
+        if (isExist) {
+          Swal.fire({
+            text: "This provider number is already in your address book for ",
+            buttonsStyling: false,
+            confirmButtonText: "VIEW",
+            showCancelButton: true,
+            cancelButtonText: "CANCEL",
+            customClass: {
+              confirmButton: "btn btn-primary",
+              cancelButton: "btn btn-light-primary",
+            },
+          }).then((result) => {
+            if (result.isConfirmed)
+              router.push({ name: "editRefDoctors", params: { id: itemId } });
+          });
+        } else {
+          store
+            .dispatch(
+              Actions.DOCTOR_ADDRESS_BOOK.FIND_BY_PROVIDER_NO,
+              formData.value.provider_no
+            )
+            .then((data) => {
+              console.log(data);
+            });
+        }
+      }
+    };
 
     const submit = () => {
       if (!formRef.value) {
@@ -427,6 +484,8 @@ export default defineComponent({
       titles,
       updateAddress,
       isVisible,
+      handleKeyUp,
+      handleFormKeyEvent,
     };
   },
 });
