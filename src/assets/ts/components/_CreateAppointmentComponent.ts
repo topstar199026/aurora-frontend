@@ -34,20 +34,22 @@ interface IAlerts {
    send_forms: boolean;
    date: string;
    arrival_time: string;
-   time_slot: Array<unknown>;
+   time_slot: Array<string>;
    appointment_type_id: number | string;
    specialist_id: number;
    room_id: number | string;
    note: string;
-   patient_id: number;
+   patient_id: number | null;
    start_time: string;
-   is_wait_listed: boolean;
+   is_wait_listed: number;
+   clinical_code: string;
+   mbs_code: string;
  }
 
 interface  IBillingInfoData{
   charge_type: string;
   claim_sources: Array<unknown>;
-  procedure_price: string,
+  procedure_price: number,
   add_other_account_holder: boolean,
 }
 
@@ -55,11 +57,16 @@ interface  IOtherInfoData {
     anesthetic_questions: boolean;
     anesthetic_answers: Array<number>;
     doctor_address_book_name: string;
-    doctor_address_book_id: number,
-    referral_duration: string,
-    referral_date: string,
-    no_referral: boolean,
-    no_referral_reason: string,
+    doctor_address_book_id: number|null;
+    referral_duration: string;
+    referral_date: string;
+    no_referral: boolean;
+    no_referral_reason: string;
+}
+
+interface ICurSpecialist {
+    id: number;
+    full_name: string;
 }
 
 export {
@@ -68,5 +75,6 @@ export {
     IAlerts,
     IPatientInfoData,
     IBillingInfoData,
-    IOtherInfoData
+    IOtherInfoData,
+    ICurSpecialist,
 }

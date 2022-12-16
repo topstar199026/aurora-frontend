@@ -34,8 +34,6 @@ const AppointmentActions = {
     UPDATE: "updateAppointmentDetail",
   },
 
-
-
   // These are slowly being moved to the above
   APT: {
     CREATE: "createApt",
