@@ -66,33 +66,6 @@ export default defineComponent({
 
     const calendarOptions = ref(null);
 
-    watch(organization, () => {
-      calendarOptions.value = {
-        plugins: [dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin],
-        headerToolbar: {
-          left: "prev,next today",
-          center: "title",
-          right: "timeGridWeek,timeGridDay",
-        },
-        initialView: "timeGridWeek",
-        navLinks: true, // can click day/week names to navigate views
-        selectable: true,
-        selectMirror: false,
-        allDaySlot: false,
-        slotMinTime: organization.value.start_time,
-        slotMaxTime: organization.value.end_time,
-        views: {
-          timeGridWeek: { buttonText: "week" },
-          timeGridDay: { buttonText: "day" },
-        },
-
-        editable: false,
-        dayMaxEvents: false,
-        events: [],
-        eventClick: handleEventClick,
-      };
-    });
-
     watch(userProfile, () => {
       let specialist_id =
         userProfile.value.role.id == 5 ? userProfile.value.id : null;
@@ -131,6 +104,30 @@ export default defineComponent({
     });
 
     onMounted(() => {
+      calendarOptions.value = {
+        plugins: [dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin],
+        headerToolbar: {
+          left: "prev,next today",
+          center: "title",
+          right: "timeGridWeek,timeGridDay",
+        },
+        initialView: "timeGridWeek",
+        navLinks: true, // can click day/week names to navigate views
+        selectable: true,
+        selectMirror: false,
+        allDaySlot: false,
+        slotMinTime: organization.value.start_time,
+        slotMaxTime: organization.value.end_time,
+        views: {
+          timeGridWeek: { buttonText: "week" },
+          timeGridDay: { buttonText: "day" },
+        },
+
+        editable: false,
+        dayMaxEvents: false,
+        events: [],
+        eventClick: handleEventClick,
+      };
       window.setInterval(() => {
         if (userProfile.value) {
           let specialist_id =
