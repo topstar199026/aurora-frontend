@@ -42,49 +42,51 @@
           </label>
 
           <div class="d-flex flex-row gap-1 justify-content-between">
-            <el-form-item>
-              <el-input
-                type="text"
-                v-model="formData.pin_one"
-                class="verify-pin"
-                v-mask="'#'"
-                ref="pinInputOneRef"
-                @keyup="nextFocus(1, $event)"
-              />
-            </el-form-item>
+            <el-form @submit.prevent>
+              <el-form-item>
+                <el-input
+                  type="text"
+                  v-model="formData.pin_one"
+                  class="verify-pin"
+                  v-mask="'#'"
+                  ref="pinInputOneRef"
+                  @keyup="nextFocus(1, $event)"
+                />
+              </el-form-item>
 
-            <el-form-item>
-              <el-input
-                type="text"
-                v-model="formData.pin_two"
-                class="verify-pin"
-                v-mask="'#'"
-                ref="pinInputTwoRef"
-                @keyup="nextFocus(2, $event)"
-              />
-            </el-form-item>
+              <el-form-item>
+                <el-input
+                  type="text"
+                  v-model="formData.pin_two"
+                  class="verify-pin"
+                  v-mask="'#'"
+                  ref="pinInputTwoRef"
+                  @keyup="nextFocus(2, $event)"
+                />
+              </el-form-item>
 
-            <el-form-item>
-              <el-input
-                type="text"
-                v-model="formData.pin_three"
-                class="verify-pin"
-                v-mask="'#'"
-                ref="pinInputThreeRef"
-                @keyup="nextFocus(3, $event)"
-              />
-            </el-form-item>
+              <el-form-item>
+                <el-input
+                  type="text"
+                  v-model="formData.pin_three"
+                  class="verify-pin"
+                  v-mask="'#'"
+                  ref="pinInputThreeRef"
+                  @keyup="nextFocus(3, $event)"
+                />
+              </el-form-item>
 
-            <el-form-item>
-              <el-input
-                type="text"
-                v-model="formData.pin_four"
-                class="verify-pin"
-                v-mask="'#'"
-                ref="pinInputFourRef"
-                @keyup="nextFocus(4, $event)"
-              />
-            </el-form-item>
+              <el-form-item>
+                <el-input
+                  type="text"
+                  v-model="formData.pin_four"
+                  class="verify-pin"
+                  v-mask="'#'"
+                  ref="pinInputFourRef"
+                  @keyup="nextFocus(4, $event)"
+                />
+              </el-form-item>
+            </el-form>
           </div>
 
           <div class="d-flex justify-content-end">

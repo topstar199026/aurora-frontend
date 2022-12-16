@@ -88,18 +88,20 @@
                     :appointmentName="appointment_name"
                   />
                   <!--end::Appointment Overview-->
-                  <el-form-item label="Appointment wait listed :">
-                    <el-switch
-                      v-model="aptInfoData.is_wait_listed"
-                      class="ml-2"
-                      width="40"
-                      inline-prompt
-                      active-text="Yes"
-                      inactive-text="No"
-                      :active-value="1"
-                      :inactive-value="0"
-                    />
-                  </el-form-item>
+                  <el-form class="w-100" @submit.prevent>
+                    <el-form-item label="Appointment wait listed :">
+                      <el-switch
+                        v-model="aptInfoData.is_wait_listed"
+                        class="ml-2"
+                        width="40"
+                        inline-prompt
+                        active-text="Yes"
+                        inactive-text="No"
+                        :active-value="1"
+                        :inactive-value="0"
+                      />
+                    </el-form-item>
+                  </el-form>
                 </div>
                 <!--end::Nav-->
               </div>
