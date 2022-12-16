@@ -31,9 +31,13 @@
           />
         </div>
         <InputWrapper label="Room" prop="room_id">
-          <el-select class="w-100" v-model.number="aptInfoData.room_id">
+          <el-select
+            class="w-100"
+            v-model.number="aptInfoData.room_id"
+            @change="handleUpdate"
+          >
             <el-option
-              v-for="room in allRooms"
+              v-for="room in roomsData"
               :value="room.id"
               :label="room.name"
               :key="room.id"
@@ -46,6 +50,7 @@
             type="textarea"
             v-model="aptInfoData.note"
             placeholder="Enter appointment notes"
+            @change="handleUpdate"
           />
         </InputWrapper>
         <el-form-item class="px-6" v-if="modalId === 'new'">
@@ -185,11 +190,11 @@ import InputWrapper from "@/components/presets/FormElements/InputWrapper.vue";
 import { useStore } from "vuex";
 import AlertBadge from "@/components/presets/GeneralElements/AlertBadge.vue";
 import { FormRulesMap } from "element-plus/es/components/form/src/form.type";
-import { IRooms } from "@/store/modules/ClinicsModule";
 import {
   IAptInfoData,
   IAptInfoTypeData,
 } from "@/assets/ts/components/_CreateAppointmentComponent";
+
 export default defineComponent({
   components: {
     InputWrapper,
@@ -197,16 +202,10 @@ export default defineComponent({
   },
 
   props: {
-    specialist: {
-      required: true,
-      type: Object as PropType<ISpecialist>,
-    },
-
-    allRooms: {
-      required: true,
-      type: Object as PropType<IRooms>,
-    },
-    // fix this
+    // specialist: {
+    //   required: true,
+    //   type: Object as PropType<ISpecialist>,
+    // },
     aptInfoDataE: {
       required: true,
       type: Object as PropType<IAptInfoData>,
@@ -220,7 +219,7 @@ export default defineComponent({
       required: true,
     },
   },
-  emits: ["save", "process", "changeAptType"],
+  emits: ["save", "process", "changeAptType", "update"],
 
   setup(props, { emit }) {
     const store = useStore();
@@ -247,6 +246,7 @@ export default defineComponent({
 
     const aptTypeList = computed(() => store.getters.getAptTypesList);
     const bookingData = computed(() => store.getters.bookingDatas);
+    const roomsData = computed(() => store.getters.roomsList);
 
     watchEffect(() => {
       let specialistRestriction = bookingData.value.restriction;
@@ -280,8 +280,13 @@ export default defineComponent({
       emit("save", aptInfoData.value, 1);
     };
 
+    const handleUpdate = () => {
+      emit("update", aptInfoData.value, 1);
+    };
+
     const updateTypeId = () => {
       emit("changeAptType", aptInfoData.value.appointment_type_id);
+      handleUpdate();
     };
 
     return {
@@ -294,6 +299,8 @@ export default defineComponent({
       appointmentType,
       handleSave,
       updateTypeId,
+      handleUpdate,
+      roomsData,
     };
   },
 });

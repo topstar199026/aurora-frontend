@@ -259,7 +259,7 @@ export default defineComponent({
     const billingInfoData = ref<IBillingInfoData>({
       charge_type: chargeTypes[0].value,
       claim_sources: [],
-      procedure_price: "",
+      procedure_price: 0,
       add_other_account_holder: false,
     });
 
