@@ -180,7 +180,7 @@
         <!--View Patient-->
         <LargeIconButton
           @click="handleView"
-          text="VIEW"
+          text="VIEW PATIENT"
           :iconPath="'media/icons/duotune/medicine/med001.svg'"
           :color="'primary'"
           justify="start"
@@ -226,6 +226,22 @@
             />
           </div>
         </div>
+        <el-divider />
+        <CreateDocumentButton
+          :appointment="appointment"
+          :patient="patient"
+          document-type="letter"
+        />
+        <CreateDocumentButton
+          :appointment="appointment"
+          :patient="patient"
+          document-type="report"
+        />
+        <CreateDocumentButton
+          :appointment="appointment"
+          :patient="patient"
+          document-type="referral"
+        />
 
         <!--Cancel Appointment Button-->
         <LargeIconButton
@@ -263,6 +279,8 @@ import AlertBadge from "@/components/presets/GeneralElements/AlertBadge.vue";
 import { convertToCurrency } from "@/core/data/billing";
 import IPatient from "@/store/interfaces/IPatient";
 import IAppointment from "@/store/interfaces/IAppointment";
+import CreateDocumentButton from "../patients/patientAppointmentActions/CreateDocumentButton.vue";
+import { Actions } from "@/store/enums/StoreEnums";
 
 export default defineComponent({
   name: "booing-drawer",
@@ -270,7 +288,7 @@ export default defineComponent({
     CheckInModal,
     LargeIconButton,
     AlertBadge,
-    //  InfoSection,
+    CreateDocumentButton,
   },
   setup() {
     const store = useStore();
@@ -286,6 +304,7 @@ export default defineComponent({
 
     watch(aptData, () => {
       store.dispatch(PatientActions.VIEW, aptData.value.patient_id);
+      store.dispatch(Actions.DOCUMENT_TEMPLATES.LIST);
     });
 
     const handleView = () => {

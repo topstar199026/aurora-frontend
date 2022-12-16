@@ -8,9 +8,11 @@
 </template>
 
 <script lang="ts">
-import { ref } from "vue";
+import { ref, computed, watch } from "vue";
 import { useRouter } from "vue-router";
 import { toSentenceCase } from "@/core/helpers/text";
+import IDocumentTemplate from "@/store/interfaces/IDocumentTemplate";
+import store from "@/store";
 export default {
   props: {
     appointment: {
@@ -25,15 +27,14 @@ export default {
       required: true,
       type: String,
     },
-    disabled: {
-      default: false,
-      type: Boolean,
-    },
   },
   setup(props) {
     const router = useRouter();
     const loading = ref<boolean>(false);
-
+    const documentTemplates = computed<IDocumentTemplate[]>(
+      () => store.getters.getDocumentTemplateList
+    );
+    const disabled = ref<boolean>(true);
     const handleButton = () => {
       loading.value = true;
 
@@ -51,10 +52,20 @@ export default {
         });
     };
 
+    watch(documentTemplates, () => {
+      if (documentTemplates.value) {
+        const templates = documentTemplates.value.filter(
+          (template) => template.type == props.documentType.toUpperCase()
+        );
+        disabled.value = templates.length > 0 ? false : true;
+      }
+    });
+
     return {
       handleButton,
       toSentenceCase,
       loading,
+      disabled,
     };
   },
 };
