@@ -48,7 +48,7 @@
             <button
               type="button"
               class="btn btn-lg btn-primary align-self-end"
-              v-if="modalId == 'new'"
+              v-if="modalId === 'new'"
               @click="patientStep_1"
             >
               Search
@@ -350,7 +350,7 @@
             <button
               type="button"
               class="btn btn-lg btn-primary align-self-end"
-              @click="handleStep_2"
+              @click="handleSubmit"
             >
               Continue
               <span class="svg-icon svg-icon-4 ms-1 me-0">
@@ -548,10 +548,9 @@ export default defineComponent({
       if (!formRef.value) {
         return;
       }
-
       formRef.value.validate((valid) => {
         if (valid) {
-          // emit("process", aptInfoData.value);
+          emit("process", patientInfoData.value, billingInfoData.value);
         }
       });
     };
@@ -604,7 +603,7 @@ export default defineComponent({
     };
 
     watch(patientList, () => {
-      patientTableData.value = patientList;
+      patientTableData.value = patientList.value;
       renderTable();
     });
 
@@ -624,17 +623,6 @@ export default defineComponent({
       if (props.patientStatus === "new") previousStep();
       else if (props.modalId === "update") previousStep();
       else patientStep.value--;
-    };
-
-    const handleStep_2 = () => {
-      if (!formRef.value) {
-        return;
-      }
-      formRef.value.validate((valid) => {
-        if (valid) {
-          emit("process", patientInfoData.value, billingInfoData.value);
-        }
-      });
     };
 
     // SELECT PATIENT FROM KTD TABLE
@@ -692,7 +680,7 @@ export default defineComponent({
       formatDate,
       allergiesList,
       patientPrevStep,
-      handleStep_2,
+      handleSubmit,
       selectPatient,
     };
   },
