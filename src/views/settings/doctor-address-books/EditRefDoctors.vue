@@ -197,6 +197,7 @@
             @click.prevent="submit()"
             :data-kt-indicator="loading ? 'on' : null"
             class="btn btn-lg btn-primary"
+            :disabled="formInfo.submitButtonName === 'CREATE' && !isVisible"
           >
             <span v-if="!loading" class="indicator-label">
               {{ formInfo.submitButtonName }}
