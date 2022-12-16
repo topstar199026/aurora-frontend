@@ -18,15 +18,6 @@ export default defineComponent({
   name: "app",
   setup() {
     const store = useStore();
-    const reloadProfile = () =>
-      setInterval(() => {
-        store.dispatch(Actions.PROFILE.VIEW);
-      }, 15000);
-    watchEffect(() => {
-      if (store.getters.isUserAuthenticated) {
-        reloadProfile();
-      }
-    });
 
     onMounted(() => {
       /**
@@ -37,9 +28,6 @@ export default defineComponent({
       nextTick(() => {
         initializeComponents();
       });
-    });
-    onUnmounted(() => {
-      clearInterval();
     });
   },
 });

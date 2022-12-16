@@ -85,11 +85,7 @@
         </template>
         <template v-slot:cell-report="{ row: item }">
           <div class="d-flex flex-column">
-            <PatientAppointmentActions
-              :appointment="item"
-              :patient="patient"
-              :templates="documentTemplates"
-            />
+            <PatientAppointmentActions :appointment="item" :patient="patient" />
             <a
               v-if="item.procedure_approval_status !== 'NOT_RELEVANT'"
               @click="handlePreAdmissionTest(item)"
@@ -146,9 +142,6 @@ export default defineComponent({
     const route = useRoute();
     const patient = computed(() => store.getters.selectedPatient);
     const referralAppointment = ref(null);
-    const documentTemplates = computed(
-      () => store.getters.getDocumentTemplateList
-    );
     const userRole = computed(() => store.getters.userRole);
     const tableHeader = ref([
       {
@@ -210,7 +203,6 @@ export default defineComponent({
       handlePreAdmissionTest,
       handleReferralClick,
       patient,
-      documentTemplates,
     };
   },
 });

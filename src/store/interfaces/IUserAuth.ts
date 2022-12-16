@@ -6,4 +6,6 @@ export default interface IUserAuth {
   email: string;
   access_token: string;
   role: string;
+  outside_hours: boolean;
+  unreadDocuments: number;
 }
