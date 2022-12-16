@@ -502,7 +502,7 @@ export default defineComponent({
     const billingInfoData = ref<IBillingInfoData>({
       charge_type: chargeTypes[0].value,
       claim_sources: [],
-      procedure_price: "",
+      procedure_price: 0,
       add_other_account_holder: false,
     });
 
@@ -535,12 +535,30 @@ export default defineComponent({
     const formRef = ref<null | HTMLFormElement>(null);
     const patientTableData = ref<unknown>([]);
     const allergiesList = ref<unknown>([]);
+    const tableKey = ref<number>(0);
+
     const patientList = computed(() => store.getters.patientsList);
 
     watchEffect(() => {
       if (props.patientDataE) {
         for (let key in props.patientDataE)
           patientInfoData.value[key] = props.patientDataE[key];
+      }
+    });
+
+    watch(patientList, () => {
+      patientTableData.value = patientList.value;
+      renderTable();
+    });
+
+    // TODO TEST AND REMOVE IF IT IS UNNECESSARY
+    watch(props, () => {
+      if (props.patientStatus === "new") patientStep.value = 3;
+      else {
+        patientStep.value = 1;
+        filterPatient.first_name = "";
+        filterPatient.last_name = "";
+        filterPatient.date_of_birth = "";
       }
     });
 
@@ -602,14 +620,7 @@ export default defineComponent({
       patientStep.value++;
     };
 
-    watch(patientList, () => {
-      patientTableData.value = patientList.value;
-      renderTable();
-    });
-
     const renderTable = () => tableKey.value++;
-
-    const tableKey = ref(0);
 
     const handleAddressChange = (e) => {
       patientInfoData.value.address = e.formatted_address;
@@ -686,3 +697,14 @@ export default defineComponent({
   },
 });
 </script>
+<style lang="scss">
+.special-patient-alerts .modal.patient-alert .modal-footer {
+  display: none;
+}
+
+.exist-message {
+  label {
+    color: grey;
+  }
+}
+</style>
