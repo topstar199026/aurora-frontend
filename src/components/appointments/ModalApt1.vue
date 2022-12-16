@@ -49,37 +49,8 @@
               >
                 <!--begin::Nav-->
                 <div class="stepper-nav ps-lg-10">
-                  <StepperNavItem
-                    @click="gotoPage(1)"
-                    dataStepperElement="nav"
-                    stepperNumber="1"
-                    stepperTitle="Appointment"
-                    stepperDescription="Setup Appointment Info"
-                  />
+                  <stepper-nav @go-to="gotoPage" />
 
-                  <StepperNavItem
-                    @click="gotoPage(2)"
-                    dataStepperElement="nav"
-                    stepperNumber="2"
-                    stepperTitle="Patient Info"
-                    stepperDescription="Edit Patient Details"
-                  />
-
-                  <StepperNavItem
-                    @click="gotoPage(3)"
-                    dataStepperElement="nav"
-                    stepperNumber="3"
-                    stepperTitle="Patient Billing"
-                    stepperDescription="Edit Patient Billing Details"
-                  />
-
-                  <StepperNavItem
-                    @click="gotoPage(4)"
-                    dataStepperElement="nav"
-                    stepperNumber="4"
-                    stepperTitle="Other Info"
-                    stepperDescription="Doctor Address information and Appointment history"
-                  />
                   <!--begin::Appointment Overview-->
                   <apt-overview
                     :aptInfoData="aptInfoData"
