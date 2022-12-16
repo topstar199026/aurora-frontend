@@ -157,14 +157,16 @@ export default defineComponent({
       loading.value = true;
       setCurrentPageBreadcrumbs("Appointment Types", ["Settings"]);
       store.dispatch(AppointmentActions.APPOINTMENT_TYPES.LIST).then(() => {
-        store.dispatch(Actions.SCHEDULE_ITEM.LIST).then(() => {
-          if (scheduleItems.value.length) {
-            scheduleItems.value.forEach((item) => {
-              if (item.schedule_fees.length) isAddPossible.value = true;
-            });
-          }
-          loading.value = false;
-        });
+        store
+          .dispatch(Actions.SCHEDULE_ITEM.LIST)
+          .then(() => {
+            if (scheduleItems.value.length) {
+              isAddPossible.value = true;
+            }
+          })
+          .finally(() => {
+            loading.value = false;
+          });
       });
     });
 
@@ -176,6 +178,7 @@ export default defineComponent({
       handleDelete,
       icons,
       loading,
+      scheduleItems,
     };
   },
 });
