@@ -60,7 +60,7 @@
 
       <button
         class="btn btn-lg btn-primary me-2"
-        :disabled="!formData.schedule_item_id || !formData.price"
+        :disabled="!formData.schedule_item_id"
         @click="submitItem"
       >
         {{ mode === "add" ? "Add Item" : "Update" }}
