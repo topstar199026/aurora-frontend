@@ -249,6 +249,8 @@ export default defineComponent({
       appointment_time: "SINGLE",
       color: "",
       invoice_by: "CLINIC",
+      consent: "",
+      default_items: [] as Array<number>,
     } as IAppointmentType);
     const reportTemplates = computed(() => store.getters.getReportTemplateList);
     const scheduleItems = computed(() => store.getters.scheduleItemList);
@@ -319,6 +321,20 @@ export default defineComponent({
           trigger: "change",
         },
       ],
+      consent: [
+        {
+          required: false,
+          message: "",
+          trigger: "change",
+        },
+      ],
+      default_items: [
+        {
+          required: false,
+          message: "",
+          trigger: "change",
+        },
+      ],
     });
 
     watch(aptTypes, () => {
@@ -326,6 +342,10 @@ export default defineComponent({
 
       aptTypes.value.forEach((item) => {
         if (item.id == id) {
+          if (item.consent === null) {
+            item.consent = "";
+          }
+
           formData.value = item;
 
           formInfo.title = "Edit Appointment Type";
