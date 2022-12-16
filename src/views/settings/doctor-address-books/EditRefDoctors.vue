@@ -4,7 +4,9 @@
     <div class="card-body">
       <!--begin::Form-->
       <el-form
-        @submit.prevent="submit()"
+        @keydown="handleFormKeyEvent($event)"
+        @keypress="handleFormKeyEvent($event)"
+        @keyup="handleFormKeyEvent($event)"
         :model="formData"
         :rules="rules"
         ref="formRef"
@@ -13,6 +15,26 @@
         <div class="py-10 px-lg-17">
           <!--begin::Scroll-->
           <div class="row">
+            <InputWrapper
+              class="col-6"
+              required
+              label="Provider No"
+              prop="providerno"
+            >
+              <el-input
+                v-model="formData.provider_no"
+                type="text"
+                placeholder="Enter the Provider No"
+                v-mask="'#######A'"
+                @keyup="handleKeyUp($event)"
+              />
+            </InputWrapper>
+          </div>
+
+          <div
+            class="row"
+            v-if="formInfo.submitButtonName === 'UPDATE' || isVisible"
+          >
             <InputWrapper class="col-2" label="Title" prop="title">
               <el-select
                 class="w-100"
@@ -51,19 +73,6 @@
                 v-model="formData.last_name"
                 type="text"
                 placeholder="Enter the last name"
-              />
-            </InputWrapper>
-            <InputWrapper
-              class="col-6"
-              required
-              label="Provider No"
-              prop="providerno"
-            >
-              <el-input
-                v-model="formData.provider_no"
-                type="text"
-                placeholder="Enter the Provider No"
-                v-mask="'#######A'"
               />
             </InputWrapper>
             <InputWrapper
@@ -185,9 +194,10 @@
 
           <!--begin::Button-->
           <button
+            @click.prevent="submit()"
             :data-kt-indicator="loading ? 'on' : null"
             class="btn btn-lg btn-primary"
-            type="submit"
+            :disabled="formInfo.submitButtonName === 'CREATE' && !isVisible"
           >
             <span v-if="!loading" class="indicator-label">
               {{ formInfo.submitButtonName }}
@@ -229,6 +239,7 @@ import {
   ref,
   reactive,
   watch,
+  watchEffect,
   computed,
 } from "vue";
 import { useStore } from "vuex";
@@ -253,6 +264,7 @@ export default defineComponent({
     const router = useRouter();
     const route = useRoute();
     const formRef = ref(null);
+    const isVisible = ref(false);
     const doctorAddressBooks = computed(
       () => store.getters.getDoctorAddressBookList
     );
@@ -346,7 +358,7 @@ export default defineComponent({
       ],
     });
 
-    watch(doctorAddressBooks, () => {
+    watchEffect(() => {
       const id = route.params.id;
 
       doctorAddressBooks.value.forEach((item) => {
@@ -363,15 +375,86 @@ export default defineComponent({
       setCurrentPageBreadcrumbs(formInfo.title, ["Settings"]);
     });
 
-    const handleChange = (file) => {
-      formData.value.upload_file = [];
-      formData.value.upload_file.push(file);
-      formData.value.upload_file_name = file.name;
-    };
+    // const handleChange = (file) => {
+    //   formData.value.upload_file = [];
+    //   formData.value.upload_file.push(file);
+    //   formData.value.upload_file_name = file.name;
+    // };
 
     onMounted(() => {
       store.dispatch(Actions.DOCTOR_ADDRESS_BOOK.LIST);
     });
+
+    const handleFormKeyEvent = (e) => {
+      if (e.keyCode === 13) {
+        e.preventDefault();
+      }
+    };
+
+    const handleKeyUp = (e) => {
+      if (formData.value.provider_no.length === 8) {
+        var isExist = false,
+          itemId = -1,
+          doctorName = "";
+        doctorAddressBooks.value.forEach((item) => {
+          if (
+            item.provider_no.toLowerCase() ===
+            formData.value.provider_no.toLowerCase()
+          ) {
+            isExist = true;
+            itemId = item.id;
+            doctorName = item.full_name;
+          }
+        });
+        if (isExist) {
+          Swal.fire({
+            text: `This provider number is already in your address book for ${doctorName}`,
+            buttonsStyling: false,
+            confirmButtonText: "VIEW",
+            showCancelButton: true,
+            cancelButtonText: "CANCEL",
+            customClass: {
+              confirmButton: "btn btn-primary",
+              cancelButton: "btn btn-light-primary",
+            },
+          }).then((result) => {
+            if (result.isConfirmed)
+              router.push({ name: "editRefDoctors", params: { id: itemId } });
+          });
+        } else {
+          store
+            .dispatch(
+              Actions.DOCTOR_ADDRESS_BOOK.FIND_BY_PROVIDER_NO,
+              formData.value.provider_no
+            )
+            .then((data) => {
+              if (data) {
+                Swal.fire({
+                  text: `We have preexisting information for this provider number as ${data.full_name}. Would you like to prefill the form?`,
+                  buttonsStyling: false,
+                  confirmButtonText: "Yes",
+                  showCancelButton: true,
+                  cancelButtonText: "No",
+                  customClass: {
+                    confirmButton: "btn btn-primary",
+                    cancelButton: "btn btn-light-primary",
+                  },
+                }).then((result) => {
+                  if (result.isConfirmed) {
+                    isVisible.value = true;
+                    formData.value = data;
+                  } else {
+                    isVisible.value = true;
+                    formRef.value.resetFields();
+                  }
+                });
+              } else {
+                isVisible.value = true;
+              }
+            });
+        }
+      }
+    };
 
     const submit = () => {
       if (!formRef.value) {
@@ -419,9 +502,12 @@ export default defineComponent({
       formRef,
       loading,
       submit,
-      handleChange,
+      // handleChange,
       titles,
       updateAddress,
+      isVisible,
+      handleKeyUp,
+      handleFormKeyEvent,
     };
   },
 });

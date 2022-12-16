@@ -82,7 +82,7 @@ export default defineComponent({
                   confirmButton: "btn btn-primary",
                 },
               }).then(() => {
-                router.push({ name: "org-admin-settings" });
+                router.push({ name: "manager-settings" });
               });
             })
             .catch(({ response }) => {

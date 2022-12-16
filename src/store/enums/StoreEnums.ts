@@ -144,6 +144,7 @@ const Actions = {
     CREATE: "createDoctorAddressBook",
     DELETE: "deleteDoctorAddressBook",
     UPDATE: "updateDoctorAddressBook",
+    FIND_BY_PROVIDER_NO: "findDoctorAddressByProviderNo",
   },
 
   LETTER: {

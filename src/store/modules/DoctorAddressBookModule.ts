@@ -54,6 +54,27 @@ export default class DoctorAddressBookModule
   }
 
   @Action
+  [Actions.DOCTOR_ADDRESS_BOOK.FIND_BY_PROVIDER_NO](providerNo) {
+    if (JwtService.getToken()) {
+      ApiService.setHeader();
+      return ApiService.post("doctor-address-book/find-by-provider-no", {
+        provider_no: providerNo,
+      })
+        .then(({ data }) => {
+          return data.data[0];
+        })
+        .catch(({ response }) => {
+          return displayServerError(
+            response,
+            "Finding doctor address book by provider number"
+          );
+        });
+    } else {
+      this.context.commit(Mutations.PURGE_AUTH);
+    }
+  }
+
+  @Action
   [Actions.DOCTOR_ADDRESS_BOOK.CREATE](item) {
     if (JwtService.getToken()) {
       ApiService.setHeader();

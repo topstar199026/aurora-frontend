@@ -35,8 +35,8 @@ const SettingsRoutes = [
   },
   {
     path: "/settings",
-    name: "org-admin-settings",
-    component: () => import("@/views/settings/OrgAdminSettings.vue"),
+    name: "manager-settings",
+    component: () => import("@/views/settings/ManagerSettings.vue"),
   },
   {
     path: "/settings/apt-types",

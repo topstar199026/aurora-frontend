@@ -335,7 +335,7 @@ export default defineComponent({
             setStopResendTimer();
           } else {
             if (userRole.value === "organizationAdmin") {
-              router.push({ name: "org-admin-settings" });
+              router.push({ name: "manager-settings" });
             }
 
             if (!user.outside_hours && !outsideHoursAccess()) {
