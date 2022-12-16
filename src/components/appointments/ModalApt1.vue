@@ -174,6 +174,7 @@ import StepTwo from "@/components/appointments/partials/ModalAptStep2";
 import StepThree from "@/components/appointments/partials/ModalAptStep3";
 import StepFour from "@/components/appointments/partials/ModalAptStep4";
 import AptOverview from "@/components/appointments/partials/AppointmentOverview";
+import StepperNav from "@/components/appointments/partials/ModalAptStepperNav";
 
 import { mask } from "vue-the-mask";
 import { ElMessage } from "element-plus";
@@ -190,7 +191,7 @@ export default defineComponent({
     mask,
   },
   components: {
-    StepperNavItem,
+    StepperNav,
     AptOverview,
     StepOne,
     StepTwo,
