@@ -392,7 +392,7 @@ export default defineComponent({
     };
 
     const handleKeyUp = (e) => {
-      if (e.keyCode === 13 && formData.value.provider_no.length === 8) {
+      if (formData.value.provider_no.length === 8) {
         var isExist = false,
           itemId = -1,
           doctorName = "";
