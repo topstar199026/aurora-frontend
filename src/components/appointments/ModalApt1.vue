@@ -59,18 +59,10 @@
                     :appointmentName="appointment_name"
                   />
                   <!--end::Appointment Overview-->
-                  <!--                  <el-form-item label="Appointment wait listed :">-->
-                  <!--                    <el-switch-->
-                  <!--                      v-model="aptInfoData.is_wait_listed"-->
-                  <!--                      class="ml-2"-->
-                  <!--                      :width="40"-->
-                  <!--                      inline-prompt-->
-                  <!--                      active-text="Yes"-->
-                  <!--                      inactive-text="No"-->
-                  <!--                      :active-value="1"-->
-                  <!--                      :inactive-value="0"-->
-                  <!--                    />-->
-                  <!--                  </el-form-item>-->
+                  <apt-wait-listed
+                    :wait-listed="aptInfoData.is_wait_listed"
+                    @update="aptWaitListedUpdate"
+                  />
                 </div>
                 <!--end::Nav-->
               </div>
@@ -84,11 +76,10 @@
                   :modal-id="modalId"
                   :patient-info-data="patientInfoData"
                   :aptInfoDataE="aptInfoData"
-                  :specialist="cur_specialist"
-                  :allRooms="rooms"
                   @save="processSave"
                   @process="processStepOne"
                   @changeAptType="changeAptType"
+                  @update="processUpdate"
                 />
                 <!--end::Step 1-->
 
@@ -131,7 +122,6 @@
               </div>
               <!--end::Content-->
             </div>
-
             <!--end::Stepper-->
           </div>
           <!--end::Modal body-->
@@ -143,7 +133,7 @@
   </div>
   <!--end::Modal - Create App-->
 </template>
-<script>
+<script lang="ts">
 import {
   defineComponent,
   onMounted,
@@ -161,25 +151,28 @@ import {
   AppointmentMutations,
 } from "@/store/enums/StoreAppointmentEnums";
 import { StepperComponent } from "@/assets/ts/components";
-import StepperNavItem from "@/components/presets/StepperElements/StepperNavItem.vue";
-import ApiService from "@/core/services/ApiService";
-import JwtService from "@/core/services/JwtService";
 import { hideModal } from "@/core/helpers/dom";
 import moment from "moment";
 import chargeTypes, { getProcedurePrice } from "@/core/data/charge-types";
 import { useRouter } from "vue-router";
 
-import StepOne from "@/components/appointments/partials/ModalAptStep1";
-import StepTwo from "@/components/appointments/partials/ModalAptStep2";
-import StepThree from "@/components/appointments/partials/ModalAptStep3";
-import StepFour from "@/components/appointments/partials/ModalAptStep4";
-import AptOverview from "@/components/appointments/partials/AppointmentOverview";
-import StepperNav from "@/components/appointments/partials/ModalAptStepperNav";
+import StepOne from "@/components/appointments/partials/ModalAptStep1.vue";
+import StepTwo from "@/components/appointments/partials/ModalAptStep2.vue";
+import StepThree from "@/components/appointments/partials/ModalAptStep3.vue";
+import StepFour from "@/components/appointments/partials/ModalAptStep4.vue";
+import AptOverview from "@/components/appointments/partials/AppointmentOverview.vue";
+import StepperNav from "@/components/appointments/partials/ModalAptStepperNav.vue";
+import AptWaitListed from "@/components/appointments/partials/ModalAptWaitListed.vue";
 
-import { mask } from "vue-the-mask";
 import { ElMessage } from "element-plus";
-import { Modal } from "bootstrap";
 import Swal from "sweetalert2";
+import {
+  IAptInfoData,
+  IBillingInfoData,
+  ICurSpecialist,
+  IOtherInfoData,
+  IPatientInfoData,
+} from "@/assets/ts/components/_CreateAppointmentComponent";
 
 export default defineComponent({
   props: {
@@ -187,9 +180,6 @@ export default defineComponent({
   },
 
   name: "Apt-Modal",
-  directives: {
-    mask,
-  },
   components: {
     StepperNav,
     AptOverview,
@@ -197,33 +187,33 @@ export default defineComponent({
     StepTwo,
     StepThree,
     StepFour,
+    AptWaitListed,
   },
 
   setup(props) {
     const store = useStore();
-    const formRef_2 = ref(null);
-    const loading = ref(false);
-    const tableKey = ref(0);
-    const addClaimSourceModalId = `add_claim_source_modal_${props.modalId}`;
-
     const router = useRouter();
-    const aptInfoData = ref({
+    const loading = ref(false);
+
+    const aptInfoData = ref<IAptInfoData>({
       clinic_name: "",
-      clinic_id: "",
+      clinic_id: -1,
       send_forms: true,
       date: "",
       arrival_time: "",
       time_slot: ["2022-06-20T09:00", "2022-06-20T17:00"],
       appointment_type_id: "",
-      specialist_id: "",
+      specialist_id: -1,
       room_id: "",
       note: "",
       patient_id: null,
-      start_time: null,
-      is_wait_listed: false,
+      start_time: "",
+      clinical_code: "",
+      mbs_code: "",
+      is_wait_listed: 0,
     });
 
-    const patientInfoData = ref({
+    const patientInfoData = ref<IPatientInfoData>({
       first_name: "",
       last_name: "",
       date_of_birth: "",
@@ -235,57 +225,54 @@ export default defineComponent({
       clinical_alerts: "",
       also_known_as: [],
       is_exist: false,
+      is_ok: false,
+      alerts: [],
     });
 
-    const billingInfoData = ref({
+    const billingInfoData = ref<IBillingInfoData>({
       charge_type: chargeTypes[0].value,
       claim_sources: [],
-      procedure_price: "",
+      procedure_price: 0,
       add_other_account_holder: false,
     });
 
-    const otherInfoData = ref({
+    const otherInfoData = ref<IOtherInfoData>({
       anesthetic_questions: false,
       anesthetic_answers: [],
       doctor_address_book_name: "",
-      doctor_address_book_id: "",
+      doctor_address_book_id: null,
       referral_duration: "",
       referral_date: "",
       no_referral: false,
       no_referral_reason: "",
     });
 
-    const appointment_time = ref(30);
-    const _stepperObj = ref(null);
-    const createAptRef = ref(null);
+    const appointment_time = ref<number>(30);
+    const _stepperObj = ref<HTMLObjectElement | any>();
+    const createAptRef = ref();
     const createAptModalRef = ref(null);
-    const currentStepIndex = ref(0);
+    const currentStepIndex = ref<number>(0);
+    const apt_type = ref("");
+    const cur_appointment_type_id = ref("");
+    const cur_specialist = ref<ICurSpecialist>({
+      id: 0,
+      full_name: "",
+    });
+    const title = ref<string>("");
 
-    const editAptRef = ref(null);
+    const editAptRef = ref();
     const editAptModalRef = ref(null);
 
-    const ava_specialist = ref([]);
-    const apt_type = ref("");
-    const anesthetist = ref([]);
-    const clinic = ref([]);
-    const rooms = ref([]);
-    const cur_appointment_type_id = ref("");
-    const appointmentType = ref("");
-    const cur_specialist = ref({});
-    const start_time = ref("");
-    const end_time = ref("");
-    const appointment_name = ref("");
-    const appointment_type_quote = ref(0);
-    const specialist_name = ref("");
-    const _appointment_time = ref(30);
-    const arrival_time = ref(30);
+    const start_time = ref<string>(""); // WHY ? can refactor more
+    const end_time = ref<string>(""); // WHY ? can refactor more
+    const appointment_name = ref(""); // may-be we can generate appointment name in appointment overview
+    const appointment_type_quote = ref<number>(0); // we may need to prop this to step 3 or prop appointment type and do the process there
 
-    const title = ref(null);
-    const refName = ref(null);
-    const refCode = ref(null);
+    const _appointment_time = ref<number>(30);
+    const arrival_time = ref<number>(30);
 
-    const patientTableData = ref([]);
     const filterPatient = reactive({
+      // I think this is in step 2 and we don't need this here
       first_name: "",
       last_name: "",
       date_of_birth: "",
@@ -298,8 +285,6 @@ export default defineComponent({
 
     const aptTypeList = computed(() => store.getters.getAptTypesList);
     const aptTypeListWithRestriction = ref();
-    const searchVal = computed(() => store.getters.getSearchVariable);
-    const patientList = computed(() => store.getters.patientsList);
     const aptData = computed(() => store.getters.getAptSelected);
     const aptList = computed(() => store.getters.getAptList);
     const bookingData = computed(() => store.getters.bookingDatas);
@@ -309,11 +294,8 @@ export default defineComponent({
     const setTitle = () => {
       if (props.modalId === "new") {
         title.value = "Create Appointment";
-        refName.value = "createAptModalRef";
       } else if (props.modalId === "update") {
         title.value = "Update Appointment";
-        refName.value = "editAptModalRef";
-        refCode.value = "editAptRef";
         _stepperObj.value = StepperComponent.createInstance(editAptRef.value);
       }
     };
@@ -361,12 +343,11 @@ export default defineComponent({
 
         aptInfoData.value.clinic_id = aptData.value.clinic_id;
         aptInfoData.value.clinic_name = aptData.value.clinic.name;
-        specialist_name.value = aptData.value.specialist.full_name;
         billingInfoData.value.charge_type = aptData.value.charge_type;
         aptInfoData.value.date = moment(aptData.value.date)
           .format("DD-MM-YYYY")
           .toString();
-        getAvailableRooms();
+        store.dispatch(Actions.CLINICS.ROOMS.LIST, aptInfoData.value.clinic_id);
         updateAptTime(aptData.value.start_time, aptData.value.end_time);
       }
     });
@@ -392,7 +373,6 @@ export default defineComponent({
       } else {
         appointment_time.value = orgData.value.appointment_length;
         appointment_name.value = _selected.name;
-        appointmentType.value = _selected.type;
         appointment_type_quote.value = _selected?.default_items_quote ?? 0;
         _appointment_time.value = Number(
           appointment_time.value * _selected.appointment_length_as_number
@@ -445,10 +425,7 @@ export default defineComponent({
     });
 
     watch(cur_specialist, () => {
-      aptInfoData.value.specialist_id = cur_specialist.value.id;
-      specialist_name.value = cur_specialist.value.full_name;
-      // anesthetist.value = _selected.anesthetist;
-      // aptInfoData.value.anesthetist_id = _selected.anesthetist.id;
+      aptInfoData.value.specialist_id = Number(cur_specialist.value?.id);
     });
 
     watch(start_time, () => {
@@ -465,34 +442,10 @@ export default defineComponent({
       }
     });
 
-    watch(patientStatus, () => {
-      if (patientStatus.value === "new") patientStep.value = 3;
-      else {
-        patientStep.value = 1;
-        filterPatient.first_name = "";
-        filterPatient.last_name = "";
-        filterPatient.date_of_birth = "";
-      }
-    });
-
-    const renderTable = () => tableKey.value++;
-
-    watch(patientList, () => {
-      patientTableData.value = patientList;
-      renderTable();
-    });
-
-    // Setting user selected date
-    watch(searchVal, () => {
-      aptInfoData.value.date = moment(searchVal.value.date)
-        .format("DD-MM-YYYY")
-        .toString();
-    });
-
     watchEffect(() => {
       appointment_time.value = 30;
       const bookingData = store.getters.bookingDatas;
-      ava_specialist.value = bookingData.ava_specialist;
+      // ava_specialist.value = bookingData.ava_specialist;
       let specialistRestriction = bookingData.restriction;
       // Setting appointment types base on apt create or edit
       if (specialistRestriction === "NONE" || props.modalId === "update") {
@@ -515,23 +468,24 @@ export default defineComponent({
       if (bookingData.selected_specialist && props.modalId === "new") {
         cur_specialist.value = bookingData.selected_specialist;
         if (bookingData.selected_specialist.anesthetist) {
-          anesthetist.value = bookingData.selected_specialist.anesthetist;
+          // anesthetist.value = bookingData.selected_specialist.anesthetist;
         }
 
         if (bookingData.selected_specialist) {
-          clinic.value =
+          const clinic =
             bookingData.selected_specialist.hrm_work_schedule[0].clinic;
-          if (props.modalId !== "update") {
-            aptInfoData.value.clinic_name = clinic.value.name;
-            aptInfoData.value.clinic_id = clinic.value.id;
-          }
+          aptInfoData.value.clinic_name = String(clinic.name);
+          aptInfoData.value.clinic_id = Number(clinic.id);
           if (props.modalId === "new") {
             aptInfoData.value.date = bookingData.date;
           }
           if (bookingData.appointment_type) {
             cur_appointment_type_id.value = bookingData.appointment_type.id;
           }
-          getAvailableRooms();
+          store.dispatch(
+            Actions.CLINICS.ROOMS.LIST,
+            aptInfoData.value.clinic_id
+          );
         }
       }
 
@@ -556,7 +510,7 @@ export default defineComponent({
       store.dispatch(Actions.ANESTHETIST_QUES.ACTIVE_LIST);
       store.dispatch(AppointmentActions.APPOINTMENT_TYPES.LIST);
       const myModalEl = document.getElementById("modal_new_apt");
-      myModalEl.addEventListener("hide.bs.modal", () => {
+      myModalEl?.addEventListener("hide.bs.modal", () => {
         const draftAptId = store.getters.getDraftAptId;
         if (draftAptId && aptInfoData.value.date) {
           store
@@ -570,19 +524,6 @@ export default defineComponent({
         }
       });
     });
-
-    const getAvailableRooms = () => {
-      if (JwtService.getToken() && aptInfoData.value.clinic_id) {
-        ApiService.setHeader();
-        ApiService.get(
-          "clinics/" + aptInfoData.value.clinic_id + "/rooms"
-        ).then(({ data }) => {
-          rooms.value = data.data;
-        });
-      } else {
-        // this.context.commit(Mutations.PURGE_AUTH);
-      }
-    };
 
     // Send request to update exiting appointment
     const handleSave = async () => {
@@ -616,7 +557,7 @@ export default defineComponent({
         // formRef_1.value.resetFields();
         // formRef_3.value.resetFields();
         // formRef_4.value.resetFields();
-        if (formRef_2.value) formRef_2.value.resetFields();
+        // if (formRef_2.value) formRef_2.value.resetFields();
         filterPatient.first_name = "";
         filterPatient.last_name = "";
         filterPatient.date_of_birth = "";
@@ -655,8 +596,7 @@ export default defineComponent({
           return !Object.prototype.hasOwnProperty.call(source, "id");
         }
       );
-
-      patientInfo.also_known_as = patientInfo.also_known_as?.filter(
+      patientInfo.also_known_as = patientInfo?.also_known_as?.filter(
         (source) => {
           return !Object.prototype.hasOwnProperty.call(source, "id");
         }
@@ -694,9 +634,9 @@ export default defineComponent({
               }).then((result) => {
                 hideModal(createAptModalRef.value);
                 resetCreateModal();
-                if (result.dismiss === "cancel") {
-                  router.push({ name: "make-payment-pay" });
-                }
+                // if (result?.dismiss === "cancel") {
+                //   router.push({ name: "make-payment-pay" });
+                // }
               });
             });
         });
@@ -717,7 +657,7 @@ export default defineComponent({
       });
 
       store
-        .dispatch(Actions.APT.UPDATE, {
+        .dispatch(AppointmentActions.APT.UPDATE, {
           id: aptData.value.id,
           ...aptInfoData.value,
           ...patientInfo,
@@ -726,7 +666,7 @@ export default defineComponent({
         })
         .then(() => {
           loading.value = false;
-          store.dispatch(Actions.APT.LIST);
+          store.dispatch(AppointmentActions.LIST);
           hideModal(editAptModalRef.value);
         })
         .finally(() => {
@@ -818,13 +758,23 @@ export default defineComponent({
       _stepperObj.value.goNext();
     };
 
+    //Update parent objects and send PUT request
     const processSave = (data, step) => {
+      processUpdate(data, step);
+      handleSave();
+    };
+
+    // Just update parent objects without saving them
+    const processUpdate = (data, step) => {
       if (step === 1) {
         for (let key in data) aptInfoData.value[key] = data[key];
       } else if (step === 2) {
         for (let key in data) patientInfoData.value[key] = data[key];
+      } else if (step === 3) {
+        for (let key in data) billingInfoData.value[key] = data[key];
+      } else if (step === 4) {
+        for (let key in data) otherInfoData.value[key] = data[key];
       }
-      handleSave();
     };
 
     const changeAptType = (data) => {
@@ -860,14 +810,18 @@ export default defineComponent({
       _stepperObj.value.goNext();
     };
 
-    const processStepFour = () => {
+    const processStepFour = (otherNewData) => {
       loading.value = true;
+      for (let key in otherNewData)
+        otherInfoData.value[key] = otherNewData[key];
       props.modalId === "new" ? createApt() : updateApt();
       resetCreateModal();
     };
 
+    const aptWaitListedUpdate = (isWaitListed) => {
+      aptInfoData.value.is_wait_listed = isWaitListed;
+    };
     return {
-      rooms, // TODO move this to step 1 component
       apt_type,
       cur_specialist,
       appointment_name,
@@ -891,19 +845,9 @@ export default defineComponent({
       processStepTwo,
       processStepThree,
       processStepFour,
+      processUpdate,
+      aptWaitListedUpdate,
     };
   },
 });
 </script>
-
-<style lang="scss">
-.special-patient-alerts .modal.patient-alert .modal-footer {
-  display: none;
-}
-
-.exist-message {
-  label {
-    color: grey;
-  }
-}
-</style>
