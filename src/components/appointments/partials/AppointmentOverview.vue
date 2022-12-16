@@ -36,7 +36,7 @@
 <script lang="ts">
 import InfoSection from "@/components/presets/GeneralElements/InfoSection.vue";
 import { PropType, ref, watch } from "vue";
-import { ISpecialist } from "@/store/modules/SpecialistsModule";
+import { ICurSpecialist } from "@/assets/ts/components/_CreateAppointmentComponent";
 
 export default {
   components: {
@@ -50,7 +50,7 @@ export default {
     },
     specialist: {
       required: true,
-      type: Object as PropType<ISpecialist>,
+      type: Object as PropType<ICurSpecialist>,
     },
     aptInfoData: {
       required: true,
