@@ -226,23 +226,24 @@
             />
           </div>
         </div>
-        <el-divider />
-        <CreateDocumentButton
-          :appointment="appointment"
-          :patient="patient"
-          document-type="letter"
-        />
-        <CreateDocumentButton
-          :appointment="appointment"
-          :patient="patient"
-          document-type="report"
-        />
-        <CreateDocumentButton
-          :appointment="appointment"
-          :patient="patient"
-          document-type="referral"
-        />
-
+        <template v-if="userRole == 'specialist'">
+          <el-divider />
+          <CreateDocumentButton
+            :appointment="appointment"
+            :patient="patient"
+            document-type="letter"
+          />
+          <CreateDocumentButton
+            :appointment="appointment"
+            :patient="patient"
+            document-type="report"
+          />
+          <CreateDocumentButton
+            :appointment="appointment"
+            :patient="patient"
+            document-type="referral"
+          />
+        </template>
         <!--Cancel Appointment Button-->
         <LargeIconButton
           v-if="userRole !== 'specialist' && userRole !== 'anesthetist'"
