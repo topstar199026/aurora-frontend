@@ -45,7 +45,7 @@
         <li class="nav-item" v-if="currentUser?.role === 'specialist'">
           <router-link
             class="nav-link text-active-primary me-6"
-            to="/profile/auto-text"
+            to="/profile/auto-texts"
             active-class="active"
           >
             Auto Text Settings
