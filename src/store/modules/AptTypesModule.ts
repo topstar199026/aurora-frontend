@@ -72,9 +72,9 @@ export default class AptTypesModule extends VuexModule implements AptTypesInfo {
   [AppointmentActions.APPOINTMENT_TYPES.CREATE](item) {
     if (JwtService.getToken()) {
       ApiService.setHeader();
-      ApiService.post("appointment-types", item)
+      return ApiService.post("appointment-types", item)
         .then(({ data }) => {
-          return data.data;
+          return displaySuccessModal("New Appointment Type Created");
         })
         .catch(({ response }) => {
           return displayServerError(response, "Creating an appointment type");
@@ -88,9 +88,9 @@ export default class AptTypesModule extends VuexModule implements AptTypesInfo {
   [AppointmentActions.APPOINTMENT_TYPES.UPDATE](item) {
     if (JwtService.getToken()) {
       ApiService.setHeader();
-      ApiService.update("appointment-types", item.id, item)
+      return ApiService.update("appointment-types", item.id, item)
         .then(({ data }) => {
-          return data.data;
+          return displaySuccessModal("Appointment Type Updated");
         })
         .catch(({ response }) => {
           return displayServerError(response, "Updating an appointment type");
@@ -104,9 +104,9 @@ export default class AptTypesModule extends VuexModule implements AptTypesInfo {
   [AppointmentActions.APPOINTMENT_TYPES.DELETE](id) {
     if (JwtService.getToken()) {
       ApiService.setHeader();
-      ApiService.delete("appointment-types/" + id)
+      return ApiService.delete("appointment-types/" + id)
         .then(({ data }) => {
-          return data.data;
+          return displaySuccessToast("Appointment Type Deleted");
         })
         .catch(({ response }) => {
           return displayServerError(response, "Deleting an appointment type");

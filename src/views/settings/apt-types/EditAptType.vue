@@ -24,6 +24,7 @@
         <InputWrapper
           class="col-sm-6"
           label="Type"
+          required
           infoTooltip="What type of appointment this is"
           prop="type"
           :tooltip="helpTexts.forms.appointmentType.type"
@@ -37,6 +38,7 @@
         <InputWrapper
           class="col-sm-6"
           label="Appointment Color"
+          required
           prop="type"
           :tooltip="helpTexts.forms.appointmentType.color"
         >
@@ -60,6 +62,7 @@
         <InputWrapper
           class="col-sm-6 mb-5"
           prop="anesthetist_required"
+          required
           :tooltip="helpTexts.forms.appointmentType.anesthetistRequired"
         >
           <el-checkbox
@@ -73,6 +76,7 @@
         <InputWrapper
           class="col-sm-6"
           label="Arrival extra time"
+          required
           prop="arrival_time"
           :tooltip="helpTexts.forms.appointmentType.arrivalTime"
         >
@@ -87,6 +91,7 @@
         <InputWrapper
           class="col-sm-6"
           label="Appointment Length"
+          required
           prop="appointment_time"
           :tooltip="helpTexts.forms.appointmentType.appointmentTime"
         >
@@ -124,6 +129,7 @@
         <InputWrapper
           class="col-sm-4"
           label="Invoice By"
+          required
           prop="invoice_by"
           :tooltip="helpTexts.forms.appointmentType.invoicedBy"
         >
@@ -236,7 +242,14 @@ export default defineComponent({
     const formRef = ref<HTMLFormElement>();
 
     const loading = ref<boolean>(false);
-    const formData = ref<IAppointmentType>({} as IAppointmentType);
+    const formData = ref<IAppointmentType>({
+      type: "CONSULTATION",
+      anesthetist_required: false,
+      arrival_time: 15,
+      appointment_time: "SINGLE",
+      color: "",
+      invoice_by: "CLINIC",
+    } as IAppointmentType);
     const reportTemplates = computed(() => store.getters.getReportTemplateList);
     const scheduleItems = computed(() => store.getters.scheduleItemList);
     const aptTypes = computed(() => store.getters.getAptTypesList);
@@ -254,7 +267,6 @@ export default defineComponent({
       title: "Create Appointment Type",
       submitAction: AppointmentActions.APPOINTMENT_TYPES.CREATE,
       submitButtonName: "CREATE",
-      submittedText: "New Appointment Type Created",
     });
 
     const rules = ref({
@@ -262,6 +274,48 @@ export default defineComponent({
         {
           required: true,
           message: "Name cannot be blank",
+          trigger: "change",
+        },
+      ],
+      type: [
+        {
+          required: true,
+          message: "A type must be selected",
+          trigger: "change",
+        },
+      ],
+      anesthetist_required: [
+        {
+          required: true,
+          message: "A type must be selected",
+          trigger: "change",
+        },
+      ],
+      arrival_time: [
+        {
+          required: true,
+          message: "Arrival extra time must not be blank",
+          trigger: "change",
+        },
+      ],
+      appointment_time: [
+        {
+          required: true,
+          message: "Appointment length must be selected",
+          trigger: "change",
+        },
+      ],
+      color: [
+        {
+          required: true,
+          message: "A type must be selected",
+          trigger: "change",
+        },
+      ],
+      invoice_by: [
+        {
+          required: true,
+          message: "An invoice source must be selected",
           trigger: "change",
         },
       ],
@@ -277,7 +331,6 @@ export default defineComponent({
           formInfo.title = "Edit Appointment Type";
           formInfo.submitAction = AppointmentActions.APPOINTMENT_TYPES.UPDATE;
           formInfo.submitButtonName = "UPDATE";
-          formInfo.submittedText = "Appointment Type Updated";
         }
       });
 
@@ -288,6 +341,11 @@ export default defineComponent({
       store.dispatch(AppointmentActions.APPOINTMENT_TYPES.LIST);
       store.dispatch(Actions.DOCUMENT_TEMPLATES.LIST);
       store.dispatch(Actions.SCHEDULE_ITEM.LIST);
+
+      formData.value.color =
+        predefineColors.value[
+          Math.floor(Math.random() * predefineColors.value.length)
+        ];
     });
 
     const submit = () => {
@@ -298,30 +356,22 @@ export default defineComponent({
       formRef.value.validate((valid) => {
         if (valid) {
           loading.value = true;
+
           store
             .dispatch(formInfo.submitAction, formData.value)
             .then(() => {
               loading.value = false;
               store.dispatch(AppointmentActions.APPOINTMENT_TYPES.LIST);
-              Swal.fire({
-                text: formInfo.submittedText,
-                icon: "success",
-                buttonsStyling: false,
-                confirmButtonText: "Ok, got it!",
-                customClass: {
-                  confirmButton: "btn btn-primary",
-                },
-              }).then(() => {
-                router.push({ name: "aptTypes" });
-              });
+
+              if (formRef.value !== undefined) {
+                formRef.value.resetFields();
+              }
+
+              router.push({ name: "aptTypes" });
             })
             .catch(({ response }) => {
               loading.value = false;
-              console.log(response.data.error);
             });
-          if (formRef.value != undefined) {
-            formRef.value.resetFields();
-          }
         }
       });
     };
