@@ -63,6 +63,21 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import("@/components/auth/Signature.vue"),
       },
       {
+        path: "/profile/auto-texts",
+        name: "auto-texts",
+        component: () => import("@/components/auth/AutoTextSettings.vue"),
+      },
+      {
+        path: "/profile/auto-texts/create",
+        name: "auto-text-create",
+        component: () => import("@/components/auth/CreateAutoText.vue"),
+      },
+      {
+        path: "/profile/auto-texts/edit/:id",
+        name: "auto-text-edit",
+        component: () => import("@/components/auth/CreateAutoText.vue"),
+      },
+      {
         path: "/employee-booking-dashboard",
         name: "employee-booking-dashboard",
         component: () => import("@/views/appointments/EmployeeBookings.vue"),

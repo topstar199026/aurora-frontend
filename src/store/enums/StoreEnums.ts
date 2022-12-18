@@ -195,6 +195,13 @@ const Actions = {
     SEND: "sendInvoiceWithoutPayment",
     VIEW: "viewInvoiceWithoutPayment",
   },
+
+  AUTO_TEXT: {
+    LIST: "getAutoTexts",
+    CREATE: "createAutoText",
+    DELETE: "deleteAutoText",
+    UPDATE: "updateAutoText",
+  },
 };
 
 const Mutations = {
@@ -214,6 +221,10 @@ const Mutations = {
   SET_BILLING_TOKEN: "setBillingToken",
   PURGE_BILLING_TOKEN: "deleteBillingToken",
   SET_BILLING_VALIDATION: "setBillingValidation",
+  SET_AUTO_TEXTS: {
+    LIST: "setAutoTexts",
+    SELECT: "setSelectAutoText",
+  },
 
   SET_SPECIALIST: {
     LIST: "setSpecialists",

@@ -41,6 +41,17 @@
           </router-link>
         </li>
         <!--end::Nav item-->
+        <!--begin::Nav item-->
+        <li class="nav-item" v-if="currentUser?.role === 'specialist'">
+          <router-link
+            class="nav-link text-active-primary me-6"
+            to="/profile/auto-texts"
+            active-class="active"
+          >
+            Auto Text Settings
+          </router-link>
+        </li>
+        <!--end::Nav item-->
       </ul>
     </div>
   </div>
