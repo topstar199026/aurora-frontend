@@ -258,7 +258,7 @@
           >
             <div class="fv-row">
               <label class="required fs-6 fw-bold mb-2">
-                {{ section.title }}
+                {{ translate(section.title) }}
               </label>
 
               <el-form-item prop="note">
@@ -371,7 +371,8 @@ export default defineComponent({
     const reportSections = ref<Array<IDocumentSection>>([]);
     const timeout = ref<number | null>(null);
     const editorConfig = ref();
-
+    const patientTranslations = ref();
+    const appointmentTranslations = ref();
     const user = computed(() => store.getters.userProfile);
     const autoTexts = computed<IAutoText[]>(() => store.getters.autoTextsList);
 
@@ -652,8 +653,14 @@ export default defineComponent({
       if (templateData.value !== null) {
         formData.value.title =
           reportTemplatesData.value[templateData.value].title;
-        reportSections.value =
-          reportTemplatesData.value[templateData.value].sections;
+        let formattedSections: IDocumentSection[] = [];
+        reportTemplatesData.value[templateData.value].sections.forEach(
+          (section) => {
+            section.free_text_default = translate(section.free_text_default);
+            formattedSections.push(section);
+          }
+        );
+        reportSections.value = formattedSections;
       }
     });
 
@@ -662,6 +669,13 @@ export default defineComponent({
         appointmentData.value = patientData.value.appointments?.find(
           (appointment) => appointment.id === Number(appointmentId)
         );
+
+        patientTranslations.value = [
+          {
+            key: "[Patient_Name]",
+            value: patientData.value.full_name,
+          },
+        ];
       }
     });
 
@@ -672,6 +686,29 @@ export default defineComponent({
         formData.value.doctor_address_book_id =
           appointmentData.value.referral.doctor_address_book_id;
       }
+
+      appointmentTranslations.value = [
+        {
+          key: "[Appointment_Type]",
+          value: appointmentData.value?.appointment_type_name,
+        },
+        {
+          key: "[Appointment_Date]",
+          value: appointmentData.value?.date,
+        },
+        {
+          key: "[Appointment_Time]",
+          value: appointmentData.value?.start_time,
+        },
+        {
+          key: "[Appointment_Clinic]",
+          value: appointmentData.value?.clinic.name,
+        },
+        {
+          key: "[Appointment_Referring_Doctor]",
+          value: appointmentData.value?.referral.doctor_address_book_name,
+        },
+      ];
     });
 
     onMounted(() => {
@@ -707,6 +744,7 @@ export default defineComponent({
               marker: "@",
               feed: getAutoCompleteItems,
               minimumCharacters: 0,
+              itemRenderer: customItemRenderer,
             },
           ],
         },
@@ -727,18 +765,47 @@ export default defineComponent({
       }
     };
 
+    function customItemRenderer(item) {
+      const itemElement = document.createElement("span");
+      let text = item.id;
+      text = translate(text);
+      itemElement.textContent = text.replaceAll("@", "");
+
+      return itemElement;
+    }
+
     const formatAutoTexts = () => {
       reportSections.value.forEach((section) => {
         if (section.free_text_default.includes('class="mention"')) {
           let text = section.free_text_default;
           text = text.replaceAll("@", "");
           text = text.replaceAll(' class="mention"', "");
+          text = translate(text);
           section.free_text_default = text;
         }
       });
     };
 
+    const translate = (text) => {
+      patientTranslations.value.forEach((patientTranslation) => {
+        text = text.replaceAll(
+          patientTranslation.key,
+          patientTranslation.value
+        );
+      });
+
+      appointmentTranslations.value.forEach((appointmentTranslation) => {
+        text = text.replaceAll(
+          appointmentTranslation.key,
+          appointmentTranslation.value
+        );
+      });
+
+      return text;
+    };
+
     return {
+      translate,
       editorConfig,
       mbsItems,
       nonMbsItems,
