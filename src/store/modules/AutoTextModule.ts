@@ -42,12 +42,14 @@ export default class AutoTextModule extends VuexModule implements AutoTextInfo {
   }
 
   @Action
-  [Actions.AUTO_TEXT.LIST]() {
+  [Actions.AUTO_TEXT.LIST](params) {
+    console.log(params);
     if (JwtService.getToken()) {
       ApiService.setHeader();
-      ApiService.get("auto-texts")
+      return ApiService.query("auto-texts", { params: params })
         .then(({ data }) => {
           this.context.commit(Mutations.SET_AUTO_TEXTS.LIST, data.data);
+          console.log(data.data);
           return data.data;
         })
         .catch(({ response }) => {

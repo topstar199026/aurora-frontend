@@ -89,6 +89,7 @@ export default defineComponent({
     const filterAndSort = reactive({
       searchText: "",
     });
+    const user = computed(() => store.getters.userProfile);
     const tableHeader = ref([
       {
         name: "Text",
@@ -140,18 +141,7 @@ export default defineComponent({
       }).then((result) => {
         if (result.isConfirmed) {
           store.dispatch(Actions.AUTO_TEXT.DELETE, item.id).then(() => {
-            store.dispatch(Actions.AUTO_TEXT.LIST);
-            Swal.fire({
-              text: "Successfully Deleted!",
-              icon: "success",
-              buttonsStyling: false,
-              confirmButtonText: "Ok, got it!",
-              customClass: {
-                confirmButton: "btn btn-primary",
-              },
-            }).then(() => {
-              store.dispatch(Actions.AUTO_TEXT.LIST);
-            });
+            store.dispatch(Actions.AUTO_TEXT.LIST, { user_id: user.value.id });
           });
         }
       });
@@ -160,10 +150,12 @@ export default defineComponent({
     onMounted(() => {
       loading.value = true;
       setCurrentPageBreadcrumbs("Auto Text Settings", ["Profile"]);
-      store.dispatch(Actions.AUTO_TEXT.LIST).then(() => {
-        tableData.value = list.value;
-        loading.value = false;
-      });
+      store
+        .dispatch(Actions.AUTO_TEXT.LIST, { user_id: user.value.id })
+        .then(() => {
+          tableData.value = list.value;
+          loading.value = false;
+        });
     });
 
     const applyFilterAndSort = () => {
