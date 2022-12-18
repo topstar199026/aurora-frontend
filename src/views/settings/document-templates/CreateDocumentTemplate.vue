@@ -122,6 +122,7 @@
                       text="Delete Section"
                       iconPath="media/icons/duotune/arrows/arr024.svg"
                       :color="'danger'"
+                      type="button"
                       iconSize="1"
                     />
                   </div>
@@ -132,6 +133,7 @@
                   :text="'Add Section'"
                   :iconPath="'media/icons/duotune/arrows/arr024.svg'"
                   :color="'primary'"
+                  type="button"
                   iconSize="3"
                 />
               </div>
