@@ -350,6 +350,7 @@ import { ElForm } from "element-plus";
 import { FormRulesMap } from "element-plus/es/components/form/src/form.type";
 import { PatientActions } from "@/store/enums/StorePatientEnums";
 import Editor from "ckeditor5-custom-build/build/ckeditor";
+import IAutoText from "@/store/interfaces/IAutoText";
 
 export default defineComponent({
   setup() {
@@ -370,6 +371,10 @@ export default defineComponent({
     const reportSections = ref<Array<IDocumentSection>>([]);
     const timeout = ref<number | null>(null);
     const editorConfig = ref();
+
+    const user = computed(() => store.getters.userProfile);
+    const autoTexts = computed<IAutoText[]>(() => store.getters.autoTextsList);
+
     const formData = ref({
       title: "",
       section: [],
@@ -693,6 +698,8 @@ export default defineComponent({
         store.dispatch(Actions.SCHEDULE_ITEM.LIST);
       }
 
+      store.dispatch(Actions.AUTO_TEXT.LIST, { user_id: user.value.id });
+
       editorConfig.value = {
         mention: {
           feeds: [
@@ -705,21 +712,15 @@ export default defineComponent({
         },
       };
     });
-    const getAutoCompleteItems = (queryText) => {
-      let testItems = [
-        {
-          id: "@test one",
-        },
-        {
-          id: "@test two",
-        },
-        {
-          id: "@test three",
-        },
-        { id: "@test four" },
-      ];
 
-      return testItems.filter(isItemMatching);
+    const getAutoCompleteItems = (queryText) => {
+      let mentionTexts: { id: string }[] = [];
+
+      autoTexts.value.forEach((autoText) => {
+        mentionTexts.push({ id: "@" + autoText.text });
+      });
+
+      return mentionTexts.filter(isItemMatching);
 
       function isItemMatching(item) {
         return item.id.toLowerCase().includes(queryText.toLowerCase());
