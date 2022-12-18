@@ -90,6 +90,7 @@ export default defineComponent({
       searchText: "",
     });
     const user = computed(() => store.getters.userProfile);
+    const list = computed<IAutoText[]>(() => store.getters.autoTextsList);
     const tableHeader = ref([
       {
         name: "Text",
@@ -116,7 +117,6 @@ export default defineComponent({
     ]);
     const tableData = ref<IAutoText[]>();
     const filteredData = ref<IAutoText[]>();
-    const list = computed<IAutoText[]>(() => store.getters.autoTextsList);
 
     const handleCreate = () => {
       router.push({ name: "auto-text-create" });
