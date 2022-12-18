@@ -92,6 +92,7 @@
                   :patientDataE="patientInfoData"
                   @save="processSave"
                   @process="processStepTwo"
+                  @updatePatient="setPatient"
                   @go-back="previousStep"
                 />
                 <!--end::Step 2-->
@@ -271,13 +272,6 @@ export default defineComponent({
     const _appointment_time = ref<number>(30);
     const arrival_time = ref<number>(30);
 
-    const filterPatient = reactive({
-      // I think this is in step 2 and we don't need this here
-      first_name: "",
-      last_name: "",
-      date_of_birth: "",
-      ur_number: "",
-    });
     const patientStatus = ref("new");
     const patientStep = ref(3);
 
@@ -398,29 +392,9 @@ export default defineComponent({
         .toString();
 
       if (props.modalId == "new") {
-        const specialist = store.getters.getSelectedSpecialist;
         if (apt_type.value === "Consultation") {
           otherInfoData.value.anesthetic_questions = false;
         }
-        let cnt = 0;
-        if (specialist) {
-          for (let i in specialist.appointments) {
-            let _apt_temp = specialist.appointments[i];
-            if (
-              (timeStr2Number(start_time.value) <=
-                timeStr2Number(_apt_temp.start_time) &&
-                timeStr2Number(_apt_temp.start_time) <
-                  timeStr2Number(end_time.value)) ||
-              (timeStr2Number(_apt_temp.start_time) <=
-                timeStr2Number(start_time.value) &&
-                timeStr2Number(start_time.value) <
-                  timeStr2Number(_apt_temp.end_time))
-            ) {
-              cnt++;
-            }
-          }
-        }
-        overlapping_cnt.value = cnt;
       }
     });
 
@@ -558,10 +532,10 @@ export default defineComponent({
         // formRef_3.value.resetFields();
         // formRef_4.value.resetFields();
         // if (formRef_2.value) formRef_2.value.resetFields();
-        filterPatient.first_name = "";
-        filterPatient.last_name = "";
-        filterPatient.date_of_birth = "";
-        filterPatient.ur_number = "";
+        // filterPatient.first_name = "";
+        // filterPatient.last_name = "";
+        // filterPatient.date_of_birth = "";
+        // filterPatient.ur_number = "";
         cur_appointment_type_id.value = "";
         for (let key in patientInfoData.value) patientInfoData.value[key] = "";
         for (let key in billingInfoData.value) billingInfoData.value[key] = "";
@@ -682,10 +656,6 @@ export default defineComponent({
       }
     };
 
-    const timeStr2Number = (time) => {
-      return Number(time.split(":")[0] + time.split(":")[1]);
-    };
-
     const checkAptOverlap = () => {
       const startTime = aptInfoData.value.time_slot[0] + ":00";
       const endTime = aptInfoData.value.time_slot[1] + ":00";
@@ -790,7 +760,6 @@ export default defineComponent({
       for (let key in billingData)
         billingInfoData.value[key] = billingData[key];
 
-      console.log(patientData, billingData);
       // TODO refactor this later on
       currentStepIndex.value++;
       if (!_stepperObj.value) {
@@ -821,6 +790,9 @@ export default defineComponent({
     const aptWaitListedUpdate = (isWaitListed) => {
       aptInfoData.value.is_wait_listed = isWaitListed;
     };
+
+    const setPatient = (patientId: number) =>
+      (aptInfoData.value.patient_id = patientId);
     return {
       apt_type,
       cur_specialist,
@@ -847,6 +819,7 @@ export default defineComponent({
       processStepFour,
       processUpdate,
       aptWaitListedUpdate,
+      setPatient,
     };
   },
 });

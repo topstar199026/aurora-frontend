@@ -185,7 +185,6 @@
 
 <script lang="ts">
 import { computed, defineComponent, PropType, ref, watchEffect } from "vue";
-import { ISpecialist } from "@/store/modules/SpecialistsModule";
 import InputWrapper from "@/components/presets/FormElements/InputWrapper.vue";
 import { useStore } from "vuex";
 import AlertBadge from "@/components/presets/GeneralElements/AlertBadge.vue";
@@ -193,6 +192,7 @@ import { FormRulesMap } from "element-plus/es/components/form/src/form.type";
 import {
   IAptInfoData,
   IAptInfoTypeData,
+  IOtherInfoData,
 } from "@/assets/ts/components/_CreateAppointmentComponent";
 
 export default defineComponent({
@@ -202,10 +202,6 @@ export default defineComponent({
   },
 
   props: {
-    // specialist: {
-    //   required: true,
-    //   type: Object as PropType<ISpecialist>,
-    // },
     aptInfoDataE: {
       required: true,
       type: Object as PropType<IAptInfoData>,
@@ -238,6 +234,7 @@ export default defineComponent({
       room_id: "",
       note: "",
       isNewPatient: true,
+      time_slot: ["", ""],
     });
     const overlappingCnt = ref(0);
     const formRef = ref<null | HTMLFormElement>(null);
@@ -285,8 +282,37 @@ export default defineComponent({
     };
 
     const updateTypeId = () => {
+      checkOverlapApts();
       emit("changeAptType", aptInfoData.value.appointment_type_id);
       handleUpdate();
+    };
+
+    const checkOverlapApts = () => {
+      if (props.modalId == "new") {
+        const specialist = store.getters.getSelectedSpecialist;
+        let cnt = 0;
+        if (specialist) {
+          for (let i in specialist.appointments) {
+            let _apt_temp = specialist.appointments[i];
+            if (
+              (timeStr2Number(aptInfoData.value.time_slot[0]) <=
+                timeStr2Number(_apt_temp.start_time) &&
+                timeStr2Number(_apt_temp.start_time) <
+                  timeStr2Number(aptInfoData.value.time_slot[1])) ||
+              (timeStr2Number(_apt_temp.start_time) <=
+                timeStr2Number(aptInfoData.value.time_slot[0]) &&
+                timeStr2Number(aptInfoData.value.time_slot[0]) <
+                  timeStr2Number(_apt_temp.end_time))
+            ) {
+              cnt++;
+            }
+          }
+        }
+        overlappingCnt.value = cnt;
+      }
+    };
+    const timeStr2Number = (time) => {
+      return Number(time.split(":")[0] + time.split(":")[1]);
     };
 
     return {

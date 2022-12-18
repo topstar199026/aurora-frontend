@@ -170,7 +170,7 @@
       <!--      END SELECT A EXISTING PATIENT-->
       <!--      START CREATE A NEW PATIENT ||  edit existing patient-->
       <el-form
-        v-if="isNewPatient || modalId === 'update' || patientStep === 3"
+        v-if="patientStep === 3"
         class="w-100"
         :model="patientInfoData"
         :rules="rules"
@@ -425,7 +425,7 @@ export default defineComponent({
       required: true,
     },
   },
-  emits: ["save", "process", "goBack"],
+  emits: ["save", "process", "goBack", "updatePatient"],
 
   setup(props, { emit }) {
     const store = useStore();
@@ -644,8 +644,8 @@ export default defineComponent({
         patientInfoData.value[key] = item[key];
       patientInfoData.value.alerts = item.alerts;
 
-      //TODO Emit patient ID here
-      // aptInfoData.value.patient_id = item.id;
+      // Update selected patient id in aptInfoData
+      emit("updatePatient", item.id);
 
       for (let key in billingInfoData.value) {
         if (
