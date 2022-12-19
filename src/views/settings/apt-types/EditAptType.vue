@@ -36,7 +36,7 @@
         </InputWrapper>
 
         <InputWrapper
-          class="col-sm-6"
+          class="col-sm-4"
           label="Appointment Color"
           required
           prop="type"
@@ -58,18 +58,34 @@
           </div>
         </InputWrapper>
 
+        <!--Input: Collecting Person Required-->
+        <InputWrapper
+          class="col-sm-4"
+          prop="collecting_person_required"
+          required
+          :tooltip="helpTexts.forms.appointmentType.collecting_person_required"
+          label="Collecting Person Required"
+        >
+          <el-radio-group
+            v-model="formData.collecting_person_required"
+            size="large"
+          >
+            <el-radio-button :label="true">Yes</el-radio-button>
+            <el-radio-button :label="false">No</el-radio-button>
+          </el-radio-group>
+        </InputWrapper>
         <!--Input: Anesthetist Required-->
         <InputWrapper
-          class="col-sm-6 mb-5"
+          class="col-sm-4"
+          label="Anesthetist Required"
           prop="anesthetist_required"
           required
           :tooltip="helpTexts.forms.appointmentType.anesthetistRequired"
         >
-          <el-checkbox
-            type="checkbox"
-            v-model="formData.anesthetist_required"
-            label="Anesthetist Required"
-          />
+          <el-radio-group v-model="formData.anesthetist_required" size="large">
+            <el-radio-button :label="true">Yes</el-radio-button>
+            <el-radio-button :label="false">No</el-radio-button>
+          </el-radio-group>
         </InputWrapper>
 
         <!--Input: Arrival Time-->
@@ -220,7 +236,6 @@ import {
 import { useStore } from "vuex";
 import { useRouter, useRoute } from "vue-router";
 import { setCurrentPageBreadcrumbs } from "@/core/helpers/breadcrumb";
-import Swal from "sweetalert2/dist/sweetalert2.js";
 import { AppointmentActions } from "@/store/enums/StoreAppointmentEnums";
 import { Actions } from "@/store/enums/StoreEnums";
 import InputWrapper from "@/components/presets/FormElements/InputWrapper.vue";

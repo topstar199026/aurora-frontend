@@ -303,7 +303,7 @@ export default defineComponent({
       store
         .dispatch(AppointmentActions.APT.DRAFT.CREATE, aptInfoData)
         .then(() => {
-          const modal = new Modal(document.getElementById("modal_create_apt"));
+          const modal = new Modal(document.getElementById("modal_new_apt"));
           modal.show();
         });
     };

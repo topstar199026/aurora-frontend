@@ -71,7 +71,6 @@ export default defineComponent({
         ) {
           store
             .dispatch(Actions.FILE.VIEW, {
-              type: "ORGANIZATION_LOGO",
               path: currentUser.value.organization.logo,
             })
             .then((data) => {

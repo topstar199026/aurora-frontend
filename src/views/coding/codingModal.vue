@@ -280,7 +280,6 @@ export default defineComponent({
         store
           .dispatch(Actions.FILE.VIEW, {
             path: doc.file_path,
-            type: "PATIENT_DOCUMENT",
           })
           .then((data) => {
             if (doc.file_type === "PDF") {

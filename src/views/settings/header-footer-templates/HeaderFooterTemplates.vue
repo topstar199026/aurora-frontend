@@ -203,7 +203,6 @@ export default defineComponent({
             store
               .dispatch(Actions.FILE.VIEW, {
                 path: template.header_file,
-                type: "DOCUMENT_HEADER",
               })
               .then((data) => {
                 const blob = new Blob([data], { type: "application/image" });
@@ -219,7 +218,6 @@ export default defineComponent({
             store
               .dispatch(Actions.FILE.VIEW, {
                 path: template.footer_file,
-                type: "DOCUMENT_FOOTER",
               })
               .then((data) => {
                 const blob = new Blob([data], { type: "application/image" });

@@ -15,7 +15,6 @@ export default class FileModule extends VuexModule {
       "file",
       {
         path: data.path,
-        type: data.type,
       },
       {
         responseType: "blob",

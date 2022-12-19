@@ -71,7 +71,11 @@
                 />
 
                 <StepperNavItem
-                  @click="gotoPage(3)"
+                  @click="
+                    appointment.appointment_type?.collecting_person_required
+                      ? gotoPage(3)
+                      : gotoPage(4)
+                  "
                   dataStepperElement="nav"
                   stepperNumber="3"
                   stepperTitle="Appointment Referral"
@@ -79,6 +83,9 @@
                 />
 
                 <StepperNavItem
+                  v-if="
+                    appointment.appointment_type?.collecting_person_required
+                  "
                   @click="gotoPage(4)"
                   dataStepperElement="nav"
                   stepperNumber="4"
@@ -89,7 +96,11 @@
                 <StepperNavItem
                   @click="gotoPage(5)"
                   dataStepperElement="nav"
-                  stepperNumber="5"
+                  :stepperNumber="
+                    appointment.appointment_type?.collecting_person_required
+                      ? '5'
+                      : '4'
+                  "
                   stepperTitle="Print Labels/Documents"
                   stepperDescription=""
                 />
@@ -125,7 +136,11 @@
                 />
               </div>
 
-              <div data-kt-stepper-element="content" class="w-100">
+              <div
+                v-if="appointment.appointment_type?.collecting_person_required"
+                data-kt-stepper-element="content"
+                class="w-100"
+              >
                 <AppointmentCollectingPersonForm
                   class="w-100"
                   :on-submit-extras="onCollectingPersonSubmit"

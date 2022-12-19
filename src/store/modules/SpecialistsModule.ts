@@ -2,6 +2,7 @@ import ApiService from "@/core/services/ApiService";
 import JwtService from "@/core/services/JwtService";
 import { Actions, Mutations } from "@/store/enums/StoreEnums";
 import { Module, Action, Mutation, VuexModule } from "vuex-module-decorators";
+import { ITimeSchedule } from "@/store/modules/BookingModule";
 
 export interface ISpecialist {
   id: number;
@@ -9,7 +10,8 @@ export interface ISpecialist {
   full_name: string;
   updated_at: string;
   created_at: string;
-  schedule_timeslots: Array<unknown>;
+  schedule_timeslots: Array<ITimeSchedule>;
+  hrm_work_schedule: Array<ITimeSchedule>;
 }
 
 export interface SpecalistInfo {

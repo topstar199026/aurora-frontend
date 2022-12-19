@@ -4,6 +4,7 @@ export default interface IAppointmentType {
   organization_id: number;
   appointment_id: number;
   anesthetist_required: boolean;
+  collecting_person_required: boolean;
   appointment_length_as_number: number;
   appointment_time: string;
   arrival_time: number;

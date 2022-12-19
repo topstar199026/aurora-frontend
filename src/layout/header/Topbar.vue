@@ -85,7 +85,6 @@ export default defineComponent({
         ) {
           store
             .dispatch(Actions.FILE.VIEW, {
-              type: "USER_PHOTO",
               path: profileData.value.photo,
             })
             .then((data) => {

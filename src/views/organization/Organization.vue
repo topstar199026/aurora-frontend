@@ -262,7 +262,6 @@ export default defineComponent({
       if (formData.value.logo) {
         store
           .dispatch(Actions.FILE.VIEW, {
-            type: "ORGANIZATION_LOGO",
             path: formData.value.logo,
           })
           .then((data) => {

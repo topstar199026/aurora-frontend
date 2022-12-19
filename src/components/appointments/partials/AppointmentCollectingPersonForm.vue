@@ -21,13 +21,14 @@
       />
     </InputWrapper>
     <InputWrapper
-      label="Alternate Contact"
+      label="Alternate Phone"
       prop="collecting_person_alternate_contact"
     >
       <el-input
-        v-model="formData.collecting_person_alternate_contact"
         type="text"
-        placeholder="Enter Alternate Contact"
+        v-mask="'0#-####-####'"
+        v-model="formData.collecting_person_alternate_contact"
+        placeholder="Enter Alternate Phone"
       />
     </InputWrapper>
     <div class="modal-footer flex-end">
