@@ -202,6 +202,13 @@ const Actions = {
     DELETE: "deleteAutoText",
     UPDATE: "updateAutoText",
   },
+
+  PREADMISSION: {
+    CONSENT: {
+      VIEW: "getPreadmissionConsent",
+      UPDATE: "updatePreadmissionConsent",
+    },
+  },
 };
 
 const Mutations = {
@@ -334,6 +341,10 @@ const Mutations = {
   SET_OUTGOING: {
     LIST: "setOutgoingLogs",
     SELECT: "setOutgoingSelectLog",
+  },
+
+  SET_PREADMISSION: {
+    CONSENT: "setPreAdmissionConsent",
   },
 };
 

@@ -33,12 +33,16 @@ import {
   watch,
   watchEffect,
   reactive,
+  computed,
 } from "vue";
 import { setCurrentPageBreadcrumbs } from "@/core/helpers/breadcrumb";
 import Swal from "sweetalert2/dist/sweetalert2.min.js";
 import { useRouter } from "vue-router";
 import ApiService from "@/core/services/ApiService";
 import Editor from "ckeditor5-custom-build/build/ckeditor";
+import store from "@/store";
+import { Actions, Mutations } from "@/store/enums/StoreEnums";
+
 export default defineComponent({
   name: "pre-admission-consent",
   setup() {
@@ -49,6 +53,7 @@ export default defineComponent({
     const formData = ref({
       text: "",
     });
+    const consent = computed(() => store.getters.consent);
 
     const rules = ref({
       text: [
@@ -60,8 +65,15 @@ export default defineComponent({
       ],
     });
 
+    watch(consent, () => {
+      formData.value = {
+        text: consent.value.text,
+      };
+    });
+
     onMounted(() => {
       setCurrentPageBreadcrumbs("Pre-Admission Consent", ["Settings"]);
+      store.dispatch(Actions.PREADMISSION.CONSENT.VIEW);
     });
 
     const submit = () => {
@@ -71,7 +83,12 @@ export default defineComponent({
 
       formRef.value.validate((valid) => {
         if (valid) {
-          ApiService.post("update-pre-admission-consent", formData.value)
+          let data = {
+            ...formData.value,
+            organization_id: consent.value.organization_id,
+          };
+          store
+            .dispatch(Actions.PREADMISSION.CONSENT.UPDATE, data)
             .then(() => {
               Swal.fire({
                 text: " Pre Admission Consent Updated!",
