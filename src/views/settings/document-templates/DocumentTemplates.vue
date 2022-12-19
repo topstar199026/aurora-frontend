@@ -30,6 +30,12 @@
           </div>
         </template>
 
+        <template v-slot:cell-type="{ row: item }">
+          <div class="d-flex align-items-center">
+            {{ item.type }}
+          </div>
+        </template>
+
         <template v-slot:cell-action="{ row: item }">
           <button
             @click="handleEdit(item)"
@@ -81,6 +87,11 @@ export default defineComponent({
         sortable: true,
       },
       {
+        name: "Type",
+        key: "type",
+        sortable: true,
+      },
+      {
         name: "Action",
         key: "action",
       },
@@ -95,6 +106,7 @@ export default defineComponent({
       const new_item = {
         id: 0,
         title: "",
+        type: "",
         sections: [],
       };
 
