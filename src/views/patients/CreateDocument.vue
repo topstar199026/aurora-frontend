@@ -353,6 +353,9 @@ import Editor from "ckeditor5-custom-build/build/ckeditor";
 import IAutoText from "@/store/interfaces/IAutoText";
 
 export default defineComponent({
+  components: {
+    ReportPreviewModal,
+  },
   setup() {
     const store = useStore();
     const loading = ref<boolean>(false);
