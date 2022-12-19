@@ -161,10 +161,10 @@ import moment from "moment";
 import chargeTypes, { getProcedurePrice } from "@/core/data/charge-types";
 import { useRouter } from "vue-router";
 
-import StepOne from "@/components/appointments/partials/ModalAptStep1.vue";
-import StepTwo from "@/components/appointments/partials/ModalAptStep2.vue";
-import StepThree from "@/components/appointments/partials/ModalAptStep3.vue";
-import StepFour from "@/components/appointments/partials/ModalAptStep4.vue";
+import StepOne from "@/components/appointments/partials/ModalAptStepOne.vue";
+import StepTwo from "@/components/appointments/partials/ModalAptStepTwo.vue";
+import StepThree from "@/components/appointments/partials/ModalAptStepThree.vue";
+import StepFour from "@/components/appointments/partials/ModalAptStepFour.vue";
 import AptOverview from "@/components/appointments/partials/AppointmentOverview.vue";
 import StepperNav from "@/components/appointments/partials/ModalAptStepperNav.vue";
 import AptWaitListed from "@/components/appointments/partials/ModalAptWaitListed.vue";
