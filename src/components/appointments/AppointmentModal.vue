@@ -527,6 +527,7 @@ export default defineComponent({
     };
 
     const createApt = () => {
+      let newAptId = null;
       const billingInfo = billingInfoData.value;
       const patientInfo = patientInfoData.value;
 
@@ -551,7 +552,8 @@ export default defineComponent({
           ...billingInfo,
           ...otherInfoData.value,
         })
-        .then(() => {
+        .then((data) => {
+          newAptId = data.data.data.id;
           store
             .dispatch(AppointmentActions.LIST, {
               date: bookingData.value.date,
@@ -573,9 +575,11 @@ export default defineComponent({
               }).then((result) => {
                 hideModal(createAptModalRef.value);
                 resetCreateModal();
-                if (result.isDismissed) {
-                  //TODO: set require id to make it work
-                  router.push({ name: "make-payment-pay" });
+                if (result.isDismissed && newAptId) {
+                  router.push({
+                    name: "make-payment-pay",
+                    params: { id: newAptId },
+                  });
                 }
               });
             });
