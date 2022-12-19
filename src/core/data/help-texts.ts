@@ -8,9 +8,12 @@ export const helpTexts = {
         "The activity to be undertaken during this appointment",
       color:
         "The color that this appointment will appear in the appointment book",
-      invoicedBy: "Who will the invoice for this appointment be addressed from",
+      invoicedBy: 
+      "Who will the invoice for this appointment be addressed from",
       anesthetistRequired:
         "Whether or not an anesthetist required for this appointment",
+      collecting_person_required: 
+        "Whether or not an person is required to collect this patient post appointment",
       arrivalTime:
         "How long before the begin of this appointment should the patient arrive",
       appointmentTime:
