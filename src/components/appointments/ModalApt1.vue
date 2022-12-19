@@ -147,7 +147,6 @@ import {
   watchEffect,
   computed,
   watch,
-  reactive,
 } from "vue";
 import { useStore } from "vuex";
 import { Actions } from "@/store/enums/StoreEnums";
@@ -208,7 +207,7 @@ export default defineComponent({
       date: "",
       arrival_time: "",
       time_slot: ["2022-06-20T09:00", "2022-06-20T17:00"],
-      appointment_type_id: "",
+      appointment_type_id: null,
       specialist_id: -1,
       room_id: "",
       note: "",
@@ -259,7 +258,7 @@ export default defineComponent({
     const createAptModalRef = ref(null);
     const currentStepIndex = ref<number>(0);
     const apt_type = ref("");
-    const cur_appointment_type_id = ref("");
+    const cur_appointment_type_id = ref<number | null>(null);
     const cur_specialist = ref<ICurSpecialist>({
       id: 0,
       full_name: "",
@@ -446,14 +445,11 @@ export default defineComponent({
         end_time.value = moment(bookingData.time_slot[1]).format("HH:mm");
       }
 
-      if (cur_appointment_type_id.value == "") {
+      if (cur_appointment_type_id.value == null) {
         overlapping_cnt.value = bookingData.overlapping_cnt;
       }
       if (bookingData.selected_specialist && props.modalId === "new") {
         cur_specialist.value = bookingData.selected_specialist;
-        if (bookingData.selected_specialist.anesthetist) {
-          // anesthetist.value = bookingData.selected_specialist.anesthetist;
-        }
 
         if (bookingData.selected_specialist) {
           const clinic =
@@ -550,7 +546,7 @@ export default defineComponent({
         for (let key in patientInfoData.value) patientInfoData.value[key] = "";
         for (let key in billingInfoData.value) billingInfoData.value[key] = "";
 
-        cur_appointment_type_id.value = "";
+        cur_appointment_type_id.value = null;
         billingInfoData.value.claim_sources = [];
         patientInfoData.value.also_known_as = [];
         otherInfoData.value.doctor_address_book_name = "";
