@@ -252,30 +252,24 @@ export default defineComponent({
       no_referral_reason: "",
     });
 
-    const appointment_time = ref<number>(30);
-    const _stepperObj = ref<HTMLObjectElement | any>();
-    const createAptRef = ref();
-    const createAptModalRef = ref(null);
-    const currentStepIndex = ref<number>(0);
-    const apt_type = ref("");
-    const cur_appointment_type_id = ref<number | null>(null);
     const cur_specialist = ref<ICurSpecialist>({
       id: 0,
       full_name: "",
     });
+
+    const appointment_time = ref<number>(30);
+    const _appointment_time = ref<number>(30);
+    const currentStepIndex = ref<number>(0);
+    const arrival_time = ref<number>(30);
+    const cur_appointment_type_id = ref<number | null>(null);
+
+    const _stepperObj = ref<any>();
+
     const title = ref<string>("");
-
-    const editAptRef = ref();
-    const editAptModalRef = ref(null);
-
+    const apt_type = ref<string>("");
     const start_time = ref<string>("");
     const end_time = ref<string>("");
-
-    const _appointment_time = ref<number>(30);
-    const arrival_time = ref<number>(30);
-
-    const patientStatus = ref("new");
-    const patientStep = ref<number>(3);
+    const patientStatus = ref<string>("new");
 
     const isNewPatient = ref<boolean>(false);
 
@@ -283,6 +277,8 @@ export default defineComponent({
     const stepTwoRef = ref();
     const stepThreeRef = ref();
     const stepFourRef = ref();
+    const createAptRef = ref();
+    const createAptModalRef = ref(null);
 
     const aptTypeList = computed(() => store.getters.getAptTypesList);
     const aptTypeListWithRestriction = ref();
@@ -297,7 +293,6 @@ export default defineComponent({
         title.value = "Create Appointment";
       } else if (props.modalId === "update") {
         title.value = "Update Appointment";
-        _stepperObj.value = StepperComponent.createInstance(editAptRef.value);
       }
     };
 
@@ -408,10 +403,9 @@ export default defineComponent({
     });
 
     watchEffect(() => {
-      appointment_time.value = 30;
       const bookingData = store.getters.bookingDatas;
-      // ava_specialist.value = bookingData.ava_specialist;
       let specialistRestriction = bookingData.restriction;
+
       // Setting appointment types base on apt create or edit
       if (specialistRestriction === "NONE" || props.modalId === "update") {
         aptTypeListWithRestriction.value = aptTypeList.value;
@@ -533,7 +527,6 @@ export default defineComponent({
         stepThreeRef.value.billingInfoData.claim_sources = [];
         stepThreeRef.value.patientInfoData.also_known_as = [];
         patientStatus.value = "new";
-        patientStep.value = 3;
         aptInfoData.value.is_wait_listed = 0;
       } else {
         store.dispatch(PatientActions.LIST);
@@ -600,9 +593,10 @@ export default defineComponent({
               }).then((result) => {
                 hideModal(createAptModalRef.value);
                 resetCreateModal();
-                // if (result?.dismiss === "cancel") {
-                //   router.push({ name: "make-payment-pay" });
-                // }
+                if (result.isDismissed) {
+                  //TODO: set require id to make it work
+                  router.push({ name: "make-payment-pay" });
+                }
               });
             });
         });
@@ -633,7 +627,6 @@ export default defineComponent({
         .then(() => {
           loading.value = false;
           store.dispatch(AppointmentActions.LIST);
-          hideModal(editAptModalRef.value);
         })
         .finally(() => {
           loading.value = false;
@@ -699,14 +692,8 @@ export default defineComponent({
       for (let key in aptNewData) aptInfoData.value[key] = aptNewData[key];
       isNewPatient.value = aptNewData.isNewPatient;
 
-      // TODO remove this later on once fixed
       patientStatus.value = aptNewData.isNewPatient ? "new" : "existing";
 
-      if (aptNewData.patientStatus === "new") {
-        patientStep.value = 3;
-      } else {
-        patientStep.value = 1;
-      }
       moveToNextStep();
       store.dispatch(PatientActions.LIST);
     };

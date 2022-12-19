@@ -551,7 +551,6 @@ export default defineComponent({
       renderTable();
     });
 
-    // TODO TEST AND REMOVE IF IT IS UNNECESSARY
     watch(props, () => {
       if (props.patientStatus === "new") patientStep.value = 3;
       else {
