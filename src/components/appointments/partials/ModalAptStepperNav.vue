@@ -28,7 +28,7 @@
     dataStepperElement="nav"
     stepperNumber="4"
     stepperTitle="Other Info"
-    stepperDescription="Doctor Address information and Appointment history"
+    stepperDescription="Referral and Appointment history"
   />
 </template>
 

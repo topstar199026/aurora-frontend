@@ -55,16 +55,14 @@
               <el-divider />
             </div>
           </div>
-          <!--start::Doctor Address Information-->
+          <!--start::Referral Information-->
           <div class="card-info">
             <div class="mb-6 d-flex justify-content-between">
-              <span class="fs-3 fw-bold text-muted"
-                >Doctor Address Information</span
-              >
+              <span class="fs-3 fw-bold text-muted">Referral</span>
               <el-checkbox
                 type="checkbox"
                 v-model="otherInfoData.no_referral"
-                label="No Doctor Address"
+                label="Referring Doctor"
               />
             </div>
             <div class="row">
