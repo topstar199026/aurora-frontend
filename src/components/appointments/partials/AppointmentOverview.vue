@@ -35,8 +35,9 @@
 
 <script lang="ts">
 import InfoSection from "@/components/presets/GeneralElements/InfoSection.vue";
-import { PropType, ref, watch } from "vue";
+import { computed, PropType, ref, watch } from "vue";
 import { ICurSpecialist } from "@/assets/ts/components/_CreateAppointmentComponent";
+import { useStore } from "vuex";
 
 export default {
   components: {
@@ -44,10 +45,6 @@ export default {
   },
 
   props: {
-    appointmentName: {
-      required: true,
-      type: String,
-    },
     specialist: {
       required: true,
       type: Object as PropType<ICurSpecialist>,
@@ -63,6 +60,7 @@ export default {
   },
 
   setup(props) {
+    const store = useStore();
     const anesthetistName = ref<string>();
 
     const getAnesthetistName = () => {
@@ -79,6 +77,7 @@ export default {
         });
       }
     };
+
     watch(
       () => props.appointmentName,
       () => {
@@ -92,10 +91,22 @@ export default {
       }
     );
 
+    const appointmentName = computed(() => {
+      const id = props.aptInfoData.appointment_type_id;
+      if (id) {
+        const aptTypeList = store.getters.getAptTypesList;
+        const selectedType = aptTypeList.filter(
+          (aptType) => aptType.id === id
+        )[0];
+        if (selectedType.name) return selectedType.name;
+      }
+      return "";
+    });
+
     return {
       getAnesthetistName,
-      props,
       anesthetistName,
+      appointmentName,
     };
   },
 };

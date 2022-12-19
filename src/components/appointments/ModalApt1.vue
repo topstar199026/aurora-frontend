@@ -56,7 +56,6 @@
                     :aptInfoData="aptInfoData"
                     :patientInfoData="patientInfoData"
                     :specialist="cur_specialist"
-                    :appointmentName="appointment_name"
                   />
                   <!--end::Appointment Overview-->
                   <apt-wait-listed
@@ -270,7 +269,6 @@ export default defineComponent({
 
     const start_time = ref<string>(""); // WHY ? can refactor more
     const end_time = ref<string>(""); // WHY ? can refactor more
-    const appointment_name = ref(""); // may-be we can generate appointment name in appointment overview
     const appointment_type_quote = ref<number>(0); // we may need to prop this to step 3 or prop appointment type and do the process there
 
     const _appointment_time = ref<number>(30);
@@ -319,23 +317,12 @@ export default defineComponent({
       aptInfoData.value.start_time = moment(startTime, "HH:mm").format("HH:mm");
     };
 
-    const getAptTypeName = (id) => {
-      if (id) {
-        const _selected = aptTypeList.value.filter(
-          (aptType) => aptType.id === id
-        )[0];
-        if (_selected.name) {
-          appointment_name.value = _selected.name;
-        }
-      }
-    };
     // Get Selected APT data when user edit appointments
     watch(aptData, () => {
       if (props.modalId == "update") {
         for (let key in aptInfoData.value)
           aptInfoData.value[key] = aptData.value[key];
         cur_appointment_type_id.value = aptData.value.appointment_type_id;
-        getAptTypeName(aptData.value.appointment_type_id);
         cur_specialist.value = aptData.value.specialist;
         for (let key in patientInfoData.value)
           patientInfoData.value[key] = aptData.value.patient[key];
@@ -356,7 +343,6 @@ export default defineComponent({
     });
 
     watch(cur_appointment_type_id, () => {
-      getAptTypeName(cur_appointment_type_id.value);
       aptInfoData.value.appointment_type_id = cur_appointment_type_id.value;
 
       const _selected = aptTypeList.value.filter(
@@ -365,7 +351,6 @@ export default defineComponent({
 
       // setting up selected appointment type
       if (typeof _selected === "undefined") {
-        appointment_name.value = "";
         appointment_type_quote.value = 0;
         _appointment_time.value = Number(appointment_time.value);
         arrival_time.value = 30;
@@ -375,7 +360,6 @@ export default defineComponent({
         apt_type.value = "";
       } else {
         appointment_time.value = orgData.value.appointment_length;
-        appointment_name.value = _selected.name;
         appointment_type_quote.value = _selected?.default_items_quote ?? 0;
         _appointment_time.value = Number(
           appointment_time.value * _selected.appointment_length_as_number
@@ -809,7 +793,6 @@ export default defineComponent({
     return {
       apt_type,
       cur_specialist,
-      appointment_name,
       appointment_type_quote,
       loading,
       createAptRef,
