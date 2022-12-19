@@ -42,6 +42,7 @@ import ScheduleItemModule from "@/store/modules/ScheduleItemModule";
 import InvoiceModule from "@/store/modules/InvoiceModule";
 import OrgAdminModule from "./modules/OrgAdminModule";
 import AutoTextModule from "@/store/modules/AutoTextModule";
+import PreAdmissionModule from "@/store/modules/PreAdmissionModule";
 
 config.rawError = true;
 
@@ -88,6 +89,7 @@ const store = createStore({
     ScheduleItemModule,
     InvoiceModule,
     AutoTextModule,
+    PreAdmissionModule,
   },
 });
 
