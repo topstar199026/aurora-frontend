@@ -281,7 +281,6 @@ export default defineComponent({
     const createAptModalRef = ref(null);
 
     const aptTypeList = computed(() => store.getters.getAptTypesList);
-    const aptTypeListWithRestriction = ref();
     const aptData = computed(() => store.getters.getAptSelected);
     const aptList = computed(() => store.getters.getAptList);
     const bookingData = computed(() => store.getters.bookingDatas);
@@ -404,17 +403,6 @@ export default defineComponent({
 
     watchEffect(() => {
       const bookingData = store.getters.bookingDatas;
-      let specialistRestriction = bookingData.restriction;
-
-      // Setting appointment types base on apt create or edit
-      if (specialistRestriction === "NONE" || props.modalId === "update") {
-        aptTypeListWithRestriction.value = aptTypeList.value;
-      } else {
-        aptInfoData.value.date = bookingData.date;
-        aptTypeListWithRestriction.value = aptTypeList.value.filter(
-          (item) => item.type === specialistRestriction
-        );
-      }
 
       if (bookingData.time_slot) {
         start_time.value = moment(bookingData.time_slot[0]).format("HH:mm");
