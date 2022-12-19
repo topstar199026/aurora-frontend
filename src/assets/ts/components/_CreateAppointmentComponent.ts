@@ -42,8 +42,6 @@ interface IAptInfoData {
     patient_id: number | null;
     start_time: string;
     is_wait_listed: number;
-    clinical_code: string;
-    mbs_code: string;
 }
 
 interface IBillingInfoData {

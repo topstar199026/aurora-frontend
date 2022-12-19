@@ -213,8 +213,6 @@ export default defineComponent({
       note: "",
       patient_id: null,
       start_time: "",
-      clinical_code: "",
-      mbs_code: "",
       is_wait_listed: 0,
     });
 
@@ -347,9 +345,6 @@ export default defineComponent({
       if (typeof _selected === "undefined") {
         _appointment_time.value = Number(appointment_time.value);
         arrival_time.value = 30;
-
-        aptInfoData.value.clinical_code = "";
-        aptInfoData.value.mbs_code = "";
         apt_type.value = "";
       } else {
         appointment_time.value = orgData.value.appointment_length;
@@ -357,8 +352,6 @@ export default defineComponent({
           appointment_time.value * _selected.appointment_length_as_number
         );
         arrival_time.value = Number(_selected.arrival_time);
-        aptInfoData.value.clinical_code = _selected.clinical_code;
-        aptInfoData.value.mbs_code = _selected.mbs_code;
         apt_type.value = _selected.type;
       }
 
