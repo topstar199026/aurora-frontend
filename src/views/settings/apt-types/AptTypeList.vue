@@ -1,4 +1,5 @@
 <template>
+  <SettingsButton />
   <CardSection>
     <template #header-actions>
       <button
@@ -71,12 +72,14 @@ import icons from "@/core/data/icons";
 import { Actions, Mutations } from "@/store/enums/StoreEnums";
 import IAppointmentType from "@/store/interfaces/IAppointmentType";
 import IScheduleItem from "@/store/interfaces/IScheduleItem";
+import SettingsButton from "@/components/SettingsButton.vue";
 export default defineComponent({
   name: "apt-types",
 
   components: {
     Datatable,
     CardSection,
+    SettingsButton,
   },
 
   setup() {

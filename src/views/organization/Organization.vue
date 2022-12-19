@@ -1,4 +1,5 @@
 <template>
+  <SettingsButton />
   <div class="setting-organization-page card w-75 mx-auto">
     <el-form
       @submit.prevent="submit()"
@@ -180,10 +181,11 @@ import { Actions } from "@/store/enums/StoreEnums";
 import moment from "moment";
 import JwtService from "@/core/services/JwtService";
 import { validateAbnAcn } from "@/helpers/helpers";
+import SettingsButton from "@/components/SettingsButton.vue";
 
 export default defineComponent({
   name: "organization-settings",
-  components: {},
+  components: { SettingsButton },
   setup() {
     const formRef = ref<HTMLFormElement>();
     const store = useStore();

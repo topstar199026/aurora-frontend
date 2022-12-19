@@ -1,4 +1,5 @@
 <template>
+  <SettingsButton />
   <div class="card w-75 mx-auto">
     <div class="card-header row border-0 p-6">
       <div class="card-title col">
@@ -77,7 +78,7 @@ import EditModal from "@/views/settings/anesthetic-questions/EditAnestheticQuest
 import { Modal } from "bootstrap";
 import { Actions, Mutations } from "@/store/enums/StoreEnums";
 import Swal from "sweetalert2/dist/sweetalert2.js";
-
+import SettingsButton from "@/components/SettingsButton.vue";
 export default defineComponent({
   name: "anesthetic-questions",
 
@@ -85,6 +86,7 @@ export default defineComponent({
     Datatable,
     CreateModal,
     EditModal,
+    SettingsButton,
   },
 
   setup() {

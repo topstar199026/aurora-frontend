@@ -1,4 +1,5 @@
 <template>
+  <SettingsButton />
   <div class="card w-75 mx-auto">
     <div class="card-header row p-6">
       <div class="card-title col"></div>
@@ -63,13 +64,14 @@ import Datatable from "@/components/kt-datatable/KTDatatable.vue";
 import CreateDocumentTemplate from "@/views/settings/document-templates/CreateDocumentTemplate.vue";
 import { Modal } from "bootstrap";
 import { Actions, Mutations } from "@/store/enums/StoreEnums";
-
+import SettingsButton from "@/components/SettingsButton.vue";
 export default defineComponent({
   name: "document-templates",
 
   components: {
     Datatable,
     CreateDocumentTemplate,
+    SettingsButton,
   },
 
   setup() {

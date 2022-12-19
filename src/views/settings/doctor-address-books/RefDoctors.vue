@@ -1,4 +1,5 @@
 <template>
+  <SettingsButton />
   <div class="card w-full w-xl-75 mx-auto">
     <div class="card-header border-0 pt-6">
       <div class="card-title">
@@ -92,12 +93,13 @@ import { useRouter } from "vue-router";
 import { setCurrentPageBreadcrumbs } from "@/core/helpers/breadcrumb";
 import Datatable from "@/components/kt-datatable/KTDatatable.vue";
 import { Actions } from "@/store/enums/StoreEnums";
-
+import SettingsButton from "@/components/SettingsButton.vue";
 export default defineComponent({
   name: "doctor-address-books",
 
   components: {
     Datatable,
+    SettingsButton,
   },
 
   setup() {
