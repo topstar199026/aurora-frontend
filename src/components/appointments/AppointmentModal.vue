@@ -114,7 +114,7 @@
 
                 <!--begin::Step 4 -->
                 <step-four
-                  :apt-type="apt_type"
+                  :apt-info-data-e="aptInfoData"
                   :loading="loading"
                   :modal-id="modalId"
                   :other-data-e="otherInfoData"
@@ -264,7 +264,6 @@ export default defineComponent({
     const _stepperObj = ref<any>();
 
     const title = ref<string>("");
-    const apt_type = ref<string>("");
     const start_time = ref<string>("");
     const end_time = ref<string>("");
     const patientStatus = ref<string>("new");
@@ -335,8 +334,8 @@ export default defineComponent({
     });
 
     watch(cur_appointment_type_id, () => {
+      let apt_type = "";
       aptInfoData.value.appointment_type_id = cur_appointment_type_id.value;
-
       const _selected = aptTypeList.value.filter(
         (aptType) => aptType.id === cur_appointment_type_id.value
       )[0];
@@ -345,14 +344,14 @@ export default defineComponent({
       if (typeof _selected === "undefined") {
         _appointment_time.value = Number(appointment_time.value);
         arrival_time.value = 30;
-        apt_type.value = "";
+        apt_type = "";
       } else {
         appointment_time.value = orgData.value.appointment_length;
         _appointment_time.value = Number(
           appointment_time.value * _selected.appointment_length_as_number
         );
         arrival_time.value = Number(_selected.arrival_time);
-        apt_type.value = _selected.type;
+        apt_type = _selected.type;
       }
 
       if (props.modalId == "update") {
@@ -370,7 +369,7 @@ export default defineComponent({
         .toString();
 
       if (props.modalId == "new") {
-        if (apt_type.value === "Consultation") {
+        if (apt_type === "CONSULTATION") {
           otherInfoData.value.anesthetic_questions = false;
         }
       }
@@ -741,7 +740,6 @@ export default defineComponent({
     const setPatient = (patientId: number) =>
       (aptInfoData.value.patient_id = patientId);
     return {
-      apt_type,
       cur_specialist,
       loading,
       createAptRef,
