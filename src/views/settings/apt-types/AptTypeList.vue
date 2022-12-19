@@ -19,6 +19,7 @@
         :table-data="aptTypes"
         :rows-per-page="20"
         :enable-items-per-page-dropdown="true"
+        :key="`apt-type-table-${tableKey}`"
       >
         <template v-slot:cell-name="{ row: appointmentType }">
           <div class="d-flex align-items-center gap-1">
@@ -59,7 +60,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, ref, computed, watchEffect } from "vue";
+import { defineComponent, onMounted, ref, computed, watch } from "vue";
 import { useStore } from "vuex";
 import { useRouter } from "vue-router";
 import { setCurrentPageBreadcrumbs } from "@/core/helpers/breadcrumb";
@@ -100,6 +101,7 @@ export default defineComponent({
       },
     ]);
     const tableData = ref([]);
+    const tableKey = ref<number>(0);
     const aptTypes = computed<IAppointmentType[]>(
       () => store.getters.getAptTypesList
     );
@@ -138,20 +140,12 @@ export default defineComponent({
         .dispatch(AppointmentActions.APPOINTMENT_TYPES.DELETE, id)
         .then(() => {
           store.dispatch(AppointmentActions.APPOINTMENT_TYPES.LIST);
-          Swal.fire({
-            text: "Successfully Deleted!",
-            icon: "success",
-            buttonsStyling: false,
-            confirmButtonText: "Ok, got it!",
-            customClass: {
-              confirmButton: "btn btn-primary",
-            },
-          });
-        })
-        .catch(({ response }) => {
-          console.log(response.data.error);
         });
     };
+
+    watch(aptTypes, () => {
+      tableKey.value++;
+    });
 
     onMounted(() => {
       loading.value = true;
@@ -179,6 +173,7 @@ export default defineComponent({
       icons,
       loading,
       scheduleItems,
+      tableKey,
     };
   },
 });
