@@ -192,7 +192,6 @@ import { FormRulesMap } from "element-plus/es/components/form/src/form.type";
 import {
   IAptInfoData,
   IAptInfoTypeData,
-  IOtherInfoData,
 } from "@/assets/ts/components/_CreateAppointmentComponent";
 
 export default defineComponent({
@@ -237,7 +236,7 @@ export default defineComponent({
       time_slot: ["", ""],
     });
     const overlappingCnt = ref(0);
-    const formRef = ref<null | HTMLFormElement>(null);
+    const formRef = ref<HTMLFormElement>();
     const aptTypeListWithRestriction = ref();
     const appointmentType = ref<string>("");
 
@@ -311,6 +310,13 @@ export default defineComponent({
         overlappingCnt.value = cnt;
       }
     };
+
+    const resetAll = () => {
+      if (formRef.value !== undefined) formRef.value.resetFields();
+      aptInfoData.value.isNewPatient = true;
+      handleUpdate();
+    };
+
     const timeStr2Number = (time) => {
       return Number(time.split(":")[0] + time.split(":")[1]);
     };
@@ -327,6 +333,7 @@ export default defineComponent({
       updateTypeId,
       handleUpdate,
       roomsData,
+      resetAll,
     };
   },
 });

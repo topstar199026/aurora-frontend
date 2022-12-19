@@ -9,7 +9,7 @@
         @submit.prevent=""
       >
         <div class="row scroll h-500px">
-          <div v-if="apt_type == 'Procedure'" class="card-info">
+          <div v-if="aptType === 'PROCEDURE'" class="card-info">
             <div class="fs-3 fw-bold text-muted mb-6">
               Pre-Procedure Questions
             </div>
@@ -235,7 +235,7 @@ export default defineComponent({
       type: String,
       required: true,
     },
-    apt_type: {
+    aptType: {
       type: String,
       required: true,
     },

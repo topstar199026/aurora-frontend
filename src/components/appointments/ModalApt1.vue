@@ -76,6 +76,7 @@
                   :modal-id="modalId"
                   :patient-info-data="patientInfoData"
                   :aptInfoDataE="aptInfoData"
+                  ref="stepOneRef"
                   @save="processSave"
                   @process="processStepOne"
                   @changeAptType="changeAptType"
@@ -90,6 +91,7 @@
                   :isNewPatient="isNewPatient"
                   :patientStatus="patientStatus"
                   :patientDataE="patientInfoData"
+                  ref="stepTwoRef"
                   @save="processSave"
                   @process="processStepTwo"
                   @updatePatient="setPatient"
@@ -101,21 +103,24 @@
                 <step-three
                   :loading="loading"
                   :modal-id="modalId"
-                  @save="processSave"
-                  @process="processStepThree"
                   :patient-data-e="patientInfoData"
                   :billing-data-e="billingInfoData"
+                  ref="stepThreeRef"
+                  @save="processSave"
+                  @process="processStepThree"
                   @go-back="previousStep"
                 />
                 <!--end::Step 3-->
 
                 <!--begin::Step 4 -->
                 <step-four
-                  :apt_type="apt_type"
+                  :apt-type="apt_type"
                   :loading="loading"
                   :modal-id="modalId"
                   :other-data-e="otherInfoData"
                   :patient-status="patientStatus"
+                  ref="stepFourRef"
+                  @go-back="previousStep"
                   @save="processSave"
                   @process="processStepFour"
                 />
@@ -276,6 +281,11 @@ export default defineComponent({
     const patientStep = ref(3);
 
     const overlapping_cnt = ref(0);
+
+    const stepOneRef = ref();
+    const stepTwoRef = ref();
+    const stepThreeRef = ref();
+    const stepFourRef = ref();
 
     const aptTypeList = computed(() => store.getters.getAptTypesList);
     const aptTypeListWithRestriction = ref();
@@ -528,21 +538,28 @@ export default defineComponent({
       _stepperObj.value.goFirst();
 
       if (props.modalId == "new") {
-        // formRef_1.value.resetFields();
-        // formRef_3.value.resetFields();
-        // formRef_4.value.resetFields();
-        // if (formRef_2.value) formRef_2.value.resetFields();
-        // filterPatient.first_name = "";
-        // filterPatient.last_name = "";
-        // filterPatient.date_of_birth = "";
-        // filterPatient.ur_number = "";
-        cur_appointment_type_id.value = "";
+        stepOneRef.value.resetAll();
+        stepThreeRef.value.formRef.resetFields();
+        stepFourRef.value.formRef.resetFields();
+        if (stepTwoRef.value.formRef) stepTwoRef.value.formRef.resetFields();
+
+        for (let key in stepTwoRef.value.filterPatient)
+          stepTwoRef.value.filterPatient[key] = "";
+        for (let key in stepTwoRef.value.filterPatient)
+          stepTwoRef.value.filterPatient[key] = "";
         for (let key in patientInfoData.value) patientInfoData.value[key] = "";
         for (let key in billingInfoData.value) billingInfoData.value[key] = "";
+
+        cur_appointment_type_id.value = "";
         billingInfoData.value.claim_sources = [];
         patientInfoData.value.also_known_as = [];
+        otherInfoData.value.doctor_address_book_name = "";
+        stepFourRef.value.otherInfoData.doctor_address_book_name = "";
+        stepThreeRef.value.billingInfoData.claim_sources = [];
+        stepThreeRef.value.patientInfoData.also_known_as = [];
         patientStatus.value = "new";
         patientStep.value = 3;
+        aptInfoData.value.is_wait_listed = 0;
       } else {
         store.dispatch(PatientActions.LIST);
       }
@@ -820,6 +837,10 @@ export default defineComponent({
       processUpdate,
       aptWaitListedUpdate,
       setPatient,
+      stepOneRef,
+      stepTwoRef,
+      stepThreeRef,
+      stepFourRef,
     };
   },
 });
