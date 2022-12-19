@@ -249,18 +249,20 @@ export default defineComponent({
     };
 
     const loadProfileImage = () => {
-      store
-        .dispatch(Actions.FILE.VIEW, {
-          path: profileFormData.value.photo,
-        })
-        .then((data) => {
-          const blob = new Blob([data], { type: "application/image" });
-          const objectUrl = URL.createObjectURL(blob);
-          profileFormData.value.photo = objectUrl;
-        })
-        .catch(() => {
-          console.log("image load error");
-        });
+      if (profileFormData.value.photo) {
+        store
+          .dispatch(Actions.FILE.VIEW, {
+            path: profileFormData.value.photo,
+          })
+          .then((data) => {
+            const blob = new Blob([data], { type: "application/image" });
+            const objectUrl = URL.createObjectURL(blob);
+            profileFormData.value.photo = objectUrl;
+          })
+          .catch(() => {
+            console.log("image load error");
+          });
+      }
     };
 
     const submit = () => {
