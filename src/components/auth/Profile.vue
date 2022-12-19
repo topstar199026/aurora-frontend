@@ -251,7 +251,6 @@ export default defineComponent({
     const loadProfileImage = () => {
       store
         .dispatch(Actions.FILE.VIEW, {
-          type: "USER_PHOTO",
           path: profileFormData.value.photo,
         })
         .then((data) => {

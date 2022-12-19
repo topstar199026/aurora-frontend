@@ -246,13 +246,12 @@ export default defineComponent({
       const pdfViewer = document.getElementById("divPDFViewer");
 
       if (pdfViewer) {
-        pdfViewer.innerHTML = "<div>Doesn't exist PDF data!</div>";
+        pdfViewer.innerHTML = "<div>Error loading PDF</div>";
       }
       if (props.appointment.referral?.patient_document_id) {
         store
           .dispatch(Actions.FILE.VIEW, {
             path: props.appointment.referral.patient_document_file_path,
-            type: "REFERRAL",
           })
           .then((data) => {
             const blob = new Blob([data], { type: "application/pdf" });

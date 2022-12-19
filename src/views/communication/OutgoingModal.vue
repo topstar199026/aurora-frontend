@@ -137,7 +137,6 @@ export default defineComponent({
             store
               .dispatch(Actions.FILE.VIEW, {
                 path: selectedDocument.file_path,
-                type: "PATIENT_DOCUMENT",
               })
               .then((data) => {
                 tempFile.value = data;
