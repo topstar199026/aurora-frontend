@@ -1,4 +1,5 @@
 <template>
+  <SettingsButton />
   <!--begin::Form-->
   <el-form
     v-show="isLoaded"
@@ -125,11 +126,11 @@ import { setCurrentPageBreadcrumbs } from "@/core/helpers/breadcrumb";
 import { useStore } from "vuex";
 import { Actions } from "@/store/enums/StoreEnums";
 import LargeIconButton from "@/components/presets/GeneralElements/LargeIconButton.vue";
-
+import SettingsButton from "@/components/SettingsButton.vue";
 export default defineComponent({
   name: "pre-admission-questions",
 
-  components: { LargeIconButton },
+  components: { LargeIconButton, SettingsButton },
 
   setup() {
     const store = useStore();

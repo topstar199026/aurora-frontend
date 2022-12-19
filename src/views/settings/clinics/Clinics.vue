@@ -1,4 +1,5 @@
 <template>
+  <SettingsButton />
   <div class="card w-75 m-auto">
     <div class="card-header border-0 pt-6">
       <!--begin::Card title-->
@@ -74,10 +75,12 @@ import Swal from "sweetalert2/dist/sweetalert2.js";
 import { Actions, Mutations } from "@/store/enums/StoreEnums";
 import IClinic from "@/store/interfaces/IClinic";
 import icons from "@/core/data/icons";
+import SettingsButton from "@/components/SettingsButton.vue";
 export default defineComponent({
   name: "clinics-main",
   components: {
     Datatable,
+    SettingsButton,
   },
   setup() {
     const store = useStore();

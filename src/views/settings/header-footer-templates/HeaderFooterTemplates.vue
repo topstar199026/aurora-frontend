@@ -1,4 +1,5 @@
 <template>
+  <SettingsButton />
   <div class="card w-75 mx-auto">
     <div class="card-header row p-6">
       <div class="card-title col"></div>
@@ -90,13 +91,14 @@ import EditHeaderFooterTemplate from "@/views/settings/header-footer-templates/E
 import { Modal } from "bootstrap";
 import { Actions, Mutations } from "@/store/enums/StoreEnums";
 import Swal from "sweetalert2/dist/sweetalert2.js";
-
+import SettingsButton from "@/components/SettingsButton.vue";
 export default defineComponent({
   name: "document-header-footer-templates",
 
   components: {
     Datatable,
     EditHeaderFooterTemplate,
+    SettingsButton,
   },
 
   setup() {

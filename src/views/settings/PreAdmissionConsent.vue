@@ -1,4 +1,5 @@
 <template>
+  <SettingsButton />
   <el-form
     @submit.prevent="submit()"
     :model="formData"
@@ -42,9 +43,10 @@ import ApiService from "@/core/services/ApiService";
 import Editor from "ckeditor5-custom-build/build/ckeditor";
 import store from "@/store";
 import { Actions, Mutations } from "@/store/enums/StoreEnums";
-
+import SettingsButton from "@/components/SettingsButton.vue";
 export default defineComponent({
   name: "pre-admission-consent",
+  components: { SettingsButton },
   setup() {
     const editor = ref(Editor);
     const editorConfig = ref();

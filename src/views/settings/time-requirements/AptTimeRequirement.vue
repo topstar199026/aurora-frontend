@@ -1,4 +1,5 @@
 <template>
+  <SettingsButton />
   <div class="card w-75 mx-auto">
     <div class="card-header border-0 pt-6">
       <!--begin::Card title-->
@@ -93,6 +94,7 @@ import CreateModal from "@/views/settings/time-requirements/CreateTimeRequiremen
 import EditModal from "@/views/settings/time-requirements/EditTimeRequirements.vue";
 import { Modal } from "bootstrap";
 import { Actions, Mutations } from "@/store/enums/StoreEnums";
+import SettingsButton from "@/components/SettingsButton.vue";
 import Swal from "sweetalert2/dist/sweetalert2.js";
 import moment from "moment";
 
@@ -103,6 +105,7 @@ export default defineComponent({
     Datatable,
     CreateModal,
     EditModal,
+    SettingsButton,
   },
 
   setup() {
