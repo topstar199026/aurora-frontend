@@ -53,8 +53,8 @@
 
                   <!--begin::Appointment Overview-->
                   <apt-overview
-                    :aptInfoData="aptInfoData"
-                    :patientInfoData="patientInfoData"
+                    :apt-info-data="aptInfoData"
+                    :patient-info-data="patientInfoData"
                     :specialist="cur_specialist"
                   />
                   <!--end::Appointment Overview-->
@@ -104,6 +104,7 @@
                   :modal-id="modalId"
                   :patient-data-e="patientInfoData"
                   :billing-data-e="billingInfoData"
+                  :apt-info-data-e="aptInfoData"
                   ref="stepThreeRef"
                   @save="processSave"
                   @process="processStepThree"
@@ -267,17 +268,16 @@ export default defineComponent({
     const editAptRef = ref();
     const editAptModalRef = ref(null);
 
-    const start_time = ref<string>(""); // WHY ? can refactor more
-    const end_time = ref<string>(""); // WHY ? can refactor more
-    const appointment_type_quote = ref<number>(0); // we may need to prop this to step 3 or prop appointment type and do the process there
+    const start_time = ref<string>("");
+    const end_time = ref<string>("");
 
     const _appointment_time = ref<number>(30);
     const arrival_time = ref<number>(30);
 
     const patientStatus = ref("new");
-    const patientStep = ref(3);
+    const patientStep = ref<number>(3);
 
-    const overlapping_cnt = ref(0);
+    const isNewPatient = ref<boolean>(false);
 
     const stepOneRef = ref();
     const stepTwoRef = ref();
@@ -351,7 +351,6 @@ export default defineComponent({
 
       // setting up selected appointment type
       if (typeof _selected === "undefined") {
-        appointment_type_quote.value = 0;
         _appointment_time.value = Number(appointment_time.value);
         arrival_time.value = 30;
 
@@ -360,7 +359,6 @@ export default defineComponent({
         apt_type.value = "";
       } else {
         appointment_time.value = orgData.value.appointment_length;
-        appointment_type_quote.value = _selected?.default_items_quote ?? 0;
         _appointment_time.value = Number(
           appointment_time.value * _selected.appointment_length_as_number
         );
@@ -429,9 +427,6 @@ export default defineComponent({
         end_time.value = moment(bookingData.time_slot[1]).format("HH:mm");
       }
 
-      if (cur_appointment_type_id.value == null) {
-        overlapping_cnt.value = bookingData.overlapping_cnt;
-      }
       if (bookingData.selected_specialist && props.modalId === "new") {
         cur_specialist.value = bookingData.selected_specialist;
 
@@ -698,14 +693,9 @@ export default defineComponent({
       }
     };
 
-    const isNewPatient = ref(false);
-
     // Handle appointment data that are coming from step one component
     const processStepOne = async (aptNewData) => {
       await checkAptOverlap();
-      console.log("Process step one to step 2");
-      console.log(aptNewData);
-
       for (let key in aptNewData) aptInfoData.value[key] = aptNewData[key];
       isNewPatient.value = aptNewData.isNewPatient;
 
@@ -717,12 +707,8 @@ export default defineComponent({
       } else {
         patientStep.value = 1;
       }
-      currentStepIndex.value++;
-      if (!_stepperObj.value) {
-        return;
-      }
+      moveToNextStep();
       store.dispatch(PatientActions.LIST);
-      _stepperObj.value.goNext();
     };
 
     //Update parent objects and send PUT request
@@ -751,29 +737,18 @@ export default defineComponent({
 
     // Handle Patient data that are coming from step two component
     const processStepTwo = async (patientData, billingData) => {
-      console.log("patient data received");
       for (let key in patientData)
         patientInfoData.value[key] = patientData[key];
       for (let key in billingData)
         billingInfoData.value[key] = billingData[key];
 
-      // TODO refactor this later on
-      currentStepIndex.value++;
-      if (!_stepperObj.value) {
-        return;
-      }
-      _stepperObj.value.goNext();
+      moveToNextStep();
     };
 
     const processStepThree = (billingData) => {
-      console.log("here we are at step 3");
       for (let key in billingData)
         billingInfoData.value[key] = billingData[key];
-      currentStepIndex.value++;
-      if (!_stepperObj.value) {
-        return;
-      }
-      _stepperObj.value.goNext();
+      moveToNextStep();
     };
 
     const processStepFour = (otherNewData) => {
@@ -788,12 +763,18 @@ export default defineComponent({
       aptInfoData.value.is_wait_listed = isWaitListed;
     };
 
+    const moveToNextStep = () => {
+      currentStepIndex.value++;
+      if (!_stepperObj.value) return;
+
+      _stepperObj.value.goNext();
+    };
+
     const setPatient = (patientId: number) =>
       (aptInfoData.value.patient_id = patientId);
     return {
       apt_type,
       cur_specialist,
-      appointment_type_quote,
       loading,
       createAptRef,
       createAptModalRef,

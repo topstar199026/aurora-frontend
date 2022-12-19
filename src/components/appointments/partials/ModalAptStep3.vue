@@ -26,7 +26,7 @@
 
           <div class="mb-4">
             <InfoSection :heading="'Estimated Appointment Price'">
-              {{ convertToCurrency(appointment_type_quote / 100) }}
+              {{ convertToCurrency(appointmentTypeQuote / 100) }}
             </InfoSection>
           </div>
 
@@ -211,6 +211,7 @@ import AddClaimSourceModal from "@/views/patients/modals/AddClaimSourceModal.vue
 import PatientBillingTypes from "@/core/data/patient-billing-types";
 import { convertToCurrency } from "@/core/data/billing";
 import {
+  IAptInfoData,
   IBillingInfoData,
   IPatientInfoData,
 } from "@/assets/ts/components/_CreateAppointmentComponent";
@@ -237,6 +238,11 @@ export default defineComponent({
 
     patientDataE: {
       type: Object as PropType<IPatientInfoData>,
+      required: true,
+    },
+
+    aptInfoDataE: {
+      type: Object as PropType<IAptInfoData>,
       required: true,
     },
   },
@@ -282,9 +288,22 @@ export default defineComponent({
     });
 
     const claimSourceModal = ref<HTMLElement | any>();
-    const appointment_type_quote = ref(0);
 
     const healthFundsList = computed(() => store.getters.healthFundsList);
+
+    const appointmentTypeQuote = computed(() => {
+      const id = props.aptInfoDataE.appointment_type_id;
+      if (id) {
+        const aptTypeList = store.getters.getAptTypesList;
+        const selectedType = aptTypeList.filter(
+          (aptType) => aptType.id === id
+        )[0];
+        if (selectedType.name) {
+          return selectedType?.default_items_quote ?? 0;
+        }
+      }
+      return 0;
+    });
 
     watchEffect(() => {
       if (props.patientDataE) {
@@ -379,7 +398,7 @@ export default defineComponent({
       props,
       chargeTypes,
       convertToCurrency,
-      appointment_type_quote,
+      appointmentTypeQuote,
       showAddClaimSourceModal,
       getBillingType,
       getHealthFund,

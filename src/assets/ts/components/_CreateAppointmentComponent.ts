@@ -35,7 +35,7 @@ interface IAptInfoData {
     date: string;
     arrival_time: string;
     time_slot: Array<string>;
-    appointment_type_id: number | string;
+    appointment_type_id: number | null;
     specialist_id: number;
     room_id: number | string;
     note: string;
