@@ -1,7 +1,10 @@
 <template>
   <CardSection class="mt-2">
     <template v-if="calendarOptions">
-      <div id="appointment_table_right_buttons">
+      <div
+        v-if="visibleSpecialists.length !== 0"
+        id="appointment_table_right_buttons"
+      >
         <AppointmentKey />
       </div>
       <FullCalendar
@@ -25,7 +28,7 @@
         <el-result
           icon="warning"
           title="No employees working"
-          sub-title="No employees are working on selected date, Please select a different date"
+          sub-title="No employees are working on selected date, Please select a different date or change your filters"
         />
       </div>
     </template>
