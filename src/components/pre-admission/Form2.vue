@@ -21,11 +21,8 @@
               Specialist
             </td>
             <td class="text-gray-800">
-              <template v-if="patientData.specialist_user">
-                <label
-                  >{{ patientData.specialist_user.first_name }}
-                  {{ patientData.specialist_user.last_name }}</label
-                >
+              <template v-if="aptData.specialist_name">
+                <label>{{ aptData.specialist_name }}</label>
               </template>
             </td>
           </tr>
@@ -41,7 +38,7 @@
           </tr>
           <tr>
             <td class="text-muted min-w-125px w-125px w-md-150px">
-              Date and TIme
+              Date and Time
             </td>
             <td class="text-gray-800">
               <label>{{ aptData.date + " " + aptData.start_time }}</label>
@@ -51,7 +48,7 @@
             <td class="text-muted min-w-125px w-125px w-md-150px">Clinic</td>
             <td class="text-gray-800">
               <template v-if="patientData.clinic">
-                <label>{{ patientData.clinic.name }}</label>
+                <label>{{ patientData.clinic }}</label>
               </template>
             </td>
           </tr>
@@ -176,10 +173,38 @@
         <span :class="colString"></span>
       </div>
     </CardSection>
-    <CardSection heading="Billing Details"> </CardSection>
-    <div class="separator separator-dashed"></div>
+    <CardSection heading="Billing Details">
+      <div class="row justify-content-md-center">
+        <InputWrapper
+          class="col-12 col-sm-6"
+          label="Medicare Card Number"
+          prop="medicare_number"
+        >
+          <el-input
+            type="text"
+            v-mask="'##########'"
+            v-model="formData.medicare_number"
+            placeholder="Medicare Card Number"
+          />
+        </InputWrapper>
+        <InputWrapper
+          class="col-12 col-sm-6"
+          label="Individual Reference Number"
+          prop="medicare_reference_number"
+        >
+          <el-input
+            type="text"
+            v-mask="'#'"
+            v-model="formData.medicare_reference_number"
+            placeholder="Individual Reference Number"
+          />
+        </InputWrapper>
+      </div>
+    </CardSection>
 
     <template v-if="patientData.appointment_type?.type === 'PROCEDURE'">
+      <div class="separator separator-dashed mb-6"></div>
+
       <template
         v-for="section in patientData.pre_admission_sections"
         :key="section.id"
@@ -212,10 +237,13 @@
       </template>
     </template>
 
-    <div class="separator separator-dashed"></div>
+    <div class="separator separator-dashed mb-6"></div>
 
     <CardSection heading="Consent">
-      <div v-html="patientData.pre_admission_consent?.text"></div>
+      <div
+        v-if="patientData.pre_admission_consent"
+        v-html="patientData.pre_admission_consent"
+      ></div>
 
       <el-checkbox
         type="checkbox"
@@ -299,18 +327,15 @@ export default defineComponent({
       kin_name: "",
       kin_phone_number: "",
       kin_relationship: "",
+      medicare_number: "",
+      medicare_reference_number: "",
     });
     const loading = ref(false);
 
     const aptData = ref({
-      specialist_id: "",
       specialist_name: "",
-      appointment_type_id: "",
-      appointment_type_name: "",
       date: "",
       start_time: "",
-      end_time: "",
-      clinic_id: "",
     });
 
     const rules = ref({

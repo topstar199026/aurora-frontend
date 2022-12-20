@@ -1,24 +1,21 @@
 <template>
-  <div class="card w-100 h-100 p-10">
+  <div class="card w-100 h-100 p-12">
     <div class="card-header border-0 p-5">
-      <div
-        class="m-auto border border-success border-3 d-flex align-items-center justify-content-center w-250px h-250px"
-        style="border-radius: 50%"
-      >
-        <img
-          :src="orgData.organization_logo"
-          alt="Logo"
-          class="w-100 h-100"
-          style="border-radius: 50%"
-        />
-      </div>
+      <img
+        :src="orgData.organization_logo"
+        alt="Organization Logo"
+        class="mb-10 px-6 mx-auto d-block text-center"
+      />
     </div>
     <div class="card-body pt-0">
-      <div v-if="orgData.clinic" class="w-50 fs-4 m-auto text-center">
-        Thank you for providing you details. <br />
-        If you have any further questions please contact
-        {{ orgData.clinic.name }} on {{ orgData.clinic.phone_number }} on email
-        us at {{ orgData.clinic.email }}
+      <div class="w-50 fs-4 m-auto text-center">
+        <p>Thank you for providing your details.</p>
+
+        <p>
+          If you have any further questions, please contact
+          {{ orgData.clinic }} on {{ orgData.clinic_phone }} or email us at
+          {{ orgData.clinic_email }}
+        </p>
       </div>
     </div>
   </div>
