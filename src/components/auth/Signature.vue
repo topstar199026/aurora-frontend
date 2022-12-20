@@ -94,7 +94,7 @@
 
       <div class="col-6 p-3">
          <!--begin::Details-->
-       Signature Example:
+         <InputWrapper label="Example" prop="example">
        <div class="border width-500 mb-2 p-5">
          {{ formData.sign_off }}<br />
 
@@ -107,6 +107,8 @@
 
          0000000A
        </div>
+       </InputWrapper>
+
       </div>
        
       </div>
