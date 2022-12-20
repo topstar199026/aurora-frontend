@@ -23,7 +23,9 @@
         <!-- begin:: Content Body -->
         <div class="post d-flex flex-column-fluid">
           <div id="kt_content_container" class="container-fluid">
-            <PasswordExpiredAlert v-if="passwordExpired" />
+            <PasswordExpiredAlert
+              v-if="passwordExpired && currentUser.profile.name !== 'Admin'"
+            />
             <router-view />
           </div>
         </div>
@@ -108,15 +110,17 @@ export default defineComponent({
 
     watch(currentUser, () => {
       if (currentUser.value && currentUser.value.profile) {
-        if (
-          moment(currentUser.value.profile.password_changed_date)
-            .add(
-              currentUser.value.organization.password_expiration_timeframe,
-              "months"
-            )
-            .unix() < moment().unix()
-        ) {
-          passwordExpired.value = true;
+        if (currentUser.value.profile.name !== "Admin") {
+          if (
+            moment(currentUser.value.profile.password_changed_date)
+              .add(
+                currentUser.value.organization?.password_expiration_timeframe,
+                "months"
+              )
+              .unix() < moment().unix()
+          ) {
+            passwordExpired.value = true;
+          }
         }
       }
     });
@@ -167,6 +171,7 @@ export default defineComponent({
       themeLightLogo,
       themeDarkLogo,
       passwordExpired,
+      currentUser,
     };
   },
 });
