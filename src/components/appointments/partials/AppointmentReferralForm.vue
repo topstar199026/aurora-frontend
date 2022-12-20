@@ -248,7 +248,10 @@ export default defineComponent({
       if (pdfViewer) {
         pdfViewer.innerHTML = "<div>Error loading PDF</div>";
       }
-      if (props.appointment.referral?.patient_document_id) {
+      if (
+        props.appointment.referral?.patient_document_id &&
+        props.appointment.referral.patient_document_file_path
+      ) {
         store
           .dispatch(Actions.FILE.VIEW, {
             path: props.appointment.referral.patient_document_file_path,

@@ -71,11 +71,7 @@
                 />
 
                 <StepperNavItem
-                  @click="
-                    appointment.appointment_type?.collecting_person_required
-                      ? gotoPage(3)
-                      : gotoPage(4)
-                  "
+                  @click="gotoPage(3)"
                   dataStepperElement="nav"
                   stepperNumber="3"
                   stepperTitle="Appointment Referral"
@@ -94,7 +90,13 @@
                 />
 
                 <StepperNavItem
-                  @click="gotoPage(5)"
+                  @click="
+                    gotoPage(
+                      appointment.appointment_type?.collecting_person_required
+                        ? 5
+                        : 4
+                    )
+                  "
                   dataStepperElement="nav"
                   :stepperNumber="
                     appointment.appointment_type?.collecting_person_required
