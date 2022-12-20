@@ -159,7 +159,8 @@ export default defineComponent({
             cancelButton: "btn btn-light-primary",
           },
         }).then((result) => {
-          if (result.isConfirmed) router.push({ name: "setting-schedule-fee" });
+          if (result.isConfirmed)
+            router.push({ name: "setting-billing-items" });
         });
       }
     };

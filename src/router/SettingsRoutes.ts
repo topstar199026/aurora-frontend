@@ -92,8 +92,8 @@ const SettingsRoutes = [
       ),
   },
   {
-    path: "/setting/schedule-fee",
-    name: "setting-schedule-fee",
+    path: "/setting/billing-items",
+    name: "setting-billing-items",
     component: () =>
       import("@/views/organisation-admin/billing-setting/ScheduleItemView.vue"),
   },

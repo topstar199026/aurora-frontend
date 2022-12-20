@@ -50,7 +50,10 @@
       <div class="card-body pt-3 pb-0">
         <div class="row">
           <div class="col-md-7 mb-4 p-3 pe-5">
-            <div class="fv-row mb-8">
+            <div
+              v-if="billingData.organization?.has_billing ?? false"
+              class="fv-row mb-8"
+            >
               <div
                 class="d-flex justify-content-between align-items-center gap-4"
               >
@@ -118,7 +121,10 @@
               </Datatable>
             </div>
 
-            <div class="fv-row mb-8">
+            <div
+              v-if="billingData.organization?.has_billing ?? false"
+              class="fv-row mb-8"
+            >
               <div
                 class="d-flex justify-content-between align-items-center gap-4"
               >
