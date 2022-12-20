@@ -5,6 +5,7 @@
         <AppointmentKey />
       </div>
       <FullCalendar
+        v-if="visibleSpecialists.length > 0"
         ref="appointmentCalendarRef"
         class="demo-app-calendar"
         :options="calendarOptions"
@@ -20,6 +21,13 @@
           </template>
         </template>
       </FullCalendar>
+      <div v-if="visibleSpecialists.length === 0">
+        <el-result
+          icon="warning"
+          title="No employees working"
+          sub-title="No employees are working on selected date, Please select a different date"
+        />
+      </div>
     </template>
   </CardSection>
   <MoveModal :isDisableAptTypeList="true" />
@@ -87,7 +95,7 @@ export default defineComponent({
       let day = check.format("ddd").toUpperCase();
       allSpecialists.value.forEach((specialist) => {
         specialist.hrm_work_schedule.forEach((timeslot) => {
-          if (timeslot.week_day == day) {
+          if (timeslot.week_day === day) {
             let date = moment(props.visibleDate.date, "YYYY/MM/DD").format(
               "YYYY-MM-DD"
             );
@@ -95,9 +103,9 @@ export default defineComponent({
             let end_time = date + "T" + timeslot.end_time;
 
             let color = "";
-            if (timeslot.restriction == "CONSULTATION") {
+            if (timeslot.restriction === "CONSULTATION") {
               color = "#DDC1F0";
-            } else if (timeslot.restriction == "PROCEDURE") {
+            } else if (timeslot.restriction === "PROCEDURE") {
               color = "#F0E9C1";
             } else {
               color = "#C1F0C1";
@@ -214,9 +222,9 @@ export default defineComponent({
             let start_time = date + "T" + timeslot.start_time;
             let end_time = date + "T" + timeslot.end_time;
             let color = "";
-            if (timeslot.restriction == "CONSULTATION") {
+            if (timeslot.restriction === "CONSULTATION") {
               color = "#DDC1F0";
-            } else if (timeslot.restriction == "PROCEDURE") {
+            } else if (timeslot.restriction === "PROCEDURE") {
               color = "#F0E9C1";
             } else {
               color = "#C1F0C1";
