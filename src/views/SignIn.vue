@@ -375,7 +375,10 @@ export default defineComponent({
     };
 
     const outsideHoursAccess = () => {
-      if (user.value.role !== "organizationAdmin") {
+      if (
+        user.value.role !== "admin" &&
+        user.value.role !== "organizationManager"
+      ) {
         const timeNow = moment();
         const orgStartTime = moment(organization.value.start_time, "HH:mm:ss");
         const orgEndTime = moment(organization.value.end_time, "HH:mm:ss");
