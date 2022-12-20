@@ -10,7 +10,7 @@
       <img
         :src="orgData.organization_logo"
         alt="Organization Logo"
-        class="mb-6 w-100 px-6 text-center"
+        class="mb-10 px-6 mx-auto d-block text-center"
       />
 
       <InputWrapper label="Date of Birth" prop="date_of_birth" required>
@@ -39,6 +39,12 @@
     </el-form>
   </div>
 </template>
+
+<style>
+img {
+  max-height: 150px;
+}
+</style>
 
 <script>
 import { defineComponent, onMounted, ref, computed } from "vue";
