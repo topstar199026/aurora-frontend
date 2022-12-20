@@ -101,7 +101,6 @@ export default defineComponent({
             .catch(({ response }) => {
               formData.value.last_name = "";
               formData.value.date_of_birth = "";
-              console.log(response);
             });
         }
       });
