@@ -128,7 +128,7 @@
           :on-change="handleChange"
           :on-remove="handleRemove"
           :auto-upload="false"
-          accept="*/*"
+          accept="image/jpeg || image/png || application/pdf"
         >
           <em class="fa fa-plus"></em> </el-upload
       ></InputWrapper>
@@ -249,8 +249,17 @@ export default defineComponent({
 
       formRef.value.validate((valid) => {
         if (valid) {
-          if (Data.get("file") === null) {
+          const file = Data.get("file") as File;
+          if (file === null) {
             ElMessage.error("Upload file!");
+            return;
+          }
+          if (
+            file.type !== "image/jpeg" &&
+            file.type !== "image/png" &&
+            file.type !== "application/pdf"
+          ) {
+            ElMessage.error("File type should be jpg, png or pdf!");
             return;
           }
           if (
