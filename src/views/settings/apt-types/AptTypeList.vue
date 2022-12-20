@@ -1,6 +1,6 @@
 <template>
   <SettingsButton />
-  <CardSection>
+  <CardSection heading=" ">
     <template #header-actions>
       <button
         type="button"

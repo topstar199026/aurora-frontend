@@ -9,7 +9,7 @@
         @submit.prevent=""
       >
         <div class="row scroll h-500px">
-          <div v-if="aptType === 'PROCEDURE'" class="card-info">
+          <div v-if="isAnesthetistRequired" class="card-info">
             <div class="fs-3 fw-bold text-muted mb-6">
               Pre-Procedure Questions
             </div>
@@ -223,7 +223,10 @@ import InputWrapper from "@/components/presets/FormElements/InputWrapper.vue";
 import { useStore } from "vuex";
 import { FormRulesMap } from "element-plus/es/components/form/src/form.type";
 import AppointmentHistory from "@/components/presets/PatientElements/AppointmentHistory.vue";
-import { IOtherInfoData } from "@/assets/ts/components/_CreateAppointmentComponent";
+import {
+  IAptInfoData,
+  IOtherInfoData,
+} from "@/assets/ts/components/_CreateAppointmentComponent";
 
 export default defineComponent({
   components: { AppointmentHistory, InputWrapper },
@@ -233,8 +236,8 @@ export default defineComponent({
       type: String,
       required: true,
     },
-    aptType: {
-      type: String,
+    aptInfoDataE: {
+      type: Object as PropType<IAptInfoData>,
       required: true,
     },
     patientStatus: {
@@ -347,12 +350,25 @@ export default defineComponent({
       });
     };
 
+    const isAnesthetistRequired = computed(() => {
+      const id = props.aptInfoDataE.appointment_type_id;
+      if (id) {
+        const aptTypeList = store.getters.getAptTypesList;
+        const selectedType = aptTypeList.filter(
+          (aptType) => aptType.id === id
+        )[0];
+        if (selectedType.anesthetist_required) return true;
+      }
+      return false;
+    });
+
     return {
       rules,
       formRef,
       aneAnswers,
       otherInfoData,
       aneQuestions,
+      isAnesthetistRequired,
       handleSelectDoctorAddressBook,
       searchDoctorAddressBook,
       handleAneQuestions,

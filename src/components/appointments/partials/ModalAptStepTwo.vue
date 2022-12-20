@@ -668,7 +668,6 @@ export default defineComponent({
       );
       if (blocklist.length) patientInfoData.value.is_ok = false;
       // patientStep.value++;
-      console.log(patientInfoData.value);
     };
 
     return {

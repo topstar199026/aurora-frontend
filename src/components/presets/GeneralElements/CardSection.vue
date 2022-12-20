@@ -1,6 +1,6 @@
 <template>
   <div class="card mb-6">
-    <div class="card-header">
+    <div v-if="heading" class="card-header">
       <div class="card-title m-0">
         <HeadingText v-if="heading" :text="heading" />
       </div>

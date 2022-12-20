@@ -299,11 +299,10 @@ export default defineComponent({
         .dispatch(AppointmentActions.APT.CHECK_IN, props.appointment.id)
         .then(() => {
           if (is_pay) {
-            store
-              .dispatch(Actions.MAKE_PAYMENT.VIEW, props.appointment.id)
-              .then(() => {
-                router.push({ name: "make-payment-pay" });
-              });
+            router.push({
+              name: "make-payment-pay",
+              params: { id: props.appointment.id },
+            });
           } else {
             store.dispatch(AppointmentActions.LIST);
           }
