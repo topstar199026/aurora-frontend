@@ -1,4 +1,5 @@
 <template>
+  <SettingsButton />
   <div class="setting-organization-page card w-75 mx-auto">
     <el-form
       @submit.prevent="submit()"
@@ -98,17 +99,13 @@
         <InputWrapper class="col-sm-6" required label="ABN/ACN" prop="abn_acn">
           <el-input
             v-model="formData.abn_acn"
+            maxlength="11"
             type="text"
             placeholder="Organization ABN/ACN"
           />
         </InputWrapper>
 
-        <InputWrapper
-          class="col-sm-6"
-          required
-          label="IP Whitelist"
-          prop="ip_whitelist"
-        >
+        <InputWrapper class="col-sm-6" label="IP Whitelist" prop="ip_whitelist">
           <el-select
             class="w-100"
             multiple
@@ -170,17 +167,25 @@
 }
 </style>
 <script lang="ts">
-import { defineComponent, ref, onMounted, computed, watch } from "vue";
+import {
+  defineComponent,
+  ref,
+  onMounted,
+  computed,
+  watch,
+  watchEffect,
+} from "vue";
 import { setCurrentPageBreadcrumbs } from "@/core/helpers/breadcrumb";
 import { useStore } from "vuex";
 import { Actions } from "@/store/enums/StoreEnums";
 import moment from "moment";
 import JwtService from "@/core/services/JwtService";
 import { validateAbnAcn } from "@/helpers/helpers";
+import SettingsButton from "@/components/SettingsButton.vue";
 
 export default defineComponent({
   name: "organization-settings",
-  components: {},
+  components: { SettingsButton },
   setup() {
     const formRef = ref<HTMLFormElement>();
     const store = useStore();
@@ -257,7 +262,6 @@ export default defineComponent({
       if (formData.value.logo) {
         store
           .dispatch(Actions.FILE.VIEW, {
-            type: "ORGANIZATION_LOGO",
             path: formData.value.logo,
           })
           .then((data) => {
@@ -306,7 +310,7 @@ export default defineComponent({
         }
       });
     };
-    watch(currentUser, () => {
+    watchEffect(() => {
       if (currentUser.value) {
         formData.value.name = currentUser.value.organization.name;
         formData.value.abn_acn = currentUser.value.organization.abn_acn;

@@ -19,19 +19,34 @@
             class="menu-item py-5"
           >
             <router-link class="menu-link menu-center" :to="item.route">
-              <span v-if="item.svgIcon || item.fontIcon" class="menu-icon me-0">
-                <em
-                  v-if="asideMenuIcons === 'font'"
-                  :class="item.fontIcon"
-                  class="bi fs-2"
-                ></em>
+              <el-badge
+                :hidden="!item.badge || getBadgeValue(item) == 0"
+                :value="getBadgeValue(item)"
+                class="item"
+              >
                 <span
-                  v-else-if="asideMenuIcons === 'svg'"
-                  class="svg-icon svg-icon-4x"
+                  v-if="item.svgIcon || item.fontIcon"
+                  class="menu-icon me-0"
                 >
-                  <inline-svg :src="item.svgIcon" />
+                  <em
+                    v-if="asideMenuIcons === 'font'"
+                    :class="item.fontIcon"
+                    class="bi fs-2"
+                  ></em>
+
+                  <span
+                    v-else-if="asideMenuIcons === 'svg'"
+                    class="svg-icon svg-icon-4x"
+                  >
+                    <inline-svg
+                      :style="
+                        item.reverse ? 'transform: scaleX(-1) scaleY(-1)' : ''
+                      "
+                      :src="item.svgIcon"
+                    />
+                  </span>
                 </span>
-              </span>
+              </el-badge>
               <span class="menu-title">{{ item.heading }}</span>
             </router-link>
           </div>
@@ -112,6 +127,8 @@ import { useStore } from "vuex";
 import { useRoute } from "vue-router";
 import { asideMenuIcons } from "@/core/helpers/config";
 import MenuConfig from "@/core/config/MainMenuConfig";
+import IMenuItem from "@/store/interfaces/IMenuItem";
+import IUserAuth from "@/store/interfaces/IUserAuth";
 
 export default defineComponent({
   name: "left-menu",
@@ -121,12 +138,19 @@ export default defineComponent({
     const store = useStore();
     const scrollElRef = ref<null | HTMLElement>(null);
     const MainMenuConfig = ref();
-    const currentUser = computed(() => store.getters.currentUser);
+    const currentUser = computed<IUserAuth>(() => store.getters.currentUser);
     const hasCoding = ref(false);
 
     watch(currentUser, () => {
       hasCoding.value = currentUser.value.organization?.has_coding;
     });
+
+    const getBadgeValue = (item: IMenuItem) => {
+      if (item.badgeCount == "IncomingDocuments") {
+        return currentUser.value.unreadDocuments;
+      }
+      return 0;
+    };
 
     onMounted(() => {
       if (scrollElRef.value) {
@@ -153,6 +177,7 @@ export default defineComponent({
       MainMenuConfig,
       asideMenuIcons,
       hasCoding,
+      getBadgeValue,
     };
   },
 });

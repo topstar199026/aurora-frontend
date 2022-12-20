@@ -79,6 +79,9 @@
                 />
 
                 <StepperNavItem
+                  v-if="
+                    appointment.appointment_type?.collecting_person_required
+                  "
                   @click="gotoPage(4)"
                   dataStepperElement="nav"
                   stepperNumber="4"
@@ -87,9 +90,19 @@
                 />
 
                 <StepperNavItem
-                  @click="gotoPage(5)"
+                  @click="
+                    gotoPage(
+                      appointment.appointment_type?.collecting_person_required
+                        ? 5
+                        : 4
+                    )
+                  "
                   dataStepperElement="nav"
-                  stepperNumber="5"
+                  :stepperNumber="
+                    appointment.appointment_type?.collecting_person_required
+                      ? '5'
+                      : '4'
+                  "
                   stepperTitle="Print Labels/Documents"
                   stepperDescription=""
                 />
@@ -125,7 +138,11 @@
                 />
               </div>
 
-              <div data-kt-stepper-element="content" class="w-100">
+              <div
+                v-if="appointment.appointment_type?.collecting_person_required"
+                data-kt-stepper-element="content"
+                class="w-100"
+              >
                 <AppointmentCollectingPersonForm
                   class="w-100"
                   :on-submit-extras="onCollectingPersonSubmit"
@@ -140,7 +157,6 @@
                 >
                   <div class="d-flex flex-column gap-4">
                     <HeadingText text="Appointment Actions" />
-
                     <PrintLabelButton
                       :appointment="appointment"
                       :patient="patient"
@@ -283,11 +299,10 @@ export default defineComponent({
         .dispatch(AppointmentActions.APT.CHECK_IN, props.appointment.id)
         .then(() => {
           if (is_pay) {
-            store
-              .dispatch(Actions.MAKE_PAYMENT.VIEW, props.appointment.id)
-              .then(() => {
-                router.push({ name: "make-payment-pay" });
-              });
+            router.push({
+              name: "make-payment-pay",
+              params: { id: props.appointment.id },
+            });
           } else {
             store.dispatch(AppointmentActions.LIST);
           }

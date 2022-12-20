@@ -49,10 +49,6 @@ const Actions = {
   },
 
   ORG_ADMIN: {
-    LIST: "listOrgAdmin",
-    CREATE: "createOrgAdmin",
-    DELETE: "deleteOrgAdmin",
-    UPDATE: "updateOrgAdmin",
     UPLOAD_IMAGE: "uploadImage",
     LOAD_ORGANIZATION_DATA: "loadOrganizationData",
     ORGANIZATION: {
@@ -115,11 +111,11 @@ const Actions = {
     UPDATE: "updateNtfyTemplates",
   },
 
-  REPORT_TEMPLATES: {
-    LIST: "listReportTemplate",
-    CREATE: "createReportTemplate",
-    UPDATE: "updateReportTemplate",
-    DELETE: "deleteReportTemplate",
+  DOCUMENT_TEMPLATES: {
+    LIST: "listDocumentTemplate",
+    CREATE: "createDocumentTemplate",
+    UPDATE: "updateDocumentTemplate",
+    DELETE: "deleteDocumentTemplate",
   },
 
   MAILS: {
@@ -148,13 +144,7 @@ const Actions = {
     CREATE: "createDoctorAddressBook",
     DELETE: "deleteDoctorAddressBook",
     UPDATE: "updateDoctorAddressBook",
-  },
-
-  LETTER_TEMPLATE: {
-    LIST: "listLetterTemplate",
-    CREATE: "createLetterTemplate",
-    UPDATE: "updateLetterTemplate",
-    DELETE: "deleteLetterTemplate",
+    FIND_BY_PROVIDER_NO: "findDoctorAddressByProviderNo",
   },
 
   LETTER: {
@@ -205,6 +195,20 @@ const Actions = {
     SEND: "sendInvoiceWithoutPayment",
     VIEW: "viewInvoiceWithoutPayment",
   },
+
+  AUTO_TEXT: {
+    LIST: "getAutoTexts",
+    CREATE: "createAutoText",
+    DELETE: "deleteAutoText",
+    UPDATE: "updateAutoText",
+  },
+
+  PREADMISSION: {
+    CONSENT: {
+      VIEW: "getPreadmissionConsent",
+      UPDATE: "updatePreadmissionConsent",
+    },
+  },
 };
 
 const Mutations = {
@@ -220,11 +224,14 @@ const Mutations = {
   SET_LAYOUT_CONFIG: "setLayoutConfig",
   RESET_LAYOUT_CONFIG: "resetLayoutConfig",
   OVERRIDE_LAYOUT_CONFIG: "overrideLayoutConfig",
-  OVERRIDE_PAGE_LAYOUT_CONFIG: "overridePageLayoutConfig",
   SET_USER_LIST: "setUserList",
   SET_BILLING_TOKEN: "setBillingToken",
   PURGE_BILLING_TOKEN: "deleteBillingToken",
   SET_BILLING_VALIDATION: "setBillingValidation",
+  SET_AUTO_TEXTS: {
+    LIST: "setAutoTexts",
+    SELECT: "setSelectAutoText",
+  },
 
   SET_SPECIALIST: {
     LIST: "setSpecialists",
@@ -282,19 +289,14 @@ const Mutations = {
     LIST: "setDoctorAddressBook",
   },
 
-  SET_LETTER_TEMPLATE: {
-    LIST: "setLetterTemplate",
-    SELECT: "setLetterTemplateSelect",
+  SET_DOCUMENT_TEMPLATES: {
+    LIST: "setDocumentTemplates",
+    SELECT: "setSelectDocumentTemplate",
   },
 
-  SET_REPORT_TEMPLATES: {
-    LIST: "setReportTemplates",
-    SELECT: "setSelectReportTemplate",
-  },
-
-  SET_REPORT_APPOINTMENTS: {
-    LIST: "setReportAppointments",
-    SELECT: "setSelectReportAppointment",
+  SET_DOCUMENT_APPOINTMENTS: {
+    LIST: "setDocumentAppointments",
+    SELECT: "setSelectDocumentAppointment",
   },
 
   SET_MAILS: {
@@ -339,6 +341,10 @@ const Mutations = {
   SET_OUTGOING: {
     LIST: "setOutgoingLogs",
     SELECT: "setOutgoingSelectLog",
+  },
+
+  SET_PREADMISSION: {
+    CONSENT: "setPreAdmissionConsent",
   },
 };
 

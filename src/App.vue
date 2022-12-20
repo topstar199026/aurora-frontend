@@ -18,15 +18,6 @@ export default defineComponent({
   name: "app",
   setup() {
     const store = useStore();
-    const reloadProfile = () =>
-      setInterval(() => {
-        store.dispatch(Actions.PROFILE.VIEW);
-      }, 15000);
-    watchEffect(() => {
-      if (store.getters.isUserAuthenticated) {
-        reloadProfile();
-      }
-    });
 
     onMounted(() => {
       /**
@@ -38,21 +29,16 @@ export default defineComponent({
         initializeComponents();
       });
     });
-    onUnmounted(() => {
-      clearInterval();
-    });
   },
 });
 </script>
 
 <style lang="scss">
 @import "~bootstrap-icons/font/bootstrap-icons.css";
-@import "~apexcharts/dist/apexcharts.css";
 @import "~animate.css";
 @import "~sweetalert2/dist/sweetalert2.css";
 @import "~@fortawesome/fontawesome-free/css/all.min.css";
 @import "~@vueform/multiselect/themes/default.css";
-@import "~prism-themes/themes/prism-shades-of-purple.css";
 @import "~element-plus/dist/index.css";
 @import "assets/sass/plugins";
 @import "assets/sass/style";

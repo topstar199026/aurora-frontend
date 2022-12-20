@@ -56,7 +56,7 @@ export default defineComponent({
   props: {
     appointment: { type: Object as PropType<IAppointment>, required: true },
   },
-  setup(props) {
+  setup() {
     const doctorAddressBookModalRef = ref<HTMLElement>();
 
     const closeModal = () => {

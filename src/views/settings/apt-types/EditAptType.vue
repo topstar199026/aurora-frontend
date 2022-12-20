@@ -24,6 +24,7 @@
         <InputWrapper
           class="col-sm-6"
           label="Type"
+          required
           infoTooltip="What type of appointment this is"
           prop="type"
           :tooltip="helpTexts.forms.appointmentType.type"
@@ -35,8 +36,9 @@
         </InputWrapper>
 
         <InputWrapper
-          class="col-sm-6"
+          class="col-sm-4"
           label="Appointment Color"
+          required
           prop="type"
           :tooltip="helpTexts.forms.appointmentType.color"
         >
@@ -56,23 +58,41 @@
           </div>
         </InputWrapper>
 
+        <!--Input: Collecting Person Required-->
+        <InputWrapper
+          class="col-sm-4"
+          prop="collecting_person_required"
+          required
+          :tooltip="helpTexts.forms.appointmentType.collecting_person_required"
+          label="Collecting Person Required"
+        >
+          <el-radio-group
+            v-model="formData.collecting_person_required"
+            size="large"
+          >
+            <el-radio-button :label="true">Yes</el-radio-button>
+            <el-radio-button :label="false">No</el-radio-button>
+          </el-radio-group>
+        </InputWrapper>
         <!--Input: Anesthetist Required-->
         <InputWrapper
-          class="col-sm-6 mb-5"
+          class="col-sm-4"
+          label="Anesthetist Required"
           prop="anesthetist_required"
+          required
           :tooltip="helpTexts.forms.appointmentType.anesthetistRequired"
         >
-          <el-checkbox
-            type="checkbox"
-            v-model="formData.anesthetist_required"
-            label="Anesthetist Required"
-          />
+          <el-radio-group v-model="formData.anesthetist_required" size="large">
+            <el-radio-button :label="true">Yes</el-radio-button>
+            <el-radio-button :label="false">No</el-radio-button>
+          </el-radio-group>
         </InputWrapper>
 
         <!--Input: Arrival Time-->
         <InputWrapper
           class="col-sm-6"
           label="Arrival extra time"
+          required
           prop="arrival_time"
           :tooltip="helpTexts.forms.appointmentType.arrivalTime"
         >
@@ -87,6 +107,7 @@
         <InputWrapper
           class="col-sm-6"
           label="Appointment Length"
+          required
           prop="appointment_time"
           :tooltip="helpTexts.forms.appointmentType.appointmentTime"
         >
@@ -124,6 +145,7 @@
         <InputWrapper
           class="col-sm-4"
           label="Invoice By"
+          required
           prop="invoice_by"
           :tooltip="helpTexts.forms.appointmentType.invoicedBy"
         >
@@ -214,12 +236,10 @@ import {
 import { useStore } from "vuex";
 import { useRouter, useRoute } from "vue-router";
 import { setCurrentPageBreadcrumbs } from "@/core/helpers/breadcrumb";
-import Swal from "sweetalert2/dist/sweetalert2.js";
 import { AppointmentActions } from "@/store/enums/StoreAppointmentEnums";
 import { Actions } from "@/store/enums/StoreEnums";
 import InputWrapper from "@/components/presets/FormElements/InputWrapper.vue";
-import CKEditor from "@ckeditor/ckeditor5-vue";
-import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
+import ClassicEditor from "ckeditor5-custom-build/build/ckeditor";
 import IAppointmentType from "@/store/interfaces/IAppointmentType";
 import CardSection from "@/components/presets/GeneralElements/CardSection.vue";
 import helpTexts from "@/core/data/help-texts";
@@ -228,7 +248,6 @@ export default defineComponent({
   name: "edit-apt-type",
   components: {
     InputWrapper,
-    ckeditor: CKEditor.component,
     CardSection,
   },
   setup() {
@@ -238,7 +257,16 @@ export default defineComponent({
     const formRef = ref<HTMLFormElement>();
 
     const loading = ref<boolean>(false);
-    const formData = ref<IAppointmentType>({} as IAppointmentType);
+    const formData = ref<IAppointmentType>({
+      type: "CONSULTATION",
+      anesthetist_required: false,
+      arrival_time: 15,
+      appointment_time: "SINGLE",
+      color: "",
+      invoice_by: "CLINIC",
+      consent: "",
+      default_items: [] as Array<number>,
+    } as IAppointmentType);
     const reportTemplates = computed(() => store.getters.getReportTemplateList);
     const scheduleItems = computed(() => store.getters.scheduleItemList);
     const aptTypes = computed(() => store.getters.getAptTypesList);
@@ -256,7 +284,6 @@ export default defineComponent({
       title: "Create Appointment Type",
       submitAction: AppointmentActions.APPOINTMENT_TYPES.CREATE,
       submitButtonName: "CREATE",
-      submittedText: "New Appointment Type Created",
     });
 
     const rules = ref({
@@ -267,6 +294,62 @@ export default defineComponent({
           trigger: "change",
         },
       ],
+      type: [
+        {
+          required: true,
+          message: "A type must be selected",
+          trigger: "change",
+        },
+      ],
+      anesthetist_required: [
+        {
+          required: true,
+          message: "A type must be selected",
+          trigger: "change",
+        },
+      ],
+      arrival_time: [
+        {
+          required: true,
+          message: "Arrival extra time must not be blank",
+          trigger: "change",
+        },
+      ],
+      appointment_time: [
+        {
+          required: true,
+          message: "Appointment length must be selected",
+          trigger: "change",
+        },
+      ],
+      color: [
+        {
+          required: true,
+          message: "A type must be selected",
+          trigger: "change",
+        },
+      ],
+      invoice_by: [
+        {
+          required: true,
+          message: "An invoice source must be selected",
+          trigger: "change",
+        },
+      ],
+      consent: [
+        {
+          required: false,
+          message: "",
+          trigger: "change",
+        },
+      ],
+      default_items: [
+        {
+          required: false,
+          message: "",
+          trigger: "change",
+        },
+      ],
     });
 
     watch(aptTypes, () => {
@@ -274,12 +357,15 @@ export default defineComponent({
 
       aptTypes.value.forEach((item) => {
         if (item.id == id) {
+          if (item.consent === null) {
+            item.consent = "";
+          }
+
           formData.value = item;
 
           formInfo.title = "Edit Appointment Type";
           formInfo.submitAction = AppointmentActions.APPOINTMENT_TYPES.UPDATE;
           formInfo.submitButtonName = "UPDATE";
-          formInfo.submittedText = "Appointment Type Updated";
         }
       });
 
@@ -288,8 +374,13 @@ export default defineComponent({
 
     onMounted(() => {
       store.dispatch(AppointmentActions.APPOINTMENT_TYPES.LIST);
-      store.dispatch(Actions.REPORT_TEMPLATES.LIST);
+      store.dispatch(Actions.DOCUMENT_TEMPLATES.LIST);
       store.dispatch(Actions.SCHEDULE_ITEM.LIST);
+
+      formData.value.color =
+        predefineColors.value[
+          Math.floor(Math.random() * predefineColors.value.length)
+        ];
     });
 
     const submit = () => {
@@ -300,30 +391,22 @@ export default defineComponent({
       formRef.value.validate((valid) => {
         if (valid) {
           loading.value = true;
+
           store
             .dispatch(formInfo.submitAction, formData.value)
             .then(() => {
               loading.value = false;
               store.dispatch(AppointmentActions.APPOINTMENT_TYPES.LIST);
-              Swal.fire({
-                text: formInfo.submittedText,
-                icon: "success",
-                buttonsStyling: false,
-                confirmButtonText: "Ok, got it!",
-                customClass: {
-                  confirmButton: "btn btn-primary",
-                },
-              }).then(() => {
-                router.push({ name: "aptTypes" });
-              });
+
+              if (formRef.value !== undefined) {
+                formRef.value.resetFields();
+              }
+
+              router.push({ name: "aptTypes" });
             })
             .catch(({ response }) => {
               loading.value = false;
-              console.log(response.data.error);
             });
-          if (formRef.value != undefined) {
-            formRef.value.resetFields();
-          }
         }
       });
     };

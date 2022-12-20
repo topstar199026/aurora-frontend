@@ -270,7 +270,6 @@ export default defineComponent({
         store
           .dispatch(Actions.FILE.VIEW, {
             path: preAdmissionData.value.pre_admission.pre_admission_file,
-            type: "PRE_ADMISSION",
           })
           .then((data) => {
             const blob = new Blob([data], { type: "application/pdf" });

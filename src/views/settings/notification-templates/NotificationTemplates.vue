@@ -1,4 +1,5 @@
 <template>
+  <SettingsButton />
   <CardSection>
     <div class="d-flex flex-column">
       <template v-for="template in notificationTemplates" :key="template.id">
@@ -37,10 +38,12 @@ import { Modal } from "bootstrap";
 import { Actions, Mutations } from "@/store/enums/StoreEnums";
 import INotificationTemplate from "@/store/interfaces/INotificationTemplate";
 import CardSection from "@/components/presets/GeneralElements/CardSection.vue";
+import SettingsButton from "@/components/SettingsButton.vue";
 export default defineComponent({
   components: {
     EditModal,
     CardSection,
+    SettingsButton,
   },
 
   setup() {

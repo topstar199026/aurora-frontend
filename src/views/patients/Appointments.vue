@@ -56,7 +56,10 @@
             </div>
           </div>
           <div v-else class="d-flex flex-column">No referral information</div>
-          <ViewReferralButton :appointment="item" />
+          <ViewReferralButton
+            :appointment="item"
+            @click="handleReferralClick(item)"
+          />
         </template>
         <template v-slot:cell-attendance_status="{ row: item }">
           <div class="d-flex flex-column">
@@ -98,6 +101,10 @@
       </Datatable>
     </template>
   </CardSection>
+  <AppointmentReferralModal
+    v-if="referralAppointment"
+    :appointment="referralAppointment"
+  ></AppointmentReferralModal>
 </template>
 
 <style>
@@ -117,6 +124,9 @@ import { PatientActions } from "@/store/enums/StorePatientEnums";
 import PatientAppointmentActions from "@/components/patients/PatientAppointmentActions.vue";
 import ViewReferralButton from "@/components/patients/patientAppointmentActions/ViewReferralButton.vue";
 import CollectingPersonButton from "@/components/patients/patientAppointmentActions/CollectingPersonButton.vue";
+import AppointmentReferralModal from "@/views/patients/modals/AppointmentReferralModal.vue";
+import { Actions } from "@/store/enums/StoreEnums";
+
 export default defineComponent({
   name: "patient-appointments",
   components: {
@@ -124,13 +134,14 @@ export default defineComponent({
     ViewReferralButton,
     PatientAppointmentActions,
     CollectingPersonButton,
+    AppointmentReferralModal,
   },
 
   setup() {
     const router = useRouter();
     const route = useRoute();
     const patient = computed(() => store.getters.selectedPatient);
-
+    const referralAppointment = ref(null);
     const userRole = computed(() => store.getters.userRole);
     const tableHeader = ref([
       {
@@ -160,6 +171,10 @@ export default defineComponent({
       });
     };
 
+    const handleReferralClick = (item) => {
+      referralAppointment.value = item;
+    };
+
     watchEffect(() => {
       tableData.value = patient.value.appointments;
     });
@@ -177,13 +192,16 @@ export default defineComponent({
 
       const id = route.params.id;
       store.dispatch(PatientActions.VIEW, id);
+      store.dispatch(Actions.DOCUMENT_TEMPLATES.LIST);
     });
 
     return {
       tableHeader,
       tableData,
       userRole,
+      referralAppointment,
       handlePreAdmissionTest,
+      handleReferralClick,
       patient,
     };
   },

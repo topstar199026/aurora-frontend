@@ -142,7 +142,7 @@
             userRole !== 'anesthetist'
           "
           @click="handleCheckIn"
-          :heading="'Check In'"
+          text="CHECK IN"
           :iconPath="'media/icons/duotune/arrows/arr024.svg'"
           :color="'primary'"
           justify="start"
@@ -157,7 +157,7 @@
             userRole !== 'anesthetist'
           "
           @click="handleCheckOut"
-          :heading="'Check Out'"
+          text="CHECK OUT"
           :iconPath="'media/icons/duotune/arrows/arr021.svg'"
           :color="'primary'"
           justify="start"
@@ -170,7 +170,7 @@
             userRole !== 'specialist' &&
             userRole !== 'anesthetist'
           "
-          :heading="'Checked Out'"
+          text="CHECKED OUT"
           :iconPath="'media/icons/duotune/arrows/arr021.svg'"
           :color="'grey'"
           justify="start"
@@ -180,7 +180,7 @@
         <!--View Patient-->
         <LargeIconButton
           @click="handleView"
-          :heading="'View'"
+          text="VIEW PATIENT"
           :iconPath="'media/icons/duotune/medicine/med001.svg'"
           :color="'primary'"
           justify="start"
@@ -191,7 +191,7 @@
         <LargeIconButton
           v-if="userRole !== 'specialist' && userRole !== 'anesthetist'"
           @click="handleEdit"
-          :heading="'Edit'"
+          text="EDIT"
           :iconPath="'media/icons/duotune/general/gen055.svg'"
           :color="'success'"
           justify="start"
@@ -202,10 +202,10 @@
           <!--Move Appointment-->
           <div class="col-6">
             <LargeIconButton
-              class="me-1"
+              class="me-1 w-100"
               v-if="userRole !== 'specialist' && userRole !== 'anesthetist'"
               @click="handleMove"
-              :heading="'Move'"
+              text="MOVE"
               :iconPath="'media/icons/duotune/arrows/arr035.svg'"
               :color="'success'"
               justify="start"
@@ -215,10 +215,10 @@
           <div class="col-6">
             <!--Move Appointment-->
             <LargeIconButton
-              class="ms-1"
+              class="ms-1 w-100"
               v-if="userRole !== 'specialist' && userRole !== 'anesthetist'"
               @click="handleCopy"
-              :heading="'Copy'"
+              text="COPY"
               :iconPath="'media/icons/duotune/arrows/arr058.svg'"
               :color="'success'"
               justify="start"
@@ -226,12 +226,29 @@
             />
           </div>
         </div>
-
+        <template v-if="userRole == 'specialist'">
+          <el-divider />
+          <CreateDocumentButton
+            :appointment="appointment"
+            :patient="patient"
+            document-type="letter"
+          />
+          <CreateDocumentButton
+            :appointment="appointment"
+            :patient="patient"
+            document-type="report"
+          />
+          <CreateDocumentButton
+            :appointment="appointment"
+            :patient="patient"
+            document-type="referral"
+          />
+        </template>
         <!--Cancel Appointment Button-->
         <LargeIconButton
           v-if="userRole !== 'specialist' && userRole !== 'anesthetist'"
           @click="handleCancel"
-          :heading="'Cancel'"
+          text="CANCEL"
           :iconPath="'media/icons/duotune/arrows/arr011.svg'"
           :color="'danger'"
           justify="start"
@@ -263,6 +280,8 @@ import AlertBadge from "@/components/presets/GeneralElements/AlertBadge.vue";
 import { convertToCurrency } from "@/core/data/billing";
 import IPatient from "@/store/interfaces/IPatient";
 import IAppointment from "@/store/interfaces/IAppointment";
+import CreateDocumentButton from "../patients/patientAppointmentActions/CreateDocumentButton.vue";
+import { Actions } from "@/store/enums/StoreEnums";
 
 export default defineComponent({
   name: "booing-drawer",
@@ -270,7 +289,7 @@ export default defineComponent({
     CheckInModal,
     LargeIconButton,
     AlertBadge,
-    //  InfoSection,
+    CreateDocumentButton,
   },
   setup() {
     const store = useStore();
@@ -286,6 +305,7 @@ export default defineComponent({
 
     watch(aptData, () => {
       store.dispatch(PatientActions.VIEW, aptData.value.patient_id);
+      store.dispatch(Actions.DOCUMENT_TEMPLATES.LIST);
     });
 
     const handleView = () => {
@@ -300,7 +320,7 @@ export default defineComponent({
     const handleEdit = () => {
       store.dispatch(PatientActions.APPOINTMENTS, aptData.value.patient_id);
       store.commit(AppointmentMutations.SET_APT.SELECT, aptData.value);
-      const modal = new Modal(document.getElementById("modal_edit_apt"));
+      const modal = new Modal(document.getElementById("modal_update_apt"));
       modal.show();
       DrawerComponent?.getInstance("appointment-drawer")?.hide();
     };

@@ -1,9 +1,42 @@
 <template>
   <CardSection>
+    <div class="d-flex justify-content-end mb-6">
+      <!-- SEND METHODS FILTER SELECT-->
+      <el-select
+        class="w-25"
+        placeholder="Select Send Method"
+        v-model="sendMethodFilter"
+      >
+        <el-option value="ALL" label="ALL SEND METHODS">
+          ALL SEND METHODS
+        </el-option>
+        <template v-for="method in messageSendMethods" :key="method">
+          <el-option :value="method" :label="method">
+            {{ method }}
+          </el-option>
+        </template>
+      </el-select>
+      <!-- SEND STATUS FILTER SELECT-->
+      <el-select
+        class="w-25 select-send-status"
+        placeholder="Select Send Status"
+        v-model="sendStatusFilter"
+      >
+        <el-option value="ALL" label="ALL SEND STATUS">
+          ALL SEND STATUS
+        </el-option>
+        <template v-for="status in messageSendStatus" :key="status">
+          <el-option :value="status" :label="status">
+            {{ status }}
+          </el-option>
+        </template>
+      </el-select>
+    </div>
     <Datatable
       :table-header="tableHeader"
       :table-data="outgoingLogs"
       :loading="loading"
+      :key="tableKey"
       :rows-per-page="10"
       :enable-items-per-page-dropdown="true"
     >
@@ -43,8 +76,14 @@
   <OutgoingModal />
 </template>
 
+<style lang="scss">
+.select-send-status {
+  margin-left: 15px !important;
+}
+</style>
+
 <script lang="ts">
-import { defineComponent, onMounted, computed, ref } from "vue";
+import { defineComponent, onMounted, computed, ref, watch } from "vue";
 import { useStore } from "vuex";
 import moment from "moment";
 import { setCurrentPageBreadcrumbs } from "@/core/helpers/breadcrumb";
@@ -53,6 +92,14 @@ import Datatable from "@/components/kt-datatable/KTDatatable.vue";
 import OutgoingModal from "@/views/communication/OutgoingModal.vue";
 import { Modal } from "bootstrap";
 import IOutgoingMessageLog from "@/store/interfaces/IOutgoingMessageLog";
+import { DocumentActions } from "@/store/enums/StoreDocumentEnums";
+import messageSendMethods from "@/core/data/message-send-methods";
+import messageSendStatus from "@/core/data/message-send-status";
+
+export type Filters = {
+  send_method: null | string;
+  send_status: null | string;
+};
 
 export default defineComponent({
   name: "communication-outgoing",
@@ -102,6 +149,11 @@ export default defineComponent({
         key: "actions",
       },
     ]);
+    const sendMethodFilter = ref("ALL");
+    const sendStatusFilter = ref("ALL");
+    const tableKey = ref(0);
+
+    const renderTable = () => tableKey.value++;
 
     onMounted(() => {
       setCurrentPageBreadcrumbs("Outgoing logs", ["Communication"]);
@@ -109,6 +161,36 @@ export default defineComponent({
       store.dispatch(Actions.OUTGOING.LIST).then(() => {
         loading.value = false;
       });
+    });
+
+    watch([sendMethodFilter, sendStatusFilter], () => {
+      let filters = {} as Filters;
+      filters.send_method =
+        sendMethodFilter.value != "ALL" ? sendMethodFilter.value : null;
+      filters.send_status =
+        sendStatusFilter.value != "ALL" ? sendStatusFilter.value : null;
+      Object.keys(filters).forEach((key) => {
+        if (!filters[key]) delete filters[key];
+      });
+      if (filters) {
+        store.dispatch(Actions.OUTGOING.LIST, filters).then(() => {
+          loading.value = false;
+        });
+      } else {
+        store.dispatch(Actions.OUTGOING.LIST).then(() => {
+          loading.value = false;
+        });
+      }
+    });
+
+    watch(outgoingLogs, () => {
+      outgoingLogs.value.sort(
+        (a: IOutgoingMessageLog, b: IOutgoingMessageLog): number => {
+          let diff = moment(a.created_at).diff(moment(b.created_at), "seconds");
+          return diff < 0 ? 1 : diff == 0 ? 0 : -1;
+        }
+      );
+      renderTable();
     });
 
     const handleView = (item) => {
@@ -123,6 +205,11 @@ export default defineComponent({
       loading,
       handleView,
       moment,
+      messageSendMethods,
+      messageSendStatus,
+      sendMethodFilter,
+      sendStatusFilter,
+      tableKey,
     };
   },
 });

@@ -119,7 +119,6 @@ export default defineComponent({
         store
           .dispatch(Actions.FILE.VIEW, {
             path: props.pdfId,
-            type: "PATIENT_PREVIEW_DOCUMENT",
           })
           .then((data) => {
             document.getElementById("document-preview").innerHTML = "";

@@ -1,4 +1,5 @@
 <template>
+  <SettingsButton />
   <div class="card w-75 m-auto">
     <div class="card-header border-0 pt-6">
       <!--begin::Card title-->
@@ -141,7 +142,7 @@ import ScheduleFeeModal from "@/views/organisation-admin/billing-setting/Schedul
 import ScheduleItemModal from "@/views/organisation-admin/billing-setting/ScheduleItemModal.vue";
 import { convertToCurrency } from "@/core/data/billing";
 import { Modal } from "bootstrap";
-
+import SettingsButton from "@/components/SettingsButton.vue";
 export default defineComponent({
   name: "schedule-fee",
 
@@ -149,6 +150,7 @@ export default defineComponent({
     Datatable,
     ScheduleFeeModal,
     ScheduleItemModal,
+    SettingsButton,
   },
   methods: {
     cellName(name) {

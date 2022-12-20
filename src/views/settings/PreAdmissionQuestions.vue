@@ -1,4 +1,5 @@
 <template>
+  <SettingsButton />
   <!--begin::Form-->
   <el-form
     v-show="isLoaded"
@@ -125,11 +126,11 @@ import { setCurrentPageBreadcrumbs } from "@/core/helpers/breadcrumb";
 import { useStore } from "vuex";
 import { Actions } from "@/store/enums/StoreEnums";
 import LargeIconButton from "@/components/presets/GeneralElements/LargeIconButton.vue";
-
+import SettingsButton from "@/components/SettingsButton.vue";
 export default defineComponent({
   name: "pre-admission-questions",
 
-  components: { LargeIconButton },
+  components: { LargeIconButton, SettingsButton },
 
   setup() {
     const store = useStore();
@@ -171,7 +172,22 @@ export default defineComponent({
     };
 
     const handleDeleteSection = (sectionIndex) => {
-      formData.value.sections.splice(sectionIndex, 1);
+      Swal.fire({
+        text: `Are you sure you want to delete this section?`,
+        icon: "question",
+        buttonsStyling: false,
+        confirmButtonText: "Yes",
+        showCancelButton: true,
+        cancelButtonText: "No",
+        customClass: {
+          confirmButton: "btn btn-primary",
+          cancelButton: "btn btn-secondary",
+        },
+      }).then((result) => {
+        if (result.isConfirmed) {
+          formData.value.sections.splice(sectionIndex, 1);
+        }
+      });
     };
 
     const submit = () => {

@@ -39,6 +39,7 @@ export interface ITimeSchedule {
 export interface ISpecialist {
   id: string;
   name: string;
+  full_name: string;
   work_hours: Array<IWorkhour>;
   hrm_work_schedule: Array<ITimeSchedule>;
 }

@@ -226,11 +226,11 @@ export default defineComponent({
     };
 
     const getBusinessHours = (data) => {
-      const weekDays = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
+      const weekDays = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"]; // sun is 0
       let businessHours = [];
       data.forEach((slot) => {
         let daysOfWork = [];
-        daysOfWork.push(weekDays.indexOf(slot.week_day) + 1);
+        daysOfWork.push(weekDays.indexOf(slot.week_day));
         businessHours.push({
           startTime: slot.start_time,
           endTime: slot.end_time,

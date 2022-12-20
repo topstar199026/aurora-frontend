@@ -1,222 +1,217 @@
 <template>
-  <CardSection>
-    <div class="row">
-      <div class="col-md-4">
-        <el-input
-          v-model="documentTitleFilter"
-          class="w-100 mb-6"
-          placeholder="Please input search title"
+  <div class="row">
+    <div class="col-md-4">
+      <el-input
+        v-model="documentTitleFilter"
+        class="w-100 mb-6"
+        placeholder="Please input search title"
+      />
+      <!-- DOCUMENT TYPE FILTER SELECT-->
+      <el-select
+        class="w-100 mb-6"
+        placeholder="Select Document Type"
+        v-model="documentTypeFilter"
+      >
+        <el-option value="ALL" label="ALL DOCUMENT TYPES">
+          <inline-svg
+            class="me-5"
+            src="media/icons/duotune/general/gen054.svg"
+          />
+          ALL DOCUMENT TYPES
+        </el-option>
+        <template v-for="type in patientDocumentTypes" :key="type.value">
+          <el-option :value="type.value" :label="type.label">
+            <inline-svg class="me-5" :src="type.icon" />
+            {{ type.label }}
+          </el-option>
+        </template>
+      </el-select>
+      <!-- APPOINTMENT FILTER SELECT-->
+      <el-select
+        v-if="appointments"
+        class="filter-appointment w-100 pb-6"
+        placeholder="Select Appointment"
+        v-model="appointmentFilter"
+      >
+        <el-option value="ALL" label="ALL APPOINTMENTS">
+          ALL Appointments
+        </el-option>
+        <template v-for="appointment in appointments" :key="appointment.id">
+          <el-option
+            :value="appointment.id"
+            :label="
+              appointment.aus_formatted_date +
+              ' ' +
+              appointment.formatted_appointment_time +
+              ' , ' +
+              appointment.specialist_name
+            "
+          >
+            {{ appointment.aus_formatted_date }}
+            {{ appointment.formatted_appointment_time }}
+            , {{ appointment.appointment_type_name }} ,
+            <span>{{ appointment.specialist_name }}</span>
+          </el-option>
+        </template>
+      </el-select>
+      <!-- SPECIALIST FILTER SELECT-->
+      <el-select
+        v-if="specialists"
+        class="filter-appointment w-100 pb-6"
+        placeholder="Select Specialist"
+        v-model="specialistFilter"
+      >
+        <el-option value="ALL" label="ALL SPECIALISTS">
+          ALL Specialists
+        </el-option>
+        <template v-for="specialist in specialists" :key="specialist.id">
+          <el-option
+            :value="specialist.id"
+            :label="specialist.first_name + ' ' + specialist.last_name"
+          >
+          </el-option>
+        </template>
+      </el-select>
+      <div class="pb-5">
+        <el-switch
+          v-model="showUrgentOnly"
+          size="large"
+          active-text="Show Urgent Only"
+          inactive-text=""
         />
-        <!-- DOCUMENT TYPE FILTER SELECT-->
-        <el-select
-          class="w-100 mb-6"
-          placeholder="Select Document Type"
-          v-model="documentTypeFilter"
-        >
-          <el-option value="ALL" label="ALL DOCUMENT TYPES">
-            <inline-svg
-              class="me-5"
-              src="media/icons/duotune/general/gen054.svg"
-            />
-            ALL DOCUMENT TYPES
-          </el-option>
-          <template v-for="type in patientDocumentTypes" :key="type.value">
-            <el-option :value="type.value" :label="type.label">
-              <inline-svg class="me-5" :src="type.icon" />
-              {{ type.label }}
-            </el-option>
-          </template>
-        </el-select>
-        <!-- APPOINTMENT FILTER SELECT-->
-        <el-select
-          v-if="appointments"
-          class="filter-appointment w-100 pb-6"
-          placeholder="Select Appointment"
-          v-model="appointmentFilter"
-        >
-          <el-option value="ALL" label="ALL APPOINTMENTS">
-            ALL Appointments
-          </el-option>
-          <template v-for="appointment in appointments" :key="appointment.id">
-            <el-option
-              :value="appointment.id"
-              :label="
-                appointment.aus_formatted_date +
-                ' ' +
-                appointment.formatted_appointment_time +
-                ' , ' +
-                appointment.specialist_name
-              "
-            >
-              {{ appointment.aus_formatted_date }}
-              {{ appointment.formatted_appointment_time }}
-              , {{ appointment.appointment_type_name }} ,
-              <span>{{ appointment.specialist_name }}</span>
-            </el-option>
-          </template>
-        </el-select>
-        <!-- SPECIALIST FILTER SELECT-->
-        <el-select
-          v-if="specialists"
-          class="filter-appointment w-100 pb-6"
-          placeholder="Select Specialist"
-          v-model="specialistFilter"
-        >
-          <el-option value="ALL" label="ALL SPECIALISTS">
-            ALL Specialists
-          </el-option>
-          <template v-for="specialist in specialists" :key="specialist.id">
-            <el-option
-              :value="specialist.id"
-              :label="specialist.first_name + ' ' + specialist.last_name"
-            >
-            </el-option>
-          </template>
-        </el-select>
-        <div class="pb-5">
-          <el-switch
-            v-model="showUrgentOnly"
-            size="large"
-            active-text="Show Urgent Only"
-            inactive-text=""
-          />
-          <el-switch
-            class="mx-4"
-            v-model="showUnReadOnly"
-            size="large"
-            active-text="Show UnRead Only"
-            inactive-text=""
-          />
-        </div>
-        <div
-          v-if="documentList?.length === 0"
-          class="d-flex justify-content-center align-items-center fs-3"
-        >
-          No Documents Exist
-        </div>
-        <div class="d-flex flex-column h-450px scroll">
-          <div v-for="document in filteredDocuments" :key="document.id">
-            <input
-              type="radio"
-              class="btn-check"
-              :name="document.id"
-              :value="document.id"
-              :id="document.id"
-              v-model="selectedDocumentId"
-            />
-            <DocumentLabel :condensed="condensed" :document="document" />
-          </div>
-        </div>
+        <el-switch
+          class="mx-4"
+          v-model="showUnReadOnly"
+          size="large"
+          active-text="Show UnRead Only"
+          inactive-text=""
+        />
       </div>
-      <div class="col-md-8 d-flex flex-column">
-        <div class="d-flex flex-row" v-if="selectedDocument">
-          <!-- DOCUMENT INFO -->
-          <div class="d-flex p-6 flex-column" v-if="showDocumentInformation">
-            <InfoSection heading="Patient">
-              {{ selectedDocument.document_info.patient }}
-              <IconButton
-                @click="showAssignPatientModal()"
-                v-if="!selectedDocument.document_info.patient"
-                label="Assign Patient"
-              />
-            </InfoSection>
-            <InfoSection heading="Specialist"
-              >{{ selectedDocument.document_info.specialist }}
-              <IconButton
-                @click="showAssignSpecialistModal()"
-                v-if="!selectedDocument.document_info.specialist"
-                label="Assign Specialist"
-              />
-            </InfoSection>
-            <InfoSection heading="Appointment"
-              >{{ selectedDocument.document_info.appointment }}
-              <IconButton
-                v-if="
-                  selectedDocument.document_info.patient &&
-                  !selectedDocument.document_info.appointment
-                "
-                @click="showAssignAppointmentModal()"
-                label="Assign Appointment"
-              />
-              <IconButton
-                class="disabled"
-                v-if="
-                  !selectedDocument.document_info.patient &&
-                  !selectedDocument.document_info.appointment
-                "
-                label="Assign Appointment"
-              />
-            </InfoSection>
-          </div>
-          <!-- DOCUMENT ACTIONS -->
-          <div class="d-flex p-6 flex-column" v-if="showDocumentActions">
-            <IconButton class="mb-2" label="Print" @click="handlePrint" />
-            <IconButton class="mb-2" label="Email" @click="handleSendEmail" />
-            <IconButton
-              class="mb-2"
-              label="HealthLink"
-              @click="handleSendHealthLink"
-            />
-            <IconButton
-              class="mb-2"
-              v-if="userRole == 'specialist' && !selectedDocument.is_read"
-              label="Mark Read"
-              @click="handleMarkRead(true)"
-            />
-            <IconButton
-              class="mb-2"
-              v-if="userRole == 'specialist' && selectedDocument.is_read"
-              label="Mark UnRead"
-              @click="handleMarkRead(false)"
-            />
-            <IconButton
-              class="mb-2"
-              v-if="userRole == 'specialist' && !selectedDocument.is_urgent"
-              label="Mark Urgent"
-              @click="handleMarkUrgent(true)"
-            />
-            <IconButton
-              class="mb-2"
-              v-if="userRole == 'specialist' && selectedDocument.is_urgent"
-              label="Mark Not Urgent"
-              @click="handleMarkUrgent(false)"
-            />
-            <IconButton
-              class="mb-2"
-              v-if="
-                userRole == 'specialist' &&
-                !selectedDocument.is_incorrectly_assigned
-              "
-              label="Mark Incorrectly assigned"
-              @click="handleMarkCorrect(true)"
-            />
-            <IconButton
-              class="mb-2"
-              v-if="
-                userRole == 'specialist' &&
-                selectedDocument.is_incorrectly_assigned
-              "
-              label="Mark correctly assigned"
-              @click="handleMarkCorrect(false)"
-            />
-          </div>
-          <!-- DOCUMENT VIEW DIV -->
-          <div class="d-flex p-6 flex-column">
-            <IconButton
-              class="mb-2"
-              label="View logs"
-              @click="handleViewLogs"
-            />
-          </div>
-        </div>
-        <div class="h-450px" id="documentField">
-          <div class="fv-row pdf_viewer_wrapper">
-            <div id="document-view" class="pdf_viewer"></div>
-          </div>
+      <div
+        v-if="documentList?.length === 0"
+        class="d-flex justify-content-center align-items-center fs-3"
+      >
+        No Documents Exist
+      </div>
+      <div class="d-flex flex-column h-450px scroll">
+        <div v-for="document in filteredDocuments" :key="document.id">
+          <input
+            type="radio"
+            class="btn-check"
+            :name="document.id"
+            :value="document.id"
+            :id="document.id"
+            v-model="selectedDocumentId"
+          />
+          <DocumentLabel :condensed="condensed" :document="document" />
         </div>
       </div>
     </div>
-  </CardSection>
+    <div class="col-md-8 d-flex flex-column">
+      <div class="d-flex flex-row" v-if="selectedDocument">
+        <!-- DOCUMENT INFO -->
+        <div class="d-flex p-6 flex-column" v-if="showDocumentInformation">
+          <InfoSection heading="Patient">
+            {{ selectedDocument.document_info.patient }}
+            <IconButton
+              @click="showAssignPatientModal()"
+              v-if="!selectedDocument.document_info.patient"
+              label="Assign Patient"
+            />
+          </InfoSection>
+          <InfoSection heading="Specialist"
+            >{{ selectedDocument.document_info.specialist }}
+            <IconButton
+              @click="showAssignSpecialistModal()"
+              v-if="!selectedDocument.document_info.specialist"
+              label="Assign Specialist"
+            />
+          </InfoSection>
+          <InfoSection heading="Appointment"
+            >{{ selectedDocument.document_info.appointment }}
+            <IconButton
+              v-if="
+                selectedDocument.document_info.patient &&
+                !selectedDocument.document_info.appointment
+              "
+              @click="showAssignAppointmentModal()"
+              label="Assign Appointment"
+            />
+            <IconButton
+              class="disabled"
+              v-if="
+                !selectedDocument.document_info.patient &&
+                !selectedDocument.document_info.appointment
+              "
+              label="Assign Appointment"
+            />
+          </InfoSection>
+        </div>
+        <!-- DOCUMENT ACTIONS -->
+        <div class="d-flex p-6 flex-column" v-if="showDocumentActions">
+          <IconButton class="mb-2" label="Print" @click="handlePrint" />
+          <IconButton class="mb-2" label="Email" @click="handleSendEmail" />
+          <IconButton
+            class="mb-2"
+            label="HealthLink"
+            @click="handleSendHealthLink"
+          />
+          <IconButton
+            class="mb-2"
+            v-if="userRole == 'specialist' && !selectedDocument.is_read"
+            label="Mark Read"
+            @click="handleMarkRead(true)"
+          />
+          <IconButton
+            class="mb-2"
+            v-if="userRole == 'specialist' && selectedDocument.is_read"
+            label="Mark UnRead"
+            @click="handleMarkRead(false)"
+          />
+          <IconButton
+            class="mb-2"
+            v-if="userRole == 'specialist' && !selectedDocument.is_urgent"
+            label="Mark Urgent"
+            @click="handleMarkUrgent(true)"
+          />
+          <IconButton
+            class="mb-2"
+            v-if="userRole == 'specialist' && selectedDocument.is_urgent"
+            label="Mark Not Urgent"
+            @click="handleMarkUrgent(false)"
+          />
+          <IconButton
+            class="mb-2"
+            v-if="
+              userRole == 'specialist' &&
+              !selectedDocument.is_incorrectly_assigned
+            "
+            label="Mark Incorrectly assigned"
+            @click="handleMarkCorrect(true)"
+          />
+          <IconButton
+            class="mb-2"
+            v-if="
+              userRole == 'specialist' &&
+              selectedDocument.is_incorrectly_assigned
+            "
+            label="Mark correctly assigned"
+            @click="handleMarkCorrect(false)"
+          />
+        </div>
+        <!-- DOCUMENT VIEW DIV -->
+        <div class="d-flex p-6 flex-column">
+          <IconButton class="mb-2" label="View logs" @click="handleViewLogs" />
+        </div>
+      </div>
+      <div class="h-450px" id="documentField">
+        <div class="fv-row pdf_viewer_wrapper">
+          <div id="document-view" class="pdf_viewer"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <SendDocumentViaEmailModal
     v-if="selectedDocument"
     :document="selectedDocument"
@@ -429,7 +424,6 @@ export default defineComponent({
           store
             .dispatch(Actions.FILE.VIEW, {
               path: selectedDocument.value.file_path,
-              type: "PATIENT_DOCUMENT",
             })
             .then((data) => {
               tempFile.value = data;

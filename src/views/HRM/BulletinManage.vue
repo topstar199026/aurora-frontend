@@ -1,5 +1,5 @@
 <template>
-  <CardSection>
+  <CardSection heading=" ">
     <template #header-actions>
       <IconButton
         @click="handleAdd"

@@ -1,4 +1,5 @@
 import icons from "@/core/data/icons";
+import store from "@/store";
 const SpecialistMenu = [
   {
     heading: "Bookings",
@@ -31,21 +32,17 @@ const SpecialistMenu = [
     svgIcon: icons.heart_pulse,
   },
   {
-    heading: "Communication",
-    route: "/third-party-comms",
+    heading: "Incoming Communication",
+    route: "/specialist/incoming-documents",
     svgIcon: icons.paper_plane,
-    fontIcon: "bi-send",
-    pages: [
-      {
-        heading: "Outgoing",
-        route: "/outgoing-log",
-      },
-    ],
+    badge: true,
+    badgeCount: "IncomingDocuments",
   },
   {
-    heading: "Incoming",
-    route: "/specialist/incoming-documents",
-    svgIcon: "media/icons/duotune/general/gen016.svg",
+    heading: "Outgoing Communication",
+    route: "/outgoing-log",
+    svgIcon: icons.paper_plane,
+    reverse: true,
   },
 ];
 

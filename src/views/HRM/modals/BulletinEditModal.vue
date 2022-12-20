@@ -144,17 +144,13 @@ import { defineComponent, onMounted, computed, ref, watchEffect } from "vue";
 import { setCurrentPageBreadcrumbs } from "@/core/helpers/breadcrumb";
 import { HRMActions } from "@/store/enums/StoreHRMEnums";
 import { Actions } from "@/store/enums/StoreEnums";
-import CKEditor from "@ckeditor/ckeditor5-vue";
 import { hideModal } from "@/core/helpers/dom";
 import Swal from "sweetalert2/dist/sweetalert2.js";
-import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
+import ClassicEditor from "ckeditor5-custom-build/build/ckeditor";
 import { useStore } from "vuex";
 
 export default defineComponent({
   name: "bulletin-edit-modal",
-  components: {
-    ckeditor: CKEditor.component,
-  },
   setup() {
     const store = useStore();
     const loading = ref(true);

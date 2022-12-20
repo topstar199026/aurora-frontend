@@ -230,6 +230,7 @@ export default defineComponent({
         ...props.patient,
         appointment_confirm_method:
           selectedPatient.value.appointment_confirm_method,
+        id: formData.value.id,
       };
 
       if (formRef.value) {

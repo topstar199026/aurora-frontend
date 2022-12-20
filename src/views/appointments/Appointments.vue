@@ -58,8 +58,8 @@
     </div>
   </div>
 
-  <AptModal modalId="modal_edit_apt" />
-  <AptModal modalId="modal_create_apt" />
+  <AptModal modalId="update" />
+  <AptModal modalId="new" />
 </template>
 <script>
 import {
@@ -74,7 +74,7 @@ import {
   onUnmounted,
 } from "vue";
 import { useStore } from "vuex";
-import AptModal from "@/components/appointments/ModalApt.vue";
+import AptModal from "@/components/appointments/AppointmentModal.vue";
 import AppointmentTable from "@/components/appointments/AppointmentTable.vue";
 import "vue-ctk-date-time-picker/dist/vue-ctk-date-time-picker.css";
 import moment from "moment";

@@ -125,6 +125,7 @@ import {
   onMounted,
   computed,
   watch,
+  watchEffect,
 } from "vue";
 import store from "@/store";
 import { AppointmentActions } from "@/store/enums/StoreAppointmentEnums";
@@ -239,24 +240,25 @@ export default defineComponent({
       }
     };
 
-    watch(props, () => {
+    watchEffect(() => {
       formData.value =
         props.appointment?.referral ?? ({} as IAppointmentReferral);
+      const pdfViewer = document.getElementById("divPDFViewer");
 
-      if (props.appointment.referral?.patient_document_id) {
+      if (pdfViewer) {
+        pdfViewer.innerHTML = "<div>Error loading PDF</div>";
+      }
+      if (
+        props.appointment.referral?.patient_document_id &&
+        props.appointment.referral.patient_document_file_path
+      ) {
         store
           .dispatch(Actions.FILE.VIEW, {
             path: props.appointment.referral.patient_document_file_path,
-            type: "REFERRAL",
           })
           .then((data) => {
             const blob = new Blob([data], { type: "application/pdf" });
             const objectUrl = URL.createObjectURL(blob);
-            const pdfViewer = document.getElementById("divPDFViewer");
-
-            if (pdfViewer) {
-              pdfViewer.innerHTML = "";
-            }
             let file = {
               name: props.appointment.referral?.referral_file,
               raw: data,
