@@ -230,7 +230,6 @@ export default defineComponent({
     };
 
     const handleChange = (file) => {
-      console.log(upload.value.fileList);
       showOldPhoto.value = false;
       upload.value.clearFiles();
       uploadDisabled.value = false;
