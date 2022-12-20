@@ -113,7 +113,7 @@ export default defineComponent({
         sortable: true,
       },
       {
-        name: "Appointment Time",
+        name: "Appointment Length",
         key: "appointment_time",
         sortable: true,
       },
