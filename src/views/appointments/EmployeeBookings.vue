@@ -111,7 +111,7 @@ export default defineComponent({
           center: "title",
           right: "timeGridWeek,timeGridDay",
         },
-        initialView: "timeGridWeek",
+        initialView: "timeGridDay",
         navLinks: true, // can click day/week names to navigate views
         selectable: true,
         selectMirror: false,

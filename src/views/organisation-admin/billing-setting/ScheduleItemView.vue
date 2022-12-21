@@ -3,7 +3,7 @@
   <div class="card w-75 m-auto">
     <div class="card-header border-0 pt-6">
       <!--begin::Card title-->
-      <div class="card-title">Schedule Fees</div>
+      <div class="card-title">Billing Items</div>
       <!--begin::Card title-->
 
       <!--begin::Card toolbar-->
@@ -34,17 +34,6 @@
               <InlineSVG icon="plus" />
             </span>
             Add Custom Item
-          </button>
-
-          <button
-            type="button"
-            class="btn btn-light-primary ms-4"
-            @click="handleAddScheduleFee"
-          >
-            <span class="svg-icon svg-icon-2">
-              <InlineSVG icon="plus" />
-            </span>
-            Add Fee
           </button>
           <!--end::Add subscription-->
         </div>
@@ -87,20 +76,54 @@
             {{ convertToCurrency(item.amount / 100) }}
           </div>
 
+          <div
+            v-if="column.key == 'actions'"
+            class="text-muted fw-bold text-center"
+          >
+            <button
+              type="button"
+              class="btn btn-light-primary me-2"
+              @click="handleAddScheduleFee(item)"
+            >
+              <span class="svg-icon svg-icon-2">
+                <InlineSVG icon="plus" />
+              </span>
+              Add Fee
+            </button>
+
+            <button
+              type="button"
+              class="btn btn-light-primary px-3"
+              @click="handleEditItem(item)"
+            >
+              <span class="svg-icon svg-icon-2 m-0 p-0">
+                <InlineSVG icon="pencil" />
+              </span>
+            </button>
+          </div>
+
           <button
             v-if="
-              column.key != 'mbs_item_code' && column.key != 'out_of_pocket'
+              column.key != 'mbs_item_code' &&
+              column.key != 'out_of_pocket' &&
+              column.key != 'actions'
             "
             role="button"
             @click="handleEditFee(item.id, column.key, item[column.key])"
-            class="text-muted fw-bold bg-transparent border-0 w-100"
+            class="text-primary fw-bold bg-transparent border-0 w-100 d-flex align-items-center justify-content-center edit-item"
           >
-            {{
-              convertToCurrency(
-                (item[column.key] == null ? item.amount : item[column.key]) /
-                  100
-              )
-            }}
+            <p class="m-0 p-0 ps-6">
+              {{
+                convertToCurrency(
+                  (item[column.key] == null ? item.amount : item[column.key]) /
+                    100
+                )
+              }}
+            </p>
+
+            <span class="svg-icon svg-icon-2 m-0 ms-2 p-0">
+              <InlineSVG icon="pencil" />
+            </span>
           </button>
         </template>
       </Datatable>
@@ -121,6 +144,14 @@
 <style>
 th > div {
   text-align: center;
+}
+
+.edit-item > span {
+  visibility: hidden;
+}
+
+.edit-item:hover > span {
+  visibility: visible;
 }
 </style>
 
@@ -202,6 +233,7 @@ export default defineComponent({
           sortable: false,
         },
       ];
+
       usedHealthFunds.value.map((h) => {
         list.push({
           code: h.code,
@@ -210,6 +242,14 @@ export default defineComponent({
           sortable: false,
         });
       });
+
+      list.push({
+        code: "actions",
+        key: "actions",
+        name: "Actions",
+        sortable: false,
+      });
+
       tableHeader.value = list;
     });
 
@@ -274,11 +314,11 @@ export default defineComponent({
       return name.join(" - ");
     };
 
-    const handleAddScheduleFee = () => {
+    const handleAddScheduleFee = (item) => {
       selectedFee.value = {
         health_fund_code: "",
         amount: 0,
-        schedule_item_id: null,
+        schedule_item_id: item.id,
         mode: "add",
       };
 

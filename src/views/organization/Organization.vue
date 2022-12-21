@@ -9,13 +9,17 @@
     >
       <div class="row mt-10 me-5 ms-5">
         <div class="col-sm-12">
-          <div class="fv-row mb-7">
+          <div class="fv-row mb-7 d-flex">
             <el-form-item label="Logo">
               <div class="d-flex">
                 <img
                   alt="Organization Logo"
-                  v-if="formData.logo"
-                  :src="formData.logo"
+                  v-if="showOldLogo && formData.logo"
+                  :src="
+                    formData.logo.trim().startsWith(`blob:`)
+                      ? formData.logo
+                      : `media/avatars/blank.png`
+                  "
                   className="rounded me-2"
                   width="146"
                   height="146"
@@ -25,8 +29,36 @@
                   action="#"
                   ref="uploadRef"
                   list-type="picture-card"
-                  :limit="1"
                   :on-change="handleUploadChange"
+                  :on-remove="handleRemove"
+                  :auto-upload="false"
+                  accept="image/*"
+                >
+                  <em class="fa fa-plus"></em>
+                </el-upload>
+              </div>
+            </el-form-item>
+            <el-form-item label="Document Logo" class="ms-5">
+              <div class="d-flex">
+                <img
+                  alt="Document Logo"
+                  v-if="showOldDocLogo && formData.document_logo"
+                  :src="
+                    formData.document_logo.trim().startsWith(`blob:`)
+                      ? formData.document_logo
+                      : `media/avatars/blank.png`
+                  "
+                  className="rounded me-2"
+                  width="146"
+                  height="146"
+                />
+
+                <el-upload
+                  action="#"
+                  ref="uploadDocRef"
+                  list-type="picture-card"
+                  :on-change="handleDocUploadChange"
+                  :on-remove="handleDocRemove"
                   :auto-upload="false"
                   accept="image/*"
                 >
@@ -183,6 +215,17 @@ import JwtService from "@/core/services/JwtService";
 import { validateAbnAcn } from "@/helpers/helpers";
 import SettingsButton from "@/components/SettingsButton.vue";
 
+export interface IOrganizationSetting {
+  name: string | null;
+  start_time: Date | null;
+  end_time: Date | null;
+  appointment_length: number | null;
+  abn_acn: string | null;
+  logo?: string | null;
+  document_logo?: string | null;
+  ip_whitelist: Array<string>;
+}
+
 export default defineComponent({
   name: "organization-settings",
   components: { SettingsButton },
@@ -191,16 +234,21 @@ export default defineComponent({
     const store = useStore();
     const loading = ref<boolean>(false);
     const initialAppointmentLength = ref<string | null>(null);
-    const logoFile = ref(null);
-    const formData = ref<Record<string, unknown>>({
+    const uploadRef = ref();
+    const uploadDocRef = ref();
+    const formData = ref<IOrganizationSetting>({
       name: null,
       start_time: null,
       end_time: null,
       appointment_length: null,
       abn_acn: null,
       logo: null,
+      document_logo: null,
       ip_whitelist: [] as Array<string>,
     });
+    const submitData = new FormData();
+    const showOldLogo = ref(true);
+    const showOldDocLogo = ref(true);
 
     const rules = ref({
       name: [
@@ -249,25 +297,46 @@ export default defineComponent({
         name: null,
         start_time: null,
         end_time: null,
+        abn_acn: null,
         appointment_length: null,
         ip_whitelist: [] as Array<string>,
       };
     };
 
-    const handleUploadChange = (file) => {
-      logoFile.value = file.raw;
+    const handleUploadChange = (file, uploadFiles) => {
+      while (uploadFiles.length) uploadFiles.pop();
+      uploadFiles.push(file);
+      showOldLogo.value = false;
+      uploadRef.value.clearFiles();
+      submitData.append("logo", file.raw);
     };
 
-    const loadLogoImage = () => {
-      if (formData.value.logo) {
+    const handleDocUploadChange = (file, uploadFiles) => {
+      while (uploadFiles.length) uploadFiles.pop();
+      uploadFiles.push(file);
+      showOldDocLogo.value = false;
+      uploadDocRef.value.clearFiles();
+      submitData.append("document_logo", file.raw);
+    };
+
+    const handleRemove = () => {
+      showOldLogo.value = true;
+    };
+
+    const handleDocRemove = () => {
+      showOldDocLogo.value = true;
+    };
+
+    const loadLogoImage = (logo = "logo") => {
+      if (formData.value[logo]) {
         store
           .dispatch(Actions.FILE.VIEW, {
-            path: formData.value.logo,
+            path: formData.value[logo],
           })
           .then((data) => {
             const blob = new Blob([data], { type: "application/image" });
             const objectUrl = URL.createObjectURL(blob);
-            formData.value.logo = objectUrl;
+            formData.value[logo] = objectUrl;
           })
           .catch(() => {
             console.log("image load error");
@@ -284,16 +353,25 @@ export default defineComponent({
         if (valid) {
           loading.value = true;
 
-          const submitData = {
-            ...formData.value,
-            start_time: moment(formData.value.start_time as Date).format(
-              "HH:mm:ss"
-            ),
-            end_time: moment(formData.value.end_time as Date).format(
-              "HH:mm:ss"
-            ),
-            logo: logoFile.value ?? null,
-          };
+          submitData.append(
+            "start_time",
+            moment(formData.value.start_time as Date).format("HH:mm:ss")
+          );
+          submitData.append(
+            "end_time",
+            moment(formData.value.end_time as Date).format("HH:mm:ss")
+          );
+
+          Object.keys(formData.value).forEach((key) => {
+            if (
+              key != "logo" &&
+              key != "document_logo" &&
+              key != "start_time" &&
+              key != "end_time"
+            ) {
+              submitData.append(key, formData.value[key]);
+            }
+          });
 
           store
             .dispatch(Actions.ORG_ADMIN.ORGANIZATION.SETTINGS.UPDATE, {
@@ -303,15 +381,22 @@ export default defineComponent({
               store.dispatch(Actions.VERIFY_AUTH, {
                 api_token: JwtService.getToken(),
               });
+              showOldLogo.value = true;
+              showOldDocLogo.value = true;
+              uploadRef.value.uploadFiles.pop();
+              uploadDocRef.value.uploadFiles.pop();
             })
             .finally(() => {
+              uploadRef.value.clearFiles();
+              uploadDocRef.value.clearFiles();
               loading.value = false;
             });
         }
       });
     };
-    watchEffect(() => {
-      if (currentUser.value) {
+
+    watch(currentUser, () => {
+      if (currentUser.value.organization) {
         formData.value.name = currentUser.value.organization.name;
         formData.value.abn_acn = currentUser.value.organization.abn_acn;
         formData.value.appointment_length =
@@ -326,17 +411,25 @@ export default defineComponent({
             " " +
             currentUser.value.organization.end_time
         );
-        formData.value.ip_whitelist =
-          currentUser.value.organization.ip_whitelist;
+        formData.value.ip_whitelist = currentUser.value.organization
+          .ip_whitelist
+          ? currentUser.value.organization.ip_whitelist
+          : [];
         initialAppointmentLength.value =
           currentUser.value.organization.appointment_length;
         formData.value.logo = currentUser.value.organization.logo;
+        formData.value.document_logo =
+          currentUser.value.organization.document_logo;
         loadLogoImage();
+        loadLogoImage("document_logo");
       }
     });
 
     onMounted(() => {
       setCurrentPageBreadcrumbs("Organization Settings", ["Settings"]);
+      store.dispatch(Actions.VERIFY_AUTH, {
+        api_token: JwtService.getToken(),
+      });
     });
 
     return {
@@ -345,9 +438,16 @@ export default defineComponent({
       rules,
       submit,
       formRef,
+      uploadRef,
+      uploadDocRef,
       loading,
       initialAppointmentLength,
       handleUploadChange,
+      handleDocUploadChange,
+      handleRemove,
+      handleDocRemove,
+      showOldLogo,
+      showOldDocLogo,
     };
   },
 });

@@ -63,7 +63,6 @@
               />
             </InputWrapper>
             <InputWrapper
-              required
               class="col-12 col-md-6"
               label="Address"
               prop="address"
@@ -323,13 +322,6 @@ export default defineComponent({
         {
           required: true,
           message: "Contact number cannot be blank.",
-          trigger: "change",
-        },
-      ],
-      address: [
-        {
-          required: true,
-          message: "Address cannot be blank.",
           trigger: "change",
         },
       ],

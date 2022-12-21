@@ -153,6 +153,7 @@
         prop="country_of_birth"
       >
         <el-select
+          filterable
           class="w-100"
           v-model="formData.country_of_birth"
           placeholder="Country Of Birth"

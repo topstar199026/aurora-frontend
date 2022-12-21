@@ -24,7 +24,7 @@
           <el-select
             v-model="formData.schedule_item_id"
             placeholder="Select Item"
-            :disabled="!isAdd"
+            disabled
             class="w-100"
           >
             <el-option

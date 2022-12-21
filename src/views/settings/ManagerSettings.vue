@@ -88,8 +88,11 @@
       <div class="card-header">
         <h3 class="card-title">Billing Settings</h3>
       </div>
-      <router-link to="/setting/schedule-fee" class="btn btn-light-primary m-2">
-        Schedule Fees
+      <router-link
+        to="/setting/billing-items"
+        class="btn btn-light-primary m-2"
+      >
+        Billing Items
       </router-link>
     </div>
   </div>

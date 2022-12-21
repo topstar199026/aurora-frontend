@@ -24,18 +24,6 @@
       >
         <template v-slot:cell-name="{ row: appointmentType }">
           <div class="d-flex align-items-center gap-1">
-            <IconButton
-              @click="handleEdit(appointmentType.id)"
-              :iconSRC="icons.pencil"
-              tooltip="Edit appointment type"
-            />
-
-            <IconButton
-              @click="handleDelete(appointmentType.id)"
-              :iconSRC="icons.bin"
-              tooltip="Delete appointment type"
-            />
-
             <span
               class="p-3 text-white"
               :style="{
@@ -54,6 +42,31 @@
           <span class="text-capitalize">{{
             appointmentType.appointment_time
           }}</span>
+        </template>
+        <template v-slot:cell-anesthetist_required="{ row: appointmentType }">
+          <BooleanDisplayIcon :boolean="appointmentType.anesthetist_required" />
+        </template>
+        <template
+          v-slot:cell-collecting_person_required="{ row: appointmentType }"
+        >
+          <BooleanDisplayIcon
+            :boolean="appointmentType.collecting_person_required"
+          />
+        </template>
+        <template v-slot:cell-actions="{ row: appointmentType }">
+          <span class="d-flex flex-row gap-2">
+            <IconButton
+              @click="handleEdit(appointmentType.id)"
+              :iconSRC="icons.pencil"
+              tooltip="Edit appointment type"
+            />
+
+            <IconButton
+              @click="handleDelete(appointmentType.id)"
+              :iconSRC="icons.bin"
+              tooltip="Delete appointment type"
+            />
+          </span>
         </template>
       </Datatable>
     </template>
@@ -74,6 +87,7 @@ import { Actions, Mutations } from "@/store/enums/StoreEnums";
 import IAppointmentType from "@/store/interfaces/IAppointmentType";
 import IScheduleItem from "@/store/interfaces/IScheduleItem";
 import SettingsButton from "@/components/SettingsButton.vue";
+import BooleanDisplayIcon from "@/components/presets/GeneralElements/BooleanDisplayIcon.vue";
 export default defineComponent({
   name: "apt-types",
 
@@ -81,6 +95,7 @@ export default defineComponent({
     Datatable,
     CardSection,
     SettingsButton,
+    BooleanDisplayIcon,
   },
 
   setup() {
@@ -98,8 +113,23 @@ export default defineComponent({
         sortable: true,
       },
       {
-        name: "Appointment Time",
+        name: "Appointment Length",
         key: "appointment_time",
+        sortable: true,
+      },
+      {
+        name: "Anesthetist Required",
+        key: "anesthetist_required",
+        sortable: true,
+      },
+      {
+        name: "Collecting Person Required",
+        key: "collecting_person_required",
+        sortable: true,
+      },
+      {
+        name: "Actions",
+        key: "actions",
         sortable: true,
       },
     ]);
@@ -129,7 +159,8 @@ export default defineComponent({
             cancelButton: "btn btn-light-primary",
           },
         }).then((result) => {
-          if (result.isConfirmed) router.push({ name: "setting-schedule-fee" });
+          if (result.isConfirmed)
+            router.push({ name: "setting-billing-items" });
         });
       }
     };

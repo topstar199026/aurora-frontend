@@ -4,7 +4,8 @@ export const icons = {
   plus:   "media/icons/duotune/arrows/arr075.svg",  // create
   pencil: "media/icons/duotune/art/art005.svg",     // edit
   bin:    "media/icons/duotune/general/gen027.svg",  // delete
-  cross:  "media/icons/duotune/arrows/arr061.svg",   // close 
+  cross:  "media/icons/duotune/arrows/arr061.svg",   // close / no
+  tick: "media/icons/duotune/arrows/arr012.svg",   // tick / yes
   calender: "media/icons/duotune/general/gen014.svg", // Booking nav
   heart_pulse: "media/icons/duotune/medicine/med001.svg", // Patient nav
   credit_card: "media/icons/duotune/finance/fin002.svg", // Billing nav
@@ -21,6 +22,8 @@ export const icons = {
   next: "media/icons/duotune/arrows/arr064.svg", // Next
   location_pin: "media/icons/duotune/general/gen018.svg", // specialist provider no
   broken_chain: "media/icons/duotune/coding/cod008.svg", // reset password
+
+
 };
 
 export default icons;
