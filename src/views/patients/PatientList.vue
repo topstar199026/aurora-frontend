@@ -1,5 +1,18 @@
 <template>
   <div class="card w-xxl-75 m-auto">
+    <div class="card-header p-5">
+      <button
+        type="button"
+        class="text-nowrap btn btn-light-primary ms-auto"
+        :disabled="loading"
+        @click.prevent="handleAddPatient"
+      >
+        <span class="svg-icon svg-icon-2">
+          <InlineSVG icon="plus" />
+        </span>
+        Add Patient
+      </button>
+    </div>
     <div class="card-header border-0 p-5">
       <div class="card border border-dashed border-primary w-100">
         <div class="card-body">
@@ -248,6 +261,10 @@ export default defineComponent({
       router.push({ name: "booking-dashboard" });
     };
 
+    const handleAddPatient = () => {
+      router.push({ name: "add-patient" });
+    };
+
     onMounted(() => {
       setCurrentPageBreadcrumbs("Patients", []);
     });
@@ -262,6 +279,7 @@ export default defineComponent({
       clearFilters,
       loading,
       userRole,
+      handleAddPatient,
     };
   },
 });

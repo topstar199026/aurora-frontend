@@ -133,7 +133,7 @@ export default defineComponent({
         .format("HH:mm:ss")
         .toString();
       calendarOptions.value = {
-        schedulerLicenseKey: "CC-Attribution-NonCommercial-NoDerivatives",
+        schedulerLicenseKey: process.env.VUE_APP_FULL_CALENDER_LICENSE_KEY,
         plugins: [
           dayGridPlugin,
           timeGridPlugin,

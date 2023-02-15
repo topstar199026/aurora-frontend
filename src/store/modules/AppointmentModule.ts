@@ -445,4 +445,20 @@ export default class AppointmentModule extends VuexModule implements AptInfo {
       this.context.commit(Mutations.PURGE_AUTH);
     }
   }
+
+  @Action
+  [AppointmentActions.RESEND_MESSAGE](params) {
+    if (JwtService.getToken()) {
+      ApiService.setHeader();
+      return ApiService.get(`appointments/${params.id}/resend-message`)
+        .then(({ data }) => {
+          return displaySuccessToast(data.message);
+        })
+        .catch(({ response }) => {
+          return displayServerError(response, "Resend Confirm Message");
+        });
+    } else {
+      this.context.commit(Mutations.PURGE_AUTH);
+    }
+  }
 }

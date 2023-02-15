@@ -92,7 +92,7 @@ export default class HRMModule
   [HRMActions.SCHEDULE_TEMPLATE.LIST]() {
     if (JwtService.getToken()) {
       ApiService.setHeader();
-      ApiService.query("hrm/schedule-template", {})
+      ApiService.get("hrm/schedule-template")
         .then(({ data }) => {
           this.context.commit(HRMMutations.SCHEDULE.SET_LIST, data.data);
           return data.data;

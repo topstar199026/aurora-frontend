@@ -200,8 +200,8 @@
                         :prop="'restriction-' + index"
                         v-if="
                           formData.role_id == 5 &&
-                          (day.restriction == 'NONE' ||
-                            day.restriction == 'PROCEDURE')
+                          (day.restriction === 'NONE' ||
+                            day.restriction === 'PROCEDURE')
                         "
                       >
                         <el-select
@@ -372,7 +372,7 @@ export default defineComponent({
       ],
     });
 
-    const employeeList = computed(() => store.getters.employeeList);
+    const employeeList = computed(() => store.getters.hrmScheduleList);
     const schedule = computed(() => store.getters.hrmScheduleSelected);
     const timeslots = computed(() => store.getters.hrmSelectedScheduleList);
     const anesthetists = computed(() => store.getters.hrmAnesthetist);
@@ -402,14 +402,42 @@ export default defineComponent({
     const handleDeleteTimeslot = (index) => {
       deleteTimeslots.value.push(formData.value.timeslots[index].id);
       formData.value.timeslots = formData.value.timeslots.filter(
-        (t, i) => i != index
+        (t, i) => i !== index
       );
+    };
+
+    const validateFormData = (formData) => {
+      let result = true;
+      if (
+        formData.value.timeslots.length === 0 &&
+        deleteTimeslots.value.length <= 0
+      ) {
+        ElMessage.error("Please add timeslot first.");
+        return false;
+      }
+      formData.value.timeslots.map((t) => {
+        if (t.start_time == null || t.start_time === "") {
+          ElMessage.error("Start time cannot be blank");
+          result = false;
+        } else if (t.end_time == null || t.end_time === "") {
+          ElMessage.error("End time cannot be blank");
+          result = false;
+        } else if (t.category == null || t.category === "") {
+          ElMessage.error("Please select a type");
+          result = false;
+        } else if (t.clinic_id == null || t.clinic_id === "") {
+          ElMessage.error("Please select a clinic");
+          result = false;
+        }
+      });
+      return result;
     };
 
     const submit = () => {
       if (!formRef.value) {
         return;
       }
+      if (!validateFormData(formData)) return;
 
       //validate overlap time range
       let overlap = formData.value.timeslots.filter((t, i) => {
@@ -419,7 +447,7 @@ export default defineComponent({
           tt.start_time += tt.start_time.split(":").length < 3 ? ":00" : "";
           tt.end_time += tt.end_time.split(":").length < 3 ? ":00" : "";
           return (
-            i != ii &&
+            i !== ii &&
             ((tt.start_time > t.start_time && tt.start_time < t.end_time) ||
               (t.start_time > tt.start_time && t.start_time < tt.end_time) ||
               (tt.end_time > t.start_time && tt.end_time < t.end_time) ||
@@ -453,7 +481,7 @@ export default defineComponent({
             }
           });
           schedule.value.schedule_timeslots.map((t) => {
-            if (t.week_day != schedule.value._day) {
+            if (t.week_day !== schedule.value._day) {
               _timeslots.push(t);
             }
           });
@@ -470,13 +498,9 @@ export default defineComponent({
           store
             .dispatch(schedule.value._submit, formData.value)
             .then(() => {
-              store
-                .dispatch(HRMActions.SCHEDULE_TEMPLATE.LIST, {
-                  clinic_id: formData.value.clinic_id,
-                })
-                .then(() => {
-                  loading.value = false;
-                });
+              store.dispatch(HRMActions.SCHEDULE_TEMPLATE.LIST).then(() => {
+                loading.value = false;
+              });
             })
             .catch(({ response }) => {
               loading.value = false;
@@ -490,12 +514,12 @@ export default defineComponent({
 
     const verifyAnesthetist = (data) => {
       let filteredAnesthetists = [];
-      if (data.restriction == "PROCEDURE" || data.restriction == "NONE") {
+      if (data.restriction === "PROCEDURE" || data.restriction === "NONE") {
         anesthetists.value.forEach((anesthetist) => {
           anesthetist.isDisabled = true;
           anesthetist.schedule_timeslots.map((slot) => {
             if (
-              slot.clinic_id == data.clinic_id &&
+              slot.clinic_id === data.clinic_id &&
               !filteredAnesthetists.includes(anesthetist) &&
               slot.start_time <= data.start_time &&
               slot.end_time >= data.end_time

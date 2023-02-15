@@ -56,6 +56,7 @@ const AppointmentActions = {
       NEXT_APT: "searchNextApt",
     },
   },
+  RESEND_MESSAGE: 'resendConfirmMessage',
 
 };
 
@@ -101,7 +102,7 @@ const AppointmentMutations = {
     LIST: "setProcedureApprovalsList",
     DATA: "setProcedureApproval",
   },
-  SET_MONTH_AVAILABILITIES : 'setMonthAvailabilities'
+  SET_MONTH_AVAILABILITIES : 'setMonthAvailabilities',
 
 };
 

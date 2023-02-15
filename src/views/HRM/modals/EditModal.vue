@@ -494,14 +494,14 @@ export default defineComponent({
       let isShiftDeleted = false;
       orginalTimeslots.value.map((oSlot) => {
         formData.value.timeslots.map((slot) => {
-          if (slot.id === oSlot.id && slot.status == "PUBLISHED") {
+          if (slot.id === oSlot.id && slot.status === "PUBLISHED") {
             if (JSON.stringify(slot) !== JSON.stringify(oSlot)) {
               isShiftEdited = true;
               notifyUsers.value.push(slot.user_id);
             }
           }
         });
-        if (oSlot.status == "PUBLISHED") {
+        if (oSlot.status === "PUBLISHED") {
           const found = formData.value.timeslots.find(
             ({ id }) => id == oSlot.id
           );
@@ -540,20 +540,20 @@ export default defineComponent({
         return false;
       }
       formData.value.timeslots.map((t) => {
-        if (t.start_time == null || t.start_time == "") {
+        if (t.start_time == null || t.start_time === "") {
           ElMessage.error("Start time cannot be blank");
           result = false;
-        } else if (t.end_time == null || t.end_time == "") {
+        } else if (t.end_time == null || t.end_time === "") {
           ElMessage.error("End time cannot be blank");
           result = false;
-        } else if (t.clinic_id == null || t.clinic_id == "") {
+        } else if (t.clinic_id == null || t.clinic_id === "") {
           ElMessage.error("Please select a clinic");
           result = false;
-        } else if (t.category == null || t.category == "") {
+        } else if (t.category == null || t.category === "") {
           ElMessage.error("Please select a category");
           result = false;
         } else if (!t.id) {
-          if (t.status == null || t.status == "") {
+          if (t.status == null || t.status === "") {
             ElMessage.error("Please select a status");
             result = false;
           }
@@ -576,7 +576,7 @@ export default defineComponent({
           tt.start_time += tt.start_time.split(":").length < 3 ? ":00" : "";
           tt.end_time += tt.end_time.split(":").length < 3 ? ":00" : "";
           return (
-            i != ii &&
+            i !== ii &&
             ((tt.start_time > t.start_time && tt.start_time < t.end_time) ||
               (t.start_time > tt.start_time && t.start_time < tt.end_time) ||
               (tt.end_time > t.start_time && tt.end_time < t.end_time) ||

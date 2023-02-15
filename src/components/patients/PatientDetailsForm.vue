@@ -228,14 +228,35 @@
     </div>
 
     <div class="d-flex justify-content-end">
-      <button type="submit" class="btn btn-primary w-25 m-3">
-        {{ buttonText }}
+      <button
+        v-if="showCancel"
+        type="button"
+        @click.prevent="cancel"
+        class="btn btn-light m-3"
+      >
+        Cancel
+      </button>
+
+      <button
+        type="submit"
+        :data-kt-indicator="loading ? 'on' : null"
+        class="btn btn-primary m-3"
+      >
+        <span v-if="!loading" class="indicator-label">
+          {{ buttonText }}
+        </span>
+        <span v-if="loading" class="indicator-progress">
+          Please wait...
+          <span
+            class="spinner-border spinner-border-sm align-middle ms-2"
+          ></span>
+        </span>
       </button>
     </div>
   </el-form>
 </template>
 <script lang="ts">
-import { defineComponent, ref, PropType, watch } from "vue";
+import { defineComponent, ref, PropType, watch, computed } from "vue";
 import { PatientActions } from "@/store/enums/StorePatientEnums";
 import maritalStatus from "@/core/data/marital-status";
 import titles from "@/core/data/titles";
@@ -247,6 +268,7 @@ import { mask } from "vue-the-mask";
 import { validatePhone } from "@/helpers/helpers";
 import IPatient from "@/store/interfaces/IPatient";
 import store from "@/store";
+import moment from "moment";
 
 export default defineComponent({
   name: "patient-details-form",
@@ -274,11 +296,21 @@ export default defineComponent({
       required: false,
       type: Function,
     },
+    onCancel: {
+      required: false,
+      type: Function,
+    },
+    create: {
+      required: false,
+      type: Boolean,
+      default: false,
+    },
   },
   setup(props) {
     const formRef = ref<null | HTMLFormElement>(null);
     const formData = ref<IPatient>(props.patient);
     const loading = ref<boolean>(false);
+    const showCancel = computed(() => props.onCancel);
 
     watch(props, () => {
       formData.value = props.patient;
@@ -362,6 +394,10 @@ export default defineComponent({
       ],
     });
 
+    const formatDate = (date) => {
+      return moment(date).format("YYYY-MM-DD").toString();
+    };
+
     const handleAddressChange = (e) => {
       formData.value.address = e.formatted_address;
       const postCodeData = e.address_components.filter((data) => {
@@ -379,17 +415,39 @@ export default defineComponent({
         return;
       }
 
+      let action = PatientActions.UPDATE;
+
+      if (props.create) {
+        action = PatientActions.CREATE;
+      }
+
+      const submitData = {
+        ...formData.value,
+        date_of_birth: formatDate(formData.value.date_of_birth),
+      };
+
       formRef.value.validate((valid) => {
         if (valid) {
           loading.value = true;
-          store.dispatch(PatientActions.UPDATE, formData.value).finally(() => {
-            loading.value = false;
-            if (props.onSubmitExtras) {
-              props.onSubmitExtras();
-            }
-          });
+          store
+            .dispatch(action, submitData)
+            .then(() => {
+              if (props.onSubmitExtras) {
+                props.onSubmitExtras();
+              }
+            })
+            .finally(() => {
+              loading.value = false;
+            });
         }
       });
+    };
+
+    const cancel = () => {
+      console.log("Sean");
+      if (props.onCancel) {
+        props.onCancel();
+      }
     };
 
     return {
@@ -403,6 +461,9 @@ export default defineComponent({
       maritalStatus,
       handleAddressChange,
       submit,
+      cancel,
+      showCancel,
+      loading,
     };
   },
 });

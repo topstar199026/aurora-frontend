@@ -46,6 +46,11 @@ const PatientRoutes = [
     name: "patients-document",
     component: () => import("@/views/patients/CreateDocument.vue"),
   },
+  {
+    path: "/patients/add",
+    name: "add-patient",
+    component: () => import("@/views/patients/AddPatient.vue"),
+  },
 ];
 
 export default PatientRoutes;

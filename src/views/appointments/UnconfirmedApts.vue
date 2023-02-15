@@ -7,6 +7,8 @@
     :actionConfirm="handleConfirmAppointment"
     actionCancelTitle="CANCEL"
     :actionCancel="handleCancelAppointment"
+    actionResendMessageTitle="Resend Message"
+    :actionResendMessage="handleResendMessage"
   >
   </AppointmentList>
 </template>
@@ -18,6 +20,7 @@ import { setCurrentPageBreadcrumbs } from "@/core/helpers/breadcrumb";
 import AppointmentList from "@/views/appointments/AppointmentList.vue";
 import { AppointmentActions } from "@/store/enums/StoreAppointmentEnums";
 import Swal from "sweetalert2/dist/sweetalert2.min.js";
+import moment from "moment";
 
 export default defineComponent({
   name: "admin-main",
@@ -29,7 +32,49 @@ export default defineComponent({
       setCurrentPageBreadcrumbs("Unconfirmed Appointments", ["Booking"]);
     });
 
-    const handleConfirmAppointment = async (appointmentId) => {
+    const getData = (dateRange) => {
+      let now = moment();
+      let data = {};
+      switch (dateRange) {
+        case "Today": {
+          data = { date: now.format() };
+          break;
+        }
+        case "All": {
+          data = {
+            after_date: now.format(),
+          };
+          break;
+        }
+        case "Week": {
+          data = {
+            after_date: now.format(),
+            before_date: now.endOf("week").format(),
+          };
+          break;
+        }
+        case "Month": {
+          data = {
+            after_date: now.format(),
+            before_date: now.endOf("month").format(),
+          };
+          break;
+        }
+        case "Fortnight": {
+          data = {
+            after_date: now.format(),
+            before_date: now.add(1, "week").endOf("week").format(),
+          };
+          break;
+        }
+        default:
+          break;
+      }
+      return data;
+    };
+
+    const handleConfirmAppointment = async (appointmentId, dateRange) => {
+      let dateRangeFilter = getData(dateRange);
       const html =
         "<h3>Are you sure you would like to confirm this appointment?</h3><br/>";
       Swal.fire({
@@ -51,13 +96,15 @@ export default defineComponent({
             .then(() => {
               store.dispatch(AppointmentActions.LIST, {
                 confirmation_status: "PENDING",
+                ...dateRangeFilter,
               });
             });
         },
       });
     };
 
-    const handleCancelAppointment = (appointmentId) => {
+    const handleCancelAppointment = (appointmentId, dateRange) => {
+      let dateRangeFilter = getData(dateRange);
       const html =
         "<h3>Are you sure you want to cancel?</h3><br/>" +
         '<h4><input type="checkbox" id="chkMissed"> ' +
@@ -89,16 +136,22 @@ export default defineComponent({
             .then(() => {
               store.dispatch(AppointmentActions.LIST, {
                 confirmation_status: "PENDING",
+                ...dateRangeFilter,
               });
             });
         },
       });
     };
 
+    const handleResendMessage = (appointmentId) => {
+      store.dispatch(AppointmentActions.RESEND_MESSAGE, { id: appointmentId });
+    };
+
     return {
       AppointmentList,
       handleConfirmAppointment,
       handleCancelAppointment,
+      handleResendMessage,
     };
   },
 });

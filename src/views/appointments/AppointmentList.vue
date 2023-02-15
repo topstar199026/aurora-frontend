@@ -40,22 +40,31 @@
         {{ item.confirmation_status_reason }}
       </template>
       <template
-        v-if="actionConfirmTitle || actionCancelTitle"
+        v-if="
+          actionConfirmTitle || actionCancelTitle || actionResendMessageTitle
+        "
         v-slot:cell-actions="{ row: item }"
       >
         <button
           v-if="actionConfirmTitle"
-          @click="actionConfirm(item.id)"
+          @click="actionConfirm(item.id, dateRangeFilter)"
           class="btn btn-bg-light btn-active-color-primary btn-sm me-1"
         >
           {{ actionConfirmTitle }}
         </button>
         <button
           v-if="actionCancelTitle"
-          @click="actionCancel(item.id)"
+          @click="actionCancel(item.id, dateRangeFilter)"
           class="btn btn-bg-light btn-active-color-primary btn-sm me-1"
         >
           {{ actionCancelTitle }}
+        </button>
+        <button
+          v-if="actionResendMessageTitle"
+          @click="actionResendMessage(item.id)"
+          class="btn btn-bg-light btn-active-color-primary btn-sm me-1"
+        >
+          {{ actionResendMessageTitle }}
         </button>
       </template>
     </Datatable>
@@ -89,6 +98,8 @@ export default defineComponent({
     actionConfirm: { require: false },
     actionCancelTitle: { require: false },
     actionCancel: { require: false },
+    actionResendMessageTitle: { require: false },
+    actionResendMessage: { require: false },
   },
   setup(props) {
     const store = useStore();
@@ -131,7 +142,11 @@ export default defineComponent({
         loading.value = false;
       });
 
-      if (props.actionConfirmTitle || props.actionCancelTitle) {
+      if (
+        props.actionConfirmTitle ||
+        props.actionCancelTitle ||
+        props.actionResendMessageTitle
+      ) {
         tableHeader.value.push({
           name: "Actions",
           key: "actions",
@@ -143,7 +158,6 @@ export default defineComponent({
     watch(dateRangeFilter, () => {
       let now = moment();
       let data = {};
-      console.log(props.params);
       switch (dateRangeFilter.value) {
         case "Today": {
           data = { ...props.params, date: now.format() };

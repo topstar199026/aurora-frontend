@@ -124,6 +124,24 @@ export default class PatientsModule extends VuexModule implements PatientsInfo {
   }
 
   @Action
+  [PatientActions.CREATE](patient) {
+    if (JwtService.getToken()) {
+      ApiService.setHeader();
+      return ApiService.post("patients", patient)
+        .then(({ data }) => {
+          displaySuccessToast("Patient created successfully");
+          return Promise.resolve();
+        })
+        .catch(({ response }) => {
+          displayServerError(response, "Creating a patient");
+          return Promise.reject();
+        });
+    } else {
+      this.context.commit(Mutations.PURGE_AUTH);
+    }
+  }
+
+  @Action
   [PatientActions.UPDATE](patient) {
     if (JwtService.getToken()) {
       ApiService.setHeader();
